@@ -309,9 +309,9 @@ function Me.RefreshChargesFrame( tooltip, color )
 	DiceMasterChargesFrame.bar:SetFilled( Profile.charges.count ) 
 	
 	if Profile.charges.enable and not Me.db.char.hidepanel then
-		DiceMasterChargesFrame.bar:Show()
+		DiceMasterChargesFrame:Show()
 	else
-		DiceMasterChargesFrame.bar:Hide()
+		DiceMasterChargesFrame:Hide()
 	end
 	
 	if tooltip then
