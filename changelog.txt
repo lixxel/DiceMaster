@@ -1,3 +1,7 @@
+#### 4.3.1
+ - Better backward compatbility.
+ - Dice AceComm messages.
+
 #### 4.2
  - Simplified the trait editor UIParent
  - Consolidated the health bar to the charges bar
