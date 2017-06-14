@@ -214,7 +214,7 @@ local function OnSendChatMessage( text, chatType, lang, channel )
 		-- nothing to worry about
 		return 
 	end 
-	
+
 	local bc = BROADCAST_CHAT_TYPES[chatType]
 	if bc then
 		SendTraits( traits, bc, channel )

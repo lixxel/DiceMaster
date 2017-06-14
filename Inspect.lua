@@ -279,7 +279,7 @@ function Me.Inspect_SendTrait( index, dist, channel )
 		t = trait.icon;
 	})
 	
-	Me:SendCommMessage( "DCM4", msg, dist, channel, "NORMAL" )
+	Me:SendCommMessage( "DCM4", msg, dist, tostring(channel), "NORMAL" )
 end
 
 local sendStatusQueue   = {}
@@ -377,7 +377,7 @@ end
 -- Received TRAIT data.
 --
 function Me.Inspect_OnTraitMessage( data, dist, sender )
-
+	
 	-- Ignore our own data.
 	if sender == UnitName( "player" ) then return end
 	
