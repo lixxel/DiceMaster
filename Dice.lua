@@ -112,10 +112,15 @@ local function PrintDiceMasterRoll( name, count, sides, mod, rolls, broadcast )
 			SendChatMessage( "<DiceMaster> " .. name .. " rolls " .. rollstring, channel )
 		end
 		
-		PrintSystemMessage( name .. " rolls " .. rollstring )
+		local msg =  name .. " rolls " .. rollstring
+		
+		PrintSystemMessage( msg )
+		Me:SendMessage( "DiceMaster4_Roll", name, msg )
 		
 	else
-		PrintSystemMessage( "You roll " .. rollstring )
+		local msg = "You roll " .. rollstring
+		PrintSystemMessage( msg )
+		Me:SendMessage( "DiceMaster4_Roll", name, msg )
 	end 
 end
 
@@ -133,6 +138,7 @@ local function PrintRoll( data )
 	
 	local msg = string.format( RANDOM_ROLL_RESULT, data.name, data.roll, data.min, data.max )
 	PrintSystemMessage( msg )
+	Me:SendMessage( "DiceMaster4_Roll", data.name, msg )
 end
 
 -------------------------------------------------------------------------------
