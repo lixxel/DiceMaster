@@ -128,8 +128,10 @@ function Me.Inspect_Refresh( status, trait )
 		DiceMasterInspectFrame.traits[trait]:SetPlayerTrait( Me.inspectName, trait )
 	end 
 	
-	if store.hasDM4 then
-		DiceMasterInspectFrame:Show()
+	if not Me.db.char.hidepanel or not Me.db.global.hideInspect then
+		if store.hasDM4 then
+			DiceMasterInspectFrame:Show()
+		end
 	end
 end
 

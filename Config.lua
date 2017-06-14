@@ -14,7 +14,8 @@ local VERSION = 1
 local DB_DEFAULTS = {
 	
 	global = {
-		version = nil;
+		version     = nil;
+		hideInspect = false; -- hide inspect frame when panel is hidden
 	};
 	
 	char = { 
@@ -94,6 +95,20 @@ Me.configOptions = {
 				Me.ApplyUiScale()
 			end;
 			get = function( info ) return Me.db.char.uiScale end;
+		};
+		
+		hideInspect = {
+			order = 6;
+			name  = "Hide Inspect Frame When Hidden";
+			desc  = "Hide the trait inspect frame when the DiceMaster panel is hidden.";
+			type  = "toggle";
+			width = "full";
+			set = function( info, val )
+				Me.db.global.hideInspect = val
+				Me.Inspect_Open( Me.inspectName )
+				-- refresh hidden status.
+			end;
+			get = function( info ) return Me.db.global.hideInspect end;
 		};
 	
 		enableCharges = {
