@@ -5,6 +5,8 @@
 local Me = DiceMaster4
 local Profile = Me.Profile
 
+local DEFAULT_ICON = "Interface/Icons/inv_misc_questionmark"
+
 --
 -- Requesting and reading trait data for other players.
 -- Also can be used seamlessly for the player's own traits.
@@ -39,10 +41,10 @@ Me.inspectData[UnitName("player")] = self_inspect
 -- Placeholder trait for data transfers.
 --
 local WAITING_FOR_TRAIT = {
-	icon   = "Interface/Icons/inv_misc_questionmark";
-	name   = "";
-	serial = 0; 
-	desc   = "Waiting for data from player.";
+	icon    = DEFAULT_ICON;
+	name    = "";
+	serial  = 0; 
+	desc    = "Waiting for data from player.";
 	enchant = "";
 }
 
@@ -378,30 +380,32 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 	if sender == UnitName( "player" ) then return end
 	
 	-- sanitize message
-	if not data.i or not data.s or not data.n or not data.u or not data.d or not data.t or not data.e then
-		return -- malformed message
+	if not data.i or not data.s then
+		-- we require index and serial in message
+		return
 	end
 	
 	data.i = tonumber( data.i )
 	data.s = tonumber( data.s )
-	data.u = tostring( data.u )
-	data.n = tostring( data.n )
-	data.d = tostring( data.d )
-	data.e = tostring( data.e )
-	data.t = tostring( data.t )
+	data.u = tostring( data.u or "UNKNOWN" ) 
+	data.n = tostring( data.n or "<Unknown name.>" )
+	data.d = tostring( data.d or "" )
+	data.e = tostring( data.e or "" )
+	data.t = tostring( data.t or DEFAULT_ICON )
 	
-	if not data.i or not data.s or not data.u or data.i < 1 or data.i > Me.traitCount then 
+	if not data.i or not data.s or data.i < 1 or data.i > Me.traitCount then 
+		-- another pass after number sanitization
 		return 
 	end
 	
 	-- store in database
 	Me.inspectData[sender].traits[data.i] = {
-		serial = data.s;
-		name   = data.n;
-		usage  = data.u;
-		desc   = data.d;
+		serial  = data.s;
+		name    = data.n;
+		usage   = data.u;
+		desc    = data.d;
 		enchant = data.e;
-		icon   = data.t;
+		icon    = data.t;
 	}
 	
 	-- we flag them as having dicemaster once we receive their first message

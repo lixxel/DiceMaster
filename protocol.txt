@@ -1,3 +1,4 @@
+@tabstop 8
  
 PROTOCOL MESSAGES
 -------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ Data:
 	n	string	Trait name.
 	u	string	Trait usage.
 	d	string	Trait description.
-	e   string  Trait enchantment.
+	e	string	Trait enchantment.
 	t	string	Trait icon texture.
 
 -------------------------------------------------------------------------------
