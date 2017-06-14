@@ -1,0 +1,213 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+ 
+  <!-- Trait editor frame. -->
+  
+  <Frame name="DiceMasterTraitEditor" enableMouse="true" movable="true" resizable="false" frameStrata="DIALOG" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate">
+    <Size x="262" y="327"/>
+    <Anchors>
+      <Anchor point="TOP" x="0" y="-90" />
+    </Anchors>
+    
+    <Layers>
+      
+	  <Layer level="BACKGROUND" textureSubLevel="-4">
+			<Texture name="$parentBg" file="Interface/TradeSkillFrame/Tradeskills" parentKey="Bg">
+				<TexCoords left="0" right="0.294921875" top="0" bottom="0.751953125" />
+				<Anchors>
+					<Anchor point="TOPLEFT" x="4" y="-60" />
+					<Anchor point="BOTTOMRIGHT" x="-6" y="26" />
+				</Anchors>
+			</Texture>
+	  </Layer>
+    </Layers>
+    
+    <Scripts>
+      <OnLoad>
+        
+        self:SetScale(0.8)
+		SetPortraitToTexture( self.portrait, "Interface/AddOns/DiceMaster/Icons/WH_RuneDice" )
+        DiceMaster4.TraitEditor_OnLoad( self )
+      </OnLoad>
+      <OnShow>
+        
+        -- opening sound
+        PlaySoundKitID(839)
+      </OnShow>
+    </Scripts>
+    
+    <Frames>
+      
+      <!-- Rank icon, bottom right of portrait. -->
+      <Frame name="$parentRankIcon" parentKey="rankIcon">
+        <Size x="24" y="24"/>
+				<Anchors>
+          <Anchor point="TOPLEFT" x="32" y="-32"/> 
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+          
+            <!-- This is adjusted at runtime. -->
+						<Texture parentKey="icon" setAllPoints="true">  
+						</Texture>
+					</Layer>
+				</Layers>
+      </Frame>
+      
+      <!-- Icon select button, to the left of the trait description. -->
+      <DiceMasterTraitButton name="$parentTraitIconButton" parentKey="traitIcon" >
+        <Size x="42" y="42"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" x="24" y="-80"/> 
+		</Anchors>
+        <Scripts>
+          <OnLoad>
+            
+            self:SetCustomTooltip( "|cFFFFD100Click to select an icon for this trait." )
+            
+          </OnLoad>
+          <OnClick>
+            PlaySoundKitID(54132)
+            DiceMaster4.IconPicker_Open()
+          </OnClick>
+        </Scripts>
+      </DiceMasterTraitButton>
+      
+      <!-- Trait name editbox. -->
+	  <EditBox name="$parentTraitName" parentKey="traitName" font="GameFontNormalMed2">
+		<Size x="175" y="12"/> 
+		<Anchors>
+		  <Anchor point="TOPLEFT" x="75" y="-88"/> 
+		</Anchors>
+		<Scripts> 
+		  <OnLoad>
+			self:SetAutoFocus( false )
+			self:SetTextColor( 1, 1, 1 )
+			self:SetMaxLetters( 40 )
+		  </OnLoad>
+		  <OnEditFocusLost>
+			DiceMaster4.TraitEditor_SaveName()
+		  </OnEditFocusLost>
+		  <OnEscapePressed function="EditBox_ClearFocus"/>
+		  <OnEnterPressed function="EditBox_ClearFocus"/>
+		</Scripts>
+	  </EditBox>
+      
+      <Button name="$parentTraitUsage" parentKey="traitUsage" enableMouse="true">
+        <Size x="175" y="12"/>
+        <Anchors>
+          <Anchor point="TOPLEFT" x="75" y="-100"/> 
+        </Anchors>
+        <Layers>
+          <Layer>
+            <FontString parentKey="text" inherits="GameFontHighlightSmall2" justifyH="left" setallpoints="true">
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnLoad> 
+            DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click to toggle the number of uses this trait has." )
+            self:RegisterForClicks( "LeftButtonDown", "RightButtonDown" )
+          </OnLoad>
+          <OnClick>
+            DiceMaster4.TraitEditor_ChangeUsage( button )
+          </OnClick>
+        </Scripts>
+      </Button>
+      
+      <!-- Scroll frame for the trait description editing. -->
+      <ScrollFrame parentKey="scrollFrame">
+				<Anchors>
+          <Anchor point="TOPLEFT" x="24" y="-140"/> 
+          <Anchor point="BOTTOMRIGHT" relativePoint="TOPLEFT" x="245" y="-299"/> 
+				</Anchors>
+        
+        <Scripts>
+          <OnLoad>
+            self:EnableMouseWheel(true)
+            self:SetScript( "OnMouseWheel", function( self, delta )
+                local min, max = self.scrollbar:GetMinMaxValues()
+                local speed = 10
+                local a = self:GetVerticalScroll() - delta * speed
+                a = math.max( a, min )
+                a = math.min( a, max )
+                self:SetVerticalScroll( a )
+				self:UpdateScrollChildRect()
+                self.scrollbar:SetValue( a ) 
+              end)
+          </OnLoad>
+        </Scripts>
+        
+        <Frames>
+        
+          <!-- Scrollbar. -->
+          <Slider parentKey="scrollbar" inherits="UIPanelScrollBarTrimTemplate" >
+            <Anchors>
+              <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-10" y="62"/> 
+              <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="10" y="14"/> 
+            </Anchors>
+            <Layers>
+              <Layer layer="BACKGROUND">
+                <Texture setallpoints="true">
+                  <Color r="0" g="0" b="0" a="0.25"/>
+                </Texture>
+              </Layer>
+            </Layers>
+            <Scripts>
+              <OnLoad>
+                self:SetMinMaxValues(1, 2) 
+                self:SetValueStep(1) 
+                self.scrollStep = 1
+                self:SetValue(1) 
+                self:SetScale(1)
+                self:SetWidth(20) 
+                self:SetScript("OnValueChanged", 
+                  function( self, scrollvalue )
+                    scrollvalue = floor(scrollvalue)
+                    self:GetParent():SetVerticalScroll(scrollvalue) 
+                  end) 
+                self:Hide()
+              </OnLoad>
+            </Scripts>
+          </Slider>  
+
+          <!-- The multiline editbox. -->
+          <EditBox parentKey="descEditor" multiLine="true" font="GameFontHighlightSmall2">
+            
+            <Size x="208" y="12"/>
+            <Anchors>
+              <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="52" y="-100"/>  
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self:SetAutoFocus( false )
+                self:SetTextColor( 1, 0.82, 0 )
+                self:GetParent():SetScrollChild( self )
+                self:SetMaxLetters( 1200 )
+              </OnLoad>
+              
+              <OnTextChanged>
+                local scrollbar = self:GetParent().scrollbar
+                local areaheight = self:GetParent():GetHeight()
+                if self:GetHeight() > areaheight then 
+                  scrollbar:SetMinMaxValues( 1, areaheight )
+                  scrollbar:Show()
+                else 
+                  scrollbar:SetMinMaxValues( 1, 1 )
+                  scrollbar:Hide()
+                end
+              </OnTextChanged>
+              <OnEditFocusLost>
+                DiceMaster4.TraitEditor_SaveDescription()
+              </OnEditFocusLost>
+              
+              <OnEscapePressed function="EditBox_ClearFocus"/>
+            </Scripts>
+          </EditBox>
+        </Frames>
+        
+      </ScrollFrame>
+      
+    </Frames>
+  </Frame>
+  
+</Ui>

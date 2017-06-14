@@ -1,0 +1,64 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+
+  <!-- Frame for showing your charges and adjusting them. -->
+  
+  <Button name="DiceMasterChargesFrame" movable="true" enableMouse="true" frameStrata="MEDIUM" parent="UIParent">
+    
+    <Size x="24" y="12"/>
+    <Anchors>
+      <Anchor point="CENTER" x="0" y="0"/>
+    </Anchors>
+    
+    <!-- thumb that appears to drag -->
+    <HighlightTexture file="Interface/RAIDFRAME/Raid-Move-Down" alphaMode="BLEND"/>
+        
+    <Scripts>
+      <OnLoad>
+        self:SetClampedToScreen( true )
+        self:RegisterForDrag( "LeftButton" )
+        self:SetScript( "OnDragStart", self.StartMoving )
+        self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+        self:SetScale( 1.2 )
+        self:SetUserPlaced( true )
+      </OnLoad>
+    </Scripts>
+    
+    <Frames>
+      
+      <!-- The actual bar. Above is just a window and used for dragging. -->
+      <DiceMasterStatusBar parentKey="bar">
+        
+        <Size x="16" y="16"/>
+        <Anchors>
+          <Anchor point="CENTER" x="0" y="28"/>
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            
+          </OnLoad>
+          <OnMouseDown>
+            DiceMaster4.OnChargesClicked( button )
+          </OnMouseDown>
+        </Scripts>
+      </DiceMasterStatusBar>
+	  <DiceMasterStatusBar parentkey="healthbar">
+        <Size x="160" y="16"/>
+        <Anchors>
+          <Anchor point="CENTER" x="0" y="12"/> 
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            self:SetTexture( "Interface/AddOns/DiceMaster/Texture/health-heart" )
+            self:SetMax( 10 )
+            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, 
+              "Represents the total number of defense roll failures you may endure before you are defeated.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left/Right Click to Change Max>" )
+          </OnLoad>
+          <OnMouseDown>
+            DiceMaster4.OnHealthClicked( button )
+          </OnMouseDown>
+        </Scripts>
+      </DiceMasterStatusBar>
+    </Frames>
+  </Button>
+    
+</Ui>

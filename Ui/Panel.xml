@@ -1,0 +1,129 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+
+  <!-- The Dice Master panel for rolling and opening the trait editor. -->
+  
+  <Frame name="DiceMasterPanel" movable="true" enableMouse="true" frameStrata="MEDIUM" parent="UIParent">
+    
+    <Size x="100" y="48"/>
+    <Anchors>
+      <Anchor point="TOP" x="0" y="-64"/>
+    </Anchors>
+    <Layers>
+      <Layer level="BACKGROUND">
+      
+        <!-- Panel texture -->
+        <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
+          <Size x="192" y="48" />
+          <Anchors>
+            <Anchor point="TOP" x="0" y="0"/>
+          </Anchors>
+          <TexCoords left="0" right="1" top="0" bottom="0.5" />
+        </Texture>
+        
+      </Layer>
+      
+      <Layer level="OVERLAY">
+      
+        <!-- Traits button -->
+        <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
+          <Size x="48" y="48" />
+          <Anchors>
+            <Anchor point="TOP" x="-22" y="-21"/>
+          </Anchors>
+          <TexCoords left="0.25" right="0.5" top="0.5" bottom="1" />
+        </Texture>
+        
+        <!-- Roll button -->
+        <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
+          <Size x="48" y="48" />
+          <Anchors>
+            <Anchor point="TOP" x="14" y="-21"/>
+          </Anchors>
+          <TexCoords left="0" right="0.25" top="0.5" bottom="1" />
+        </Texture>
+      </Layer>
+    </Layers>
+    
+    <Scripts>
+      <OnLoad>
+        self:SetUserPlaced( true )
+        self:SetClampedToScreen(true)
+        self:RegisterForDrag("LeftButton")
+        self:SetScript("OnDragStart", self.StartMoving)
+        self:SetScript("OnDragStop", self.StopMovingOrSizing)
+        self:SetScale(1)
+         
+        DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click and drag to move this frame around the interface. Highlight the dice value to change it. Dice must follow the standard d20 format." )
+      </OnLoad>
+    </Scripts>
+    
+    <Frames>
+    
+      <!-- Dice format editbox. -->
+      <EditBox name="$parentDice" parentKey="dice" font="DiceMasterFontExtraThicc">
+      
+        <Size x="80" y="14" />
+        <Anchors>
+          <Anchor point="TOP" x="-4" y="-15" />
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            self:SetMaxLetters( 8 )
+            self:SetJustifyH( "CENTER" )
+            self:SetTextColor( 0.961, 0.89, 0.38 );
+            self:SetText( "1D20+0" )
+            self:SetAutoFocus(false);
+          </OnLoad>
+          
+          <OnEscapePressed function="EditBox_ClearFocus"/>
+        </Scripts>
+      </EditBox>
+      
+      <!-- Traits/book button. -->
+      <Button parentKey="traits">
+        <Size x="32" y="32"/>
+        <Anchors>
+          <Anchor point="TOP" x="-22" y="-30"/>
+        </Anchors>
+        
+        <HighlightTexture file="Interface/UNITPOWERBARALT/PandarenTrainingLarge_Circular_Flash" alphaMode="ADD" /> 
+        
+        <Scripts>
+          <OnLoad>
+            DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click to open your Traits Editor." )
+          </OnLoad>
+          <OnClick>
+            DiceMaster4.TraitButtonClicked()
+          </OnClick>
+        </Scripts>
+        
+      </Button>
+      
+      <!-- Dice button. -->
+      <Button parentKey="roll">
+        <Size x="32" y="32"/>
+        <Anchors>
+          <Anchor point="TOP" x="14" y="-30"/>
+        </Anchors>
+        
+        <HighlightTexture file="Interface/UNITPOWERBARALT/PandarenTrainingLarge_Circular_Flash" alphaMode="ADD" /> 
+        
+        <Scripts>
+          <OnEnter>
+            
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:AddLine( "|cFFFFD100Click to roll " .. DiceMasterPanelDice:GetText() .. "." )
+            GameTooltip:Show()
+            
+          </OnEnter>
+          <OnLeave>
+            GameTooltip:Hide()
+          </OnLeave>
+          <OnClick>
+            DiceMaster4.RollButtonClicked()
+          </OnClick>
+        </Scripts>
+      </Button>
+    </Frames>
+  </Frame>
+</Ui>

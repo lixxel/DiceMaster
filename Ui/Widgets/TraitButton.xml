@@ -1,0 +1,69 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+
+  <Script file="TraitButton.lua"/>
+  
+  <!-- Template for the main "trait" buttons. -->
+  <Button name="DiceMasterTraitButton" enableMouse="true" intrinsic="true">
+    <Size x="32" y="32"/>
+    <Layers>
+    
+      <Layer level="BACKGROUND">
+        <Texture parentKey="icon" setAllPoints="true" file="Interface/Icons/inv_misc_questionmark">
+        </Texture>
+      </Layer>
+        
+      <Layer level="BORDER">
+        <Texture parentKey="border" file="Interface/AddOns/DiceMaster/Texture/traits-border">
+          
+          <Size x="48" y="48"/>	
+          <Anchors>
+            <Anchor point="CENTER"/>
+					</Anchors>
+          
+        </Texture>
+      </Layer>
+       
+      <Layer level="OVERLAY"> 
+        <Texture parentKey="highlight" file="Interface/Addons/DiceMaster/Texture/trait-select" hidden="true">
+          
+          <Size x="48" y="48"/>	
+          <Anchors>
+            <Anchor point="CENTER"/>
+					</Anchors>
+          
+        </Texture>
+		<Texture parentKey="ants" file="Interface/Transmogrify/PurpleIconAlertAnts" hidden="true">
+			<Size x="48" y="48"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+        </Texture>
+      </Layer>
+      
+    </Layers>
+    <Scripts>
+	  <OnUpdate>
+		DiceMaster4.TraitButton_OverlayGlowOnUpdate( self, elapsed )
+	  </OnUpdate>
+      <OnLoad>
+        DiceMaster4.TraitButton_Init( self )
+      </OnLoad>
+      <OnSizeChanged>
+        
+        local qw, qh = self:GetWidth() * 1.5, self:GetHeight() * 1.5
+        self.border:SetSize( qw, qh )
+        self.highlight:SetSize( qw, qh )
+		self.ants:SetSize( qw*0.8, qh*0.8 )
+        
+        --self:GetHighlightTexture():SetPoint( "TOPLEFT", -qw, qh )
+        --self:GetHighlightTexture():SetPoint( "BOTTOMRIGHT", qw, -qh )
+        --hl:ClearAllPoints()
+        --hl:SetPoint( "TOPLEFT", -self:GetWidth() * 0.25, self:GetHeight() * 0.25 )
+        --hl:SetPoint( "BOTTOMRIGHT", self:GetWidth() * 0.25, -self:GetHeight() * 0.25 )
+       -- self:GetHighlightTexture():SetSize( self:GetWidth() * 1.5, self:GetHeight() * 1.5 )
+      </OnSizeChanged>
+    </Scripts>
+    
+  </Button>
+
+</Ui>
