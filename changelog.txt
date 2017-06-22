@@ -1,3 +1,6 @@
+#### 4.3.4
+ - Fixed healthbar not showing up for some.
+ 
 #### 4.3.3
  - Fixed sharing traits over custom channels.
 

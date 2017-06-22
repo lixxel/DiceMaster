@@ -308,8 +308,13 @@ function Me.RefreshChargesFrame( tooltip, color )
 	DiceMasterChargesFrame.bar:SetMax( Profile.charges.max ) 
 	DiceMasterChargesFrame.bar:SetFilled( Profile.charges.count ) 
 	
-	if Profile.charges.enable and not Me.db.char.hidepanel then
+	if not Me.db.char.hidepanel then
 		DiceMasterChargesFrame:Show()
+		if Profile.charges.enable then
+			DiceMasterChargesFrame.bar:Show()
+		else
+			DiceMasterChargesFrame.bar:Hide()
+		end
 	else
 		DiceMasterChargesFrame:Hide()
 	end
