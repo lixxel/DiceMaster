@@ -1,3 +1,9 @@
+#### 4.3.6
+ - Corrected some missing updates.
+
+#### 4.3.5
+ - Added new icons and recognized definitions.
+
 #### 4.3.4
  - Fixed healthbar not showing up for some.
  
