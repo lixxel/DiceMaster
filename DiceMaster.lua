@@ -52,15 +52,18 @@ local TRAIT_USAGE_MODES = {
 
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
-	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" }; -- "double or nothing"
-	{ "Reload",             "|cFFFFFFFFReload|r" };        -- "reload"
-	{ "(%d+)%sHealth",             "%1|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };        -- e.g. "1 health"
-	{ "Rescue",             "|cFFFFFFFFRescue|r" };        -- "rescue"
-	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };     -- "advantage"
-	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };  -- "disadvantage"
-	{ "%s[+]%d+",           "|cFF00FF00%1|r" };            -- e.g. "+1"
-	{ "%s[-]%d+",           "|cFFFF0000%1|r" };            -- e.g. "-3"
-	{ "%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };            -- dice rolls e.g. "1d6" 
+	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                                    -- "double or nothing"
+	{ "Reload",             "|cFFFFFFFFReload|r" };                                                       -- "reload"
+	{ "(%d+)%sHealth",      "%1|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 health"
+	{ "Rescue",             "|cFFFFFFFFRescue|r" };                                                       -- "rescue"
+	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                    -- "advantage"
+	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                                 -- "disadvantage"
+	{ "%s(Stun[sned]*)",    " |TInterface/Garrison/orderhall-missions-mechanic7:12|t |cFFFFFFFF%1|r" };   -- "stun"
+	{ "%s(Poison[sed]*)",   " |TInterface/Garrison/orderhall-missions-mechanic1:12|t |cFFFFFFFF%1|r" };   -- "poison"
+	{ "%s(Control[sled]*)", " |TInterface/Garrison/orderhall-missions-mechanic4:12|t |cFFFFFFFF%1|r" };	  -- "control"
+	{ "%s[+]%d+",           "|cFF00FF00%1|r" };                                                           -- e.g. "+1"
+	{ "%s[-]%d+",           "|cFFFF0000%1|r" };                                                           -- e.g. "-3"
+	{ "%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };                                                           -- dice rolls e.g. "1d6" 
 }
  
 -------------------------------------------------------------------------------
@@ -357,8 +360,10 @@ function Me.ShowPanel( show )
 	
 	if not show then
 		DiceMasterPanel:Hide()
+		DiceMasterChargesFrame:Hide()
 	else
 		DiceMasterPanel:Show()
+		DiceMasterChargesFrame:Show()
 	end
 	
 	Me.RefreshChargesFrame( true, true )
