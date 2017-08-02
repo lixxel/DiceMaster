@@ -377,7 +377,7 @@ function Me.OnChargesChanged()
 	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.Inspect_ShareStatusWithParty()
 end
- 
+
 -------------------------------------------------------------------------------
 function Me:OnEnable()
 	Me.SetupDB()

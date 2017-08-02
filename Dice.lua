@@ -54,17 +54,31 @@ local function PrintSystemMessage( msg )
 end
 
 -------------------------------------------------------------------------------
--- Format and print a Dice Master roll.
+-- Format a dice type. e.g. "1D20+3"
 --
--- @param name      Name of player.
--- @param count     Number of dice.
--- @param sides     Number of sides on dice.
--- @param mod       Roll modifier (signed integer).
--- @param rolls     Table of rolls to sum up. (Usually just one.)
--- @param broadcast Broadcast result to party/raid, but only if name is YOU.
+-- @param count Number of dice being rolled.
+-- @param sides Number of sides on dice
+-- @param mod   Modifier applied, e.g. 5 or -5
 --
-local function PrintDiceMasterRoll( name, count, sides, mod, rolls, broadcast )
+local function FormatDiceType( count, sides, mod )
+	
+	local dice = "D" .. sides;
+	if count ~= 1 then
+		dice = count .. dice
+	end
+	if mod > 0 then
+		dice = dice .. "+" .. mod
+	elseif mod < 0 then
+		dice = dice .. mod
+	end
+	
+	return dice
+end
 
+-------------------------------------------------------------------------------
+-- Original DiceMaster roll format.
+--
+local function FormatDiceMasterRoll_v1( name, you, count, sides, mod, rolls )
 	local sum = 0
 	for k,v in pairs( rolls ) do 
 		sum = sum + v
@@ -91,34 +105,133 @@ local function PrintDiceMasterRoll( name, count, sides, mod, rolls, broadcast )
 		rollstring = rollstring .. " = " .. sum
 	end
 	
-	local dice = "D" .. sides;
-	if count ~= 1 then
-		dice = count .. dice
-	end
-	if mod ~= 0 then
-		if mod > 0 then
-			dice = dice .. "+" .. mod
-		else
-			dice = dice .. mod
-		end
-	end
+	local dice = FormatDiceType( count, sides, mod )
 	
 	rollstring = rollstring .. " (" .. dice .. ")"
 	
-	if IsInGroup() then
-		local channel = IsInRaid() and "RAID" or "PARTY"
-		
-		if broadcast and UnitName("player") == name then
-			SendChatMessage( "<DiceMaster> " .. name .. " rolls " .. rollstring, channel )
+	if not you then
+		return name .. " rolls " .. rollstring
+	else
+		return "You roll " .. rollstring
+	end
+end
+
+-------------------------------------------------------------------------------
+-- Colorizes a number if it's the minimum or maximum amount.
+--
+-- This function has two signatures:
+--   ColoredRoll( roll, max )          -- 1 is the default minimum
+--   ColoredRoll( roll, min, max )
+--
+-- @param roll Number to colorize.
+-- @param min  The number to colorize as red.
+-- @param max  The number to colorize as green.
+--
+local function ColoredRoll( roll, min, max )
+	
+	
+	if max == nil then 
+		max = min 
+		min = 1 
+	end
+	if min == 1 and max < 10 then return roll end -- for less than 10 sides, don't treat it special
+	if roll == min then return "|cffff0000" .. roll .. "|r" end
+	if roll == max then return "|cff00ff00" .. roll .. "|r" end
+	return roll
+end
+
+-------------------------------------------------------------------------------
+-- Version 2 with natural amounts and color codes for crits.
+--
+local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
+	local sum = 0
+	for k,v in pairs( rolls ) do 
+		sum = sum + v
+	end
+	
+	
+	local rollstring = ""
+	if count == 1 then
+		rollstring = ColoredRoll( sum + mod, 1 + mod, sides + mod )
+		if sum+mod == sides+mod or sum+mod == 1+mod then
+			rollstring = rollstring .. "!"
+		end
+	--	if mod < 0 then
+	--		rollstring = rollstring .. " " .. mod .. " = " .. sum + mod
+	--	elseif mod > 0 then
+	--		rollstring = rollstring .. " +" .. mod .. " = " .. sum + mod
+	--	end
+	else
+		rollstring = ColoredRoll( rolls[1], sides )
+		for i = 2,count do
+			if i == count then
+				if count > 2 then
+					rollstring = rollstring .. ", and " .. ColoredRoll( rolls[i], sides )
+				else
+					rollstring = rollstring .. " and " .. ColoredRoll( rolls[i], sides )
+				end
+			else
+				rollstring = rollstring .. ", " .. ColoredRoll( rolls[i], sides )
+			end
 		end
 		
-		local msg =  name .. " rolls " .. rollstring
+		rollstring = rollstring .. " = " .. sum + mod
+		
+		
+	end
+	
+	local dice = FormatDiceType( count, sides, mod )
+	
+	rollstring = rollstring .. " (" .. dice .. ")"
+	
+	if not you then
+		return name .. " rolls " .. rollstring
+	else
+		return "You roll " .. rollstring
+	end
+end
+
+local function FormatDiceMasterRoll( name, you, count, sides, mod, rolls )
+	return FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
+end
+
+-------------------------------------------------------------------------------
+-- Strip special codes from roll message.
+--
+local function StripMessage( msg )
+	msg = msg:gsub( "|c[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]", "" )
+	msg = msg:gsub( "|r", "" )
+	return msg 
+end
+
+-------------------------------------------------------------------------------
+-- Format and print a Dice Master roll.
+--
+-- @param name      Name of player.
+-- @param count     Number of dice.
+-- @param sides     Number of sides on dice.
+-- @param mod       Roll modifier (signed integer).
+-- @param rolls     Table of rolls to sum up. (Usually just one.)
+-- @param broadcast Broadcast result to party/raid, but only if name is YOU.
+--
+local function PrintDiceMasterRoll( name, count, sides, mod, rolls, broadcast )
+
+	local is_self = UnitName("player") == name
+	
+	if IsInGroup() or not is_self then
+	
+		local msg = FormatDiceMasterRoll( name, false, count, sides, mod, rolls )
+		
+		if broadcast and IsInGroup() and is_self then
+			local channel = IsInRaid() and "RAID" or "PARTY"
+			SendChatMessage( "<DiceMaster> " .. StripMessage(msg), channel )
+		end
 		
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
 		
 	else
-		local msg = "You roll " .. rollstring
+		local msg = FormatDiceMasterRoll( name, true, count, sides, mod, rolls )
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
 	end 
@@ -205,6 +318,7 @@ local function CheckRolls( name )
 				-- vanilla roll
 				PrintRoll( serverRolls[1] )
 				table.remove( serverRolls, 1 )
+				table.remove( rollInfo, 1 )
 			else
 				
 				for i = 1, r.count do
@@ -382,7 +496,16 @@ end
 -- Hook for /roll command.
 --
 local function OnRandomRoll( min, max )
- 
+	
+	min = tonumber( min )
+	max = tonumber( max )
+	if not min or not max then return end -- invalid roll
+	min = floor( min )
+	max = floor( max )
+	if min < 0 or max < 0 or min > 1000000 or max > 1000000 or max < min then 
+		return -- invalid roll
+	end
+	
 	if not doingDiceMasterRoll then
 		-- we want to create a ROLL message for direct usage too.
 		SendRollMessage( 1, min, max, 0, true )
