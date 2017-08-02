@@ -346,6 +346,9 @@ end
 -------------------------------------------------------------------------------
 function Me.RollButtonClicked()
 	Me.Roll( DiceMasterPanelDice:GetText() ) 
+	if DiceMasterPanelDice:HasFocus() then
+		DiceMasterPanelDice:ClearFocus()
+	end
 end
 
 function Me.ApplyUiScale()
@@ -379,6 +382,22 @@ function Me.OnChargesChanged()
 end
 
 -------------------------------------------------------------------------------
+function Me.OnWorldClicked()
+	if DiceMasterPanelDice:HasFocus() then
+		DiceMasterPanelDice:ClearFocus()
+	end
+end
+
+-------------------------------------------------------------------------------
+function Me.SetupWorldClickDetection()
+	
+	WorldFrame:HookScript( "OnMouseDown", function()
+		Me.OnWorldClicked()
+		
+	end)
+end
+
+-------------------------------------------------------------------------------
 function Me:OnEnable()
 	Me.SetupDB()
 	Me.MinimapButton_Init()
@@ -400,5 +419,7 @@ function Me:OnEnable()
 	Me.RefreshHealthbarFrame ( true, true )
 	
 	Me.Inspect_ShareStatusWithParty()
+	
+	Me.SetupWorldClickDetection()
 end
 
