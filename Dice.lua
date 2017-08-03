@@ -153,7 +153,7 @@ local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
 	local rollstring = ""
 	if count == 1 then
 		rollstring = ColoredRoll( sum + mod, 1 + mod, sides + mod )
-		if sum+mod == sides+mod or sum+mod == 1+mod then
+		if sides >= 10 and (sum+mod == sides+mod or sum+mod == 1+mod) then
 			rollstring = rollstring .. "!"
 		end
 	--	if mod < 0 then
@@ -223,8 +223,9 @@ local function PrintDiceMasterRoll( name, count, sides, mod, rolls, broadcast )
 		local msg = FormatDiceMasterRoll( name, false, count, sides, mod, rolls )
 		
 		if broadcast and IsInGroup() and is_self then
-			local channel = IsInRaid() and "RAID" or "PARTY"
-			SendChatMessage( "<DiceMaster> " .. StripMessage(msg), channel )
+			local chatType = IsInRaid() and "RAID" or "PARTY"
+			local _, language = GetLanguageByIndex( 1 )
+			SendChatMessage( "<DiceMaster> " .. StripMessage(msg), chatType, language )
 		end
 		
 		PrintSystemMessage( msg )
