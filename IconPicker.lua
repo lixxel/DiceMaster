@@ -18,7 +18,7 @@ function Me.IconPickerButton_OnClick( self )
 
 	-- Apply the icon to the edited trait and close the picker. 
 	Me.TraitEditor_SelectIcon( self:GetNormalTexture():GetTexture() ) 
-	PlaySoundKitID(54129)
+	PlaySound(54129)
 	Me.IconPicker_Close()
 end
 

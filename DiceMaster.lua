@@ -262,7 +262,7 @@ function Me.OnHealthClicked( button )
 		
 		Profile.healthMax = Profile.healthMax + delta
 		Profile.health = Me.Clamp( Profile.health, 0, Profile.healthMax ) 
-		PlaySoundKitID(54131)
+		PlaySound(54131)
 		
 	else
 		if Me.OutOfRange( Profile.health+delta, 0, Profile.healthMax ) then

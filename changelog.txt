@@ -1,3 +1,6 @@
+#### 4.3.8
+ - Patch 7.3 support.
+
 #### 4.3.7
  - Corrected some issues with mixing /roll with dicemaster rolls.
  - Added highlight for critical rolls (e.g. 3/23 for d20+3).

@@ -31,7 +31,7 @@
       <OnShow>
         
         -- opening sound
-        PlaySoundKitID(839)
+        PlaySound(839)
       </OnShow>
     </Scripts>
     
@@ -66,7 +66,7 @@
             
           </OnLoad>
           <OnClick>
-            PlaySoundKitID(54132)
+            PlaySound(54132)
             DiceMaster4.IconPicker_Open()
           </OnClick>
         </Scripts>

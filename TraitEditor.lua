@@ -100,7 +100,7 @@ end
 -- When the trait editor's close button is pressed.
 --
 function Me.TraitEditor_OnCloseClicked() 
-	PlaySoundKitID(840); 
+	PlaySound(840); 
 	Me.IconPicker_Close()
 	Me.editor:Hide()
 end
@@ -114,7 +114,7 @@ function Me.TraitEditor_StartEditing( index )
 	Me.editing_trait = index
 	
 --	DiceMasterIconSelect_Hide() todo
-	PlaySoundKitID(54130)
+	PlaySound(54130)
 	
 	Me.TraitEditor_Refresh() 
 end
