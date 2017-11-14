@@ -53,14 +53,14 @@ local TRAIT_USAGE_MODES = {
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
 	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                                    -- "double or nothing"
-	{ "Reload",             "|cFFFFFFFFReload|r" };                                                       -- "reload"
+	{ "Reload",             "|TInterface/AddOns/DiceMaster/Texture/icon-reload:12|t |cFFFFFFFFReload|r" };                                                       -- "reload"
 	{ "(%d+)%sHealth",      "%1|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 health"
-	{ "Rescue",             "|cFFFFFFFFRescue|r" };                                                       -- "rescue"
+	{ "Rescue",             "|TInterface/AddOns/DiceMaster/Texture/icon-rescue:12|t |cFFFFFFFFRescue|r" };                                                       -- "rescue"
 	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                    -- "advantage"
 	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                                 -- "disadvantage"
-	{ "%s(Stun[sned]*)",    " |TInterface/Garrison/orderhall-missions-mechanic7:12|t |cFFFFFFFF%1|r" };   -- "stun"
-	{ "%s(Poison[sed]*)",   " |TInterface/Garrison/orderhall-missions-mechanic1:12|t |cFFFFFFFF%1|r" };   -- "poison"
-	{ "%s(Control[sled]*)", " |TInterface/Garrison/orderhall-missions-mechanic4:12|t |cFFFFFFFF%1|r" };	  -- "control"
+	{ "%s(Stun[snedig]*)",    " |TInterface/AddOns/DiceMaster/Texture/icon-stun:12|t |cFFFFFFFF%1|r" };   -- "stun"
+	{ "%s(Poison[sedig]*)",   " |TInterface/AddOns/DiceMaster/Texture/icon-poison:12|t |cFFFFFFFF%1|r" };   -- "poison"
+	{ "%s(Control[sledig]*)", " |TInterface/AddOns/DiceMaster/Texture/icon-control:12|t |cFFFFFFFF%1|r" };	  -- "control"
 	{ "%s[+]%d+",           "|cFF00FF00%1|r" };                                                           -- e.g. "+1"
 	{ "%s[-]%d+",           "|cFFFF0000%1|r" };                                                           -- e.g. "-3"
 	{ "%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };                                                           -- dice rolls e.g. "1d6" 
@@ -183,6 +183,28 @@ end
 --
 function Me.BumpSerial( table, key )
 	table[key] = (table[key] % 32768) + 1
+end
+
+
+-------------------------------------------------------------------------------
+-- Update enchant duration for a trait description tooltip.
+--
+-- @param text Text to format.
+-- @returns formatted text.
+--
+
+function Me.FormatEnchantTooltip( altdesc )
+	local reference = altdesc
+	local daysfrom = difftime(time(), reference) / (24 * 60 * 60)
+	local wholedays = math.floor(daysfrom)
+	local unit = "days"
+	if wholedays == 1 then unit = "day" end
+	if wholedays > 14 then wholedays = 0 end;
+	if wholedays > 13 then wholedays = 2; unit = "weeks" end
+	wholedays = math.abs(wholedays)
+	
+	local duration = "("..wholedays.." "..unit..")"
+	return duration
 end
 
 -------------------------------------------------------------------------------

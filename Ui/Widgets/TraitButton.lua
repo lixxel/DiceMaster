@@ -62,8 +62,18 @@ function Me.OpenTraitTooltip( owner, trait, index )
 		local desc = Me.FormatDescTooltip( trait.desc )
 		if trait.enchant and trait.enchant~="" then
 			local enchant = Me.FormatDescTooltip( trait.enchant )
-			--desc = trait.altdesc
-			desc = desc .. "|n|n|cFFFF00FF"..enchant
+			local duration = ""
+			if trait.altdesc then
+				duration = Me.FormatEnchantTooltip( trait.altdesc )
+			end
+			if not duration:find("(0 days)") then
+				desc = desc .. "|n|n|cFFFF00FF"..enchant.." "..duration
+			else
+				duration = ""
+				enchant = ""
+				trait.enchant = "";
+				trait:Refresh()
+			end
 		end
 		GameTooltip:AddLine( desc, 1, 0.81, 0, true )
 	end

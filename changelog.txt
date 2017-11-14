@@ -1,3 +1,14 @@
+### 4.5
+ - Fixed Arcane Crucible support.
+
+### 4.4
+ - Changed the "Veteran" rank to "Advisor."
+ - Added new icons.
+ - Added new symbols for some text subbing tuples. 
+
+#### 4.3.9
+ - DiceMaster Arcane Crucible support.
+
 #### 4.3.8
  - Patch 7.3 support.
 

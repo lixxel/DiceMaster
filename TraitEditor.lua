@@ -18,8 +18,8 @@ local LEAGUE_RANKS = {
 	};
     [7] = {
 		icon  = "Interface/PvPRankBadges/PvPRank06",
-		title = "Veteran",
-		desc  = "Veterans represent some of the most dedicated members of the League of Lordaeron. Though they hold no real power within the chain of command, Veterans are venerated for the length and quality of their service within the League."
+		title = "Advisor",
+		desc  = "Advisors are former officers or Auxiliaries that have held their associate rank for an extended period of time and proven themselves to be especially valuable assets to the officer corps and the order as a whole."
 	};
     [6] = {
 		icon  = "Interface/PvPRankBadges/PvPRank01",
