@@ -11,6 +11,11 @@
 -- Ranks and information of the LEAGUE OF LORDAERON
 -------------------------------------------------------------------------------
 local LEAGUE_RANKS = {
+	[9] = {
+		icon  = "Interface/PvPRankBadges/PvPRankAlliance";
+		title = "Recruit",
+		desc  = "Recruits are those who have just joined the order and who have not yet proved their pledge to Lordaeron. They are encouraged to wear the colors, participate in missions, and form connections with enlisted members of the League to prove their worth and establish their belonging."
+	};
 	[8] = {
 		icon  = "Interface/PvPRankBadges/PvPRankAlliance";
 		title = "Auxiliary";

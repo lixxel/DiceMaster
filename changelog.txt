@@ -1,3 +1,6 @@
+### 4.6
+ - Added the Recruit rank to rank tuples.
+
 ### 4.5
  - Fixed Arcane Crucible support.
 
