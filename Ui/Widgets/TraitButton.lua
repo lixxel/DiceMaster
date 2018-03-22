@@ -158,11 +158,11 @@ local methods = {
 		self.traitPlayer = player
 		self.traitIndex  = index
 		-- Add the gold dragon border if this is the command trait.
-		if self.traitIndex == 5 then
-			self.border:SetTexture("Interface/AddOns/DiceMaster/Texture/elite-trait-border")
-			local bx, by = self:GetSize()
-			self.border:SetSize( bx*3 ,by*3 )
-		end
+		--if self.traitIndex == 5 then
+			--self.border:SetTexture("Interface/AddOns/DiceMaster/Texture/elite-trait-border")
+			--local bx, by = self:GetSize()
+			--self.border:SetSize( bx*3 ,by*3 )
+		--end
 		self:Refresh()
 	end;
 	
