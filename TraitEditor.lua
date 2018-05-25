@@ -150,7 +150,9 @@ function Me.TraitEditor_OnTraitClicked( self, button )
 				string.format( "[DiceMaster4:%s:%d:%s]", UnitName("player"), self.traitIndex, name ) ) 
 			
 		else 
-			Me.TraitEditor_StartEditing( self.traitIndex ) 
+			if not self.noteditable then
+				Me.TraitEditor_StartEditing( self.traitIndex ) 
+			end
 		end
 	end
 end

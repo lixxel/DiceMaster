@@ -69,6 +69,10 @@
           self.traits[i]:SetSize( 24, 24 )
           self.traits[i]:SetPoint( "TOP", -56 + 28*(i-1), 20 )
           self.traits[i].traitIndex = i
+		  self.traits[i].noteditable = true;
+		  self.traits[i]:SetScript( "OnMouseDown", function( self, button )
+			DiceMaster4.TraitEditor_OnTraitClicked( self, button )
+		end)
         end
       </OnLoad>
     </Scripts>
