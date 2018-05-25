@@ -98,6 +98,10 @@ function Me.OpenTraitTooltip( owner, trait, index )
 		GameTooltip:AddLine( "<Left Click to Edit>|n<Shift-Click to Link to Chat>", 0.44, 0.44, 0.44, true )
 	end
 	
+	if owner and owner.noteditable then
+		GameTooltip:AddLine( "<Shift-Click to Link to Chat>", 0.44, 0.44, 0.44, true )
+	end
+	
     GameTooltip:Show() 
 end
 
