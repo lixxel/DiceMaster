@@ -51,7 +51,7 @@
             self:SetTexture( "Interface/AddOns/DiceMaster/Texture/health-heart" )
             self:SetMax( 10 )
             DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, 
-              "Represents the total number of defense roll failures you may endure before you are defeated.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left/Right Click to Change Max>" )
+              "Represents your health.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left/Right Click to Change Max>" )
           </OnLoad>
           <OnMouseDown>
             DiceMaster4.OnHealthClicked( button )

@@ -57,7 +57,7 @@
         <Scripts>
           <OnLoad>
             self:SetTexture( "Interface/AddOns/DiceMaster/Texture/health-heart" )
-            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, "Represents the total number of defense roll failures the player may endure before they are defeated." )
+            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, "Represents this player's health." )
           </OnLoad>
         </Scripts>
       </DiceMasterStatusBar>

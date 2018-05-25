@@ -7,7 +7,7 @@
     <Size x="100" y="48"/>
     <Anchors>
       <Anchor point="TOP" x="0" y="-64"/>
-    </Anchors>
+    </Anchors>	
     <Layers>
       <Layer level="BACKGROUND">
       
@@ -28,7 +28,7 @@
         <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
           <Size x="48" y="48" />
           <Anchors>
-            <Anchor point="TOP" x="-22" y="-21"/>
+            <Anchor point="TOP" x="80" y="0"/>
           </Anchors>
           <TexCoords left="0.25" right="0.5" top="0.5" bottom="1" />
         </Texture>
@@ -37,11 +37,20 @@
         <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
           <Size x="48" y="48" />
           <Anchors>
-            <Anchor point="TOP" x="14" y="-21"/>
+            <Anchor point="TOP" x="48" y="0"/>
           </Anchors>
           <TexCoords left="0" right="0.25" top="0.5" bottom="1" />
         </Texture>
       </Layer>
+	  
+	  <Layer level="HIGHLIGHT">
+		<Texture file="Interface/RAIDFRAME/Raid-Move-Down">
+          <Size x="24" y="12" />
+          <Anchors>
+            <Anchor point="BOTTOM" x="0" y="0"/>
+          </Anchors>
+        </Texture>
+	  </Layer>
     </Layers>
     
     <Scripts>
@@ -52,8 +61,15 @@
         self:SetScript("OnDragStart", self.StartMoving)
         self:SetScript("OnDragStop", self.StopMovingOrSizing)
         self:SetScale(1)
-         
-        DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click and drag to move this frame around the interface. Highlight the dice value to change it. Dice must follow the standard d20 format." )
+		
+		-- create trait buttons
+        self.traits = {}
+        for i = 1,5 do
+          self.traits[i] = CreateFrame( "DiceMasterTraitButton", nil, self )
+          self.traits[i]:SetSize( 24, 24 )
+          self.traits[i]:SetPoint( "TOP", -56 + 28*(i-1), 20 )
+          self.traits[i].traitIndex = i
+        end
       </OnLoad>
     </Scripts>
     
@@ -64,13 +80,13 @@
       
         <Size x="80" y="14" />
         <Anchors>
-          <Anchor point="TOP" x="-4" y="-15" />
+          <Anchor point="TOP" x="-12" y="-17" />
         </Anchors>
         <Scripts>
           <OnLoad>
             self:SetMaxLetters( 8 )
             self:SetJustifyH( "CENTER" )
-            self:SetTextColor( 0.961, 0.89, 0.38 );
+            self:SetTextColor( 1, 0.82, 0 );
             self:SetText( "1D20+0" )
             self:SetAutoFocus(false);
           </OnLoad>
@@ -83,7 +99,7 @@
       <Button parentKey="traits">
         <Size x="32" y="32"/>
         <Anchors>
-          <Anchor point="TOP" x="-22" y="-30"/>
+          <Anchor point="TOP" x="80" y="-8"/>
         </Anchors>
         
         <HighlightTexture file="Interface/UNITPOWERBARALT/PandarenTrainingLarge_Circular_Flash" alphaMode="ADD" /> 
@@ -103,7 +119,7 @@
       <Button parentKey="roll">
         <Size x="32" y="32"/>
         <Anchors>
-          <Anchor point="TOP" x="14" y="-30"/>
+          <Anchor point="TOP" x="48" y="-8"/>
         </Anchors>
         
         <HighlightTexture file="Interface/UNITPOWERBARALT/PandarenTrainingLarge_Circular_Flash" alphaMode="ADD" /> 

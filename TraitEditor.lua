@@ -88,7 +88,7 @@ function Me.TraitEditor_OnLoad( self )
 	for i = 1,5 do
 		self.trait_buttons[i] = CreateFrame( "DiceMasterTraitButton", "DiceMasterTraitButton" .. i, self )
 
-		local x = 72 + 37*(i-1)
+		local x = 60 + 35*(i-1)
 		-- if i == 5 then x = 206 end
 
 		self.trait_buttons[i]:SetPoint( "TOPLEFT", x, -26 ) 
@@ -186,6 +186,7 @@ local function TraitUpdated()
 	local trait = Profile.traits[Me.editing_trait]
 	Me.BumpSerial( Me.db.char.traitSerials, Me.editing_trait )
 	Me.Inspect_OnTraitUpdated( UnitName("player"), Me.editing_trait )
+	Me.UpdatePanelTraits()
 end	
 
 -------------------------------------------------------------------------------

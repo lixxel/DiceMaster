@@ -53,17 +53,19 @@ local TRAIT_USAGE_MODES = {
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
 	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                                    -- "double or nothing"
-	{ "Reload",             "|TInterface/AddOns/DiceMaster/Texture/icon-reload:12|t |cFFFFFFFFReload|r" };                                                       -- "reload"
-	{ "(%d+)%sHealth",      "%1|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 health"
-	{ "Rescue",             "|TInterface/AddOns/DiceMaster/Texture/icon-rescue:12|t |cFFFFFFFFRescue|r" };                                                       -- "rescue"
+	{ "Reload",             "|cFFFFFFFFReload|r" };                                                       -- "reload"
+	{ "(%d+)%sHealth",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 health"
+	{ "Rescue",             "|cFFFFFFFFRescue|r" };                                                       -- "rescue"
 	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                    -- "advantage"
 	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                                 -- "disadvantage"
-	{ "%s(Stun[snedig]*)",    " |TInterface/AddOns/DiceMaster/Texture/icon-stun:12|t |cFFFFFFFF%1|r" };   -- "stun"
-	{ "%s(Poison[sedig]*)",   " |TInterface/AddOns/DiceMaster/Texture/icon-poison:12|t |cFFFFFFFF%1|r" };   -- "poison"
-	{ "%s(Control[sledig]*)", " |TInterface/AddOns/DiceMaster/Texture/icon-control:12|t |cFFFFFFFF%1|r" };	  -- "control"
-	{ "%s[+]%d+",           "|cFF00FF00%1|r" };                                                           -- e.g. "+1"
-	{ "%s[-]%d+",           "|cFFFF0000%1|r" };                                                           -- e.g. "-3"
-	{ "%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };                                                           -- dice rolls e.g. "1d6" 
+	{ "(Stun[snedig]*)",    "|cFFFFFFFF%1|r" };   -- "stun"
+	{ "(Poison[sedig]*)",   "|cFFFFFFFF%1|r" };   -- "poison"
+	{ "(Control[sledig]*)", "|cFFFFFFFF%1|r" };	  -- "control"
+	{ "(NAT1)", "|cFFFFFFFF%1|r" };	  -- "NAT1"
+	{ "(NAT20)", "|cFFFFFFFF%1|r" };	  -- "NAT20"
+	{ "%s?[+]%d+",           "|cFF00FF00%1|r" };                                                           -- e.g. "+1"
+	{ "%s?[-]%d+",           "|cFFFF0000%1|r" };                                                           -- e.g. "-3"
+	{ "%s?%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };                                                           -- dice rolls e.g. "1d6" 
 }
  
 -------------------------------------------------------------------------------
@@ -187,40 +189,6 @@ end
 
 
 -------------------------------------------------------------------------------
--- Update enchant duration for a trait description tooltip.
---
--- @param text Text to format.
--- @returns formatted text.
---
-
-function Me.FormatEnchantTooltip( altdesc )
-	local reference = altdesc
-	local daysfrom = difftime(time(), reference) / (24 * 60 * 60)
-	local wholedays = math.floor(daysfrom)
-	local unit = "days"
-	if wholedays == 1 then unit = "day" end
-	if wholedays > 14 then wholedays = 0 end;
-	if wholedays > 13 then wholedays = 2; unit = "weeks" end
-	wholedays = math.abs(wholedays)
-	
-	local duration = "("..wholedays.." "..unit..")"
-	return duration
-end
-
--------------------------------------------------------------------------------
--- Add color codes to a trait description tooltip.
---
--- @param text Text to format.
--- @returns formatted text.
---
-function Me.FormatDescTooltip( text )
-	for k, v in ipairs( TOOLTIP_DESC_SUBS ) do
-		text = gsub( text, v[1], v[2] )
-	end
-	return text
-end
-
--------------------------------------------------------------------------------
 -- Convert trait usage number into text.
 --
 -- @param usage Usage index.
@@ -250,6 +218,111 @@ function Me.FormatUsage( usage, name )
 	text = text:gsub( "&cs", singular_charges )
 	text = text:gsub( "&cp", plural_charges )
 	return text
+end
+
+-------------------------------------------------------------------------------
+-- Add custom icons and colors for a trait description tooltip.
+--
+-- @param text Text to format.
+-- @returns formatted text.
+--
+
+function Me.FormatTooltipIcons( text )
+	local a, b = strfind(text, "<img>");
+	-- find the icon in the text
+	if a and b then
+		local c, d = strfind(text, "</img>");
+		if c then
+			local data = string.sub(text, b + 1, c - 1);
+			if data then
+				text = string.gsub(text, "<img>"..data.."</img>", "|T"..data..":16|t")
+			else
+				text = string.gsub(text, "<img>"..data.."</img>", "")
+			end
+		end
+	end
+	return text
+end
+
+-------------------------------------------------------------------------------
+-- Convert decimals to RGB colors.
+--
+
+local function RGBPercToHex(r, g, b)
+	r = tonumber(r)
+	g = tonumber(g)
+	b = tonumber(b)
+	r = r <= 1 and r >= 0 and r or 0
+	g = g <= 1 and g >= 0 and g or 0
+	b = b <= 1 and b >= 0 and b or 0
+	return string.format("%02x%02x%02x", r*255, g*255, b*255)
+end
+
+-------------------------------------------------------------------------------
+-- Add custom colors for a trait description tooltip.
+--
+-- @param text Text to format.
+-- @returns formatted text.
+--
+
+function Me.FormatTooltipColors( text )
+	local a, b = strfind(text, "<color=");
+	-- find the color tag in the text
+	if a and b then
+		local c, d = strfind(text, ">", b);
+		local data = string.sub(text, b + 1, c - 1);
+		local r, g, b = strsplit(",", data);
+		local hexCode = "|cff"..RGBPercToHex(r,g,b)
+		local colorTag = string.sub(text,a,d)
+		text = string.gsub(text,colorTag,hexCode)	
+	end
+	text = string.gsub(text,"</color>","|r")
+	return text
+end
+
+-------------------------------------------------------------------------------
+-- Add color codes to a trait description tooltip.
+--
+-- @param text Text to format.
+-- @returns formatted text.
+--
+function Me.FormatDescTooltip( text )
+	for k, v in ipairs( TOOLTIP_DESC_SUBS ) do
+		text = gsub( text, v[1], v[2] )
+	end
+	
+	-- <img> </img>
+	local imgCount = 0
+		for w in string.gmatch(text, "<img>") do
+			imgCount = imgCount + 1
+	end
+	
+	for i = 1, imgCount do
+		text = Me.FormatTooltipIcons( text )
+	end
+	
+	-- <color=r,g,b> </color>
+	local colorCount = 0
+		for w in string.gmatch(text, "<color=") do
+			colorCount = colorCount + 1
+	end
+	
+	for i = 1, colorCount do
+		text = Me.FormatTooltipColors( text )
+	end
+
+	return text
+end
+
+-------------------------------------------------------------------------------
+-- Setup the trait buttons on the dice panel.
+--
+
+function Me.UpdatePanelTraits()
+	local traits = DiceMasterPanel.traits
+	for i=1,#traits do
+		traits[i]:SetPlayerTrait( UnitName( "player" ), i ) 
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -436,6 +509,8 @@ function Me:OnEnable()
 	
 	Me.ApplyUiScale()
 	Me.ShowPanel( not Me.db.char.hidepanel )
+	
+	Me.UpdatePanelTraits()
 	 
 	Me.RefreshChargesFrame( true, true ) 
 	Me.RefreshHealthbarFrame ( true, true )

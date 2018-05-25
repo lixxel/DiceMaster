@@ -4,10 +4,41 @@
 
 local Me = DiceMaster4
 
+local DICEMASTER_TERMS = {
+	["Advantage"] = "Allows the player to roll the same dice twice, and take the greater of the two resulting numbers.",
+	["Disadvantage"] = "Allows the player to roll the same dice twice, and take the lesser of the two resulting numbers.",
+	["Double or Nothing"] = "An unmodified D40 roll. If the roll succeeds, the player is rewarded with a critical success; however, if the roll fails, the player suffers critically failure.",
+	["Reload"] = "Grants the player's active trait another use.",
+	["Poison"] = "Causes additional damage to a target each round.",
+	["Control"] = "Allows the player to take command of a target until the effect expires.",
+	["Stun"] = "Incapacitates a target, preventing them from performing any action next round.",
+	["Rescue"] = "Allows the player to spare another player from failure.",
+	["NAT1"] = "A roll of 1 that is achieved before dice modifiers are applied that results in critical failure.",
+	["NAT20"] = "A roll of 20 that is achieved before dice modifiers are applied that results in critical success.",
+}
+
 -------------------------------------------------------------------------------
 Me.playerTraitTooltipOpen = false
 Me.playerTraitTooltipName = nil
 Me.playerTraitTooltipIndex = nil
+
+-------------------------------------------------------------------------------
+
+function Me.CheckTooltipForTerms( text )
+	local termsString = ""
+	for k,v in pairs( DICEMASTER_TERMS ) do
+		if string.match( text, k ) then
+			if termsString~="" then 
+				termsString = termsString .. "|n|n"
+			end
+			termsString = termsString .. "|cFFFFFFFF" .. k .. "|r|n|cFFffd100" .. DICEMASTER_TERMS[k] .. "|r"
+		end
+	end
+	if termsString~="" then
+		DiceMasterTooltip.TextLeft1:SetText( termsString )
+		DiceMasterTooltip:Show()
+	end
+end
 
 -------------------------------------------------------------------------------
 function Me.UpdateTraitTooltip( name, index )
@@ -50,9 +81,6 @@ function Me.OpenTraitTooltip( owner, trait, index )
 	 
 	if trait.usage then
 		local usage = Me.FormatUsage( trait.usage, playername )
-		if trait.enchant and trait.enchant~="" then
-			--usage = Me.FormatUsage( trait.altusage, playername )
-		end
 		GameTooltip:AddDoubleLine( usage, nil, 1, 1, 1, 1, 1, 1, true )
 	end
 	 
@@ -60,20 +88,8 @@ function Me.OpenTraitTooltip( owner, trait, index )
 	
 	if trait.desc then
 		local desc = Me.FormatDescTooltip( trait.desc )
-		if trait.enchant and trait.enchant~="" then
-			local enchant = Me.FormatDescTooltip( trait.enchant )
-			local duration = ""
-			if trait.altdesc then
-				duration = Me.FormatEnchantTooltip( trait.altdesc )
-			end
-			if not duration:find("(0 days)") then
-				desc = desc .. "|n|n|cFFFF00FF"..enchant.." "..duration
-			else
-				duration = ""
-				enchant = ""
-				trait.enchant = "";
-				trait:Refresh()
-			end
+		if Me.db.global.hideTips then
+			Me.CheckTooltipForTerms( desc )
 		end
 		GameTooltip:AddLine( desc, 1, 0.81, 0, true )
 	end
@@ -89,6 +105,7 @@ end
 function Me.CloseTraitTooltip()
 	Me.playerTraitTooltipOpen = false
     GameTooltip:Hide()
+	DiceMasterTooltip:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -126,6 +143,7 @@ local function OnLeave( self )
 		Me.playerTraitTooltipOpen = false
 	end
     GameTooltip:Hide()
+	DiceMasterTooltip:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -158,11 +176,11 @@ local methods = {
 		self.traitPlayer = player
 		self.traitIndex  = index
 		-- Add the gold dragon border if this is the command trait.
-		--if self.traitIndex == 5 then
-			--self.border:SetTexture("Interface/AddOns/DiceMaster/Texture/elite-trait-border")
-			--local bx, by = self:GetSize()
-			--self.border:SetSize( bx*3 ,by*3 )
-		--end
+		if self.traitIndex == 5 then
+			self.border:SetTexture("Interface/AddOns/DiceMaster/Texture/elite-trait-border")
+			local bx, by = self:GetSize()
+			self.border:SetSize( bx*3 ,by*3 )
+		end
 		self:Refresh()
 	end;
 	

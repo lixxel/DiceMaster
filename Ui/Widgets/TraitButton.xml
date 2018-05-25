@@ -2,6 +2,36 @@
 
   <Script file="TraitButton.lua"/>
   
+  <Frame name="DiceMasterTooltip" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="TooltipBorderedFrameTemplate">
+	<Size>
+		<AbsDimension x="10" y="32"/>
+	</Size>
+		<Anchors>
+			<Anchor point="LEFT"/>
+	</Anchors>
+	<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="$parentTextLeft1" parentKey="TextLeft1" inherits="GameTooltipText">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="10" y="-10"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+	</Layers>
+	<Scripts>
+			<OnShow>
+				self:SetPoint("TOPLEFT", GameTooltip, "TOPRIGHT")
+				if self.TextLeft1:GetWidth() > 230 then self.TextLeft1:SetWidth( 230 ); end
+				self:SetWidth( self.TextLeft1:GetWidth() + 20 );	
+				self:SetHeight( self.TextLeft1:GetHeight() + 20 )
+			</OnShow>
+	</Scripts>
+  </Frame>
+  
   <!-- Template for the main "trait" buttons. -->
   <Button name="DiceMasterTraitButton" enableMouse="true" intrinsic="true">
     <Size x="32" y="32"/>
@@ -50,17 +80,10 @@
       </OnLoad>
       <OnSizeChanged>
         
-        local qw, qh = self:GetWidth() * 1.5, self:GetHeight() * 1.5
+        local qw, qh = self:GetWidth() * 1.4, self:GetHeight() * 1.4
         self.border:SetSize( qw, qh )
         self.highlight:SetSize( qw, qh )
 		self.ants:SetSize( qw*0.8, qh*0.8 )
-        
-        --self:GetHighlightTexture():SetPoint( "TOPLEFT", -qw, qh )
-        --self:GetHighlightTexture():SetPoint( "BOTTOMRIGHT", qw, -qh )
-        --hl:ClearAllPoints()
-        --hl:SetPoint( "TOPLEFT", -self:GetWidth() * 0.25, self:GetHeight() * 0.25 )
-        --hl:SetPoint( "BOTTOMRIGHT", self:GetWidth() * 0.25, -self:GetHeight() * 0.25 )
-       -- self:GetHighlightTexture():SetSize( self:GetWidth() * 1.5, self:GetHeight() * 1.5 )
       </OnSizeChanged>
     </Scripts>
     

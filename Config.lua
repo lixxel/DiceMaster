@@ -16,6 +16,7 @@ local DB_DEFAULTS = {
 	global = {
 		version     = nil;
 		hideInspect = false; -- hide inspect frame when panel is hidden
+		hideTips	= true; -- turn enhanced tooltips on for newbies
 	};
 	
 	char = { 
@@ -109,6 +110,18 @@ Me.configOptions = {
 				-- refresh hidden status.
 			end;
 			get = function( info ) return Me.db.global.hideInspect end;
+		};
+		
+		hideTips = {
+			order = 7;
+			name  = "Enable Enhanced Tooltips";
+			desc  = "Enable helpful DiceMaster term definitions next to trait tooltips.";
+			type  = "toggle";
+			width = "full";
+			set = function( info, val )
+				Me.db.global.hideTips = val
+			end;
+			get = function( info ) return Me.db.global.hideTips end;
 		};
 	
 		enableCharges = {
@@ -231,4 +244,5 @@ function Me.ApplyConfig( onload )
 	Me.ApplyUiScale()
 	Me.RefreshChargesFrame( true, true )  
 	Me.TraitEditor_Refresh()
+	Me.UpdatePanelTraits()
 end
