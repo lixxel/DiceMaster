@@ -1,3 +1,16 @@
+### 4.8
+ - Added shift-click tooltip line for dice panel traits.
+ - Other players' traits can be linked from the Inspect frame.
+ - Added new skins for the Charges bar.
+ - Moved the Charges bar below the Health bar.
+
+### 4.7
+ - Redesigned the dice panel and added a trait bar to it.
+ - Added image and colour tag functionality to trait descriptions.
+ - Added enhanced tooltips to the config menu.
+ - New elite border around Command Traits.
+ - R.I.P. Arcane Crucible.
+
 ### 4.6
  - Added the Recruit rank to rank tuples.
 

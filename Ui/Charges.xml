@@ -28,19 +28,50 @@
       <!-- The actual bar. Above is just a window and used for dragging. -->
       <DiceMasterStatusBar parentKey="bar">
         
-        <Size x="16" y="16"/>
+        <Size x="32" y="32"/>
         <Anchors>
-          <Anchor point="CENTER" x="0" y="28"/>
+          <Anchor point="CENTER" x="0" y="32"/>
         </Anchors>
         <Scripts>
           <OnLoad>
-            
+            self:SetScale( 0.5 )
           </OnLoad>
           <OnMouseDown>
             DiceMaster4.OnChargesClicked( button )
           </OnMouseDown>
         </Scripts>
       </DiceMasterStatusBar>
+	  <StatusBar parentKey="bar2" minValue="0" maxValue="100" defaultValue="30" orientation="HORIZONTAL">
+		<Size x="150" y="32"/>
+		<Anchors>
+          <Anchor point="CENTER" x="0" y="20"/>
+        </Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="background" setAllPoints="true" >
+				</Texture>
+		    </Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="frame" setAllPoints="true" >
+				</Texture>
+		    </Layer>
+			<Layer level="HIGHLIGHT">
+				<FontString parentKey="text" inherits="GameFontHighlightSmall2" justifyH="center" setallpoints="true">
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self:SetScale( 0.8 )
+				self:SetStatusBarTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Fill")
+				self.frame:SetTexture("Interface/UNITPOWERBARALT/FuelGauge_Horizontal_Frame")
+				self.background:SetTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Bgnd")
+			</OnLoad>
+			<OnMouseDown>
+            DiceMaster4.OnChargesClicked( button )
+          </OnMouseDown>
+		</Scripts>
+	  </StatusBar>
 	  <DiceMasterStatusBar parentkey="healthbar">
         <Size x="160" y="16"/>
         <Anchors>

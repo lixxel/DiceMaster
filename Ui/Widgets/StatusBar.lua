@@ -35,12 +35,19 @@ local methods = {
 		UpdateFilled( self )
 	end;
 	
-	SetTexture = function( self, tex, r, g, b )
+	SetTexture = function( self, tex, r, g, b )		
 		self.bar:SetTexture( tex, true, false )
 		self.bar:SetVertexColor( r or 1, g or 1, b or 1, 1 )
 		
+		-- custom symbols get special backgrounds
+		local a = 0.3
+		if not tex:find("orb") and not tex:find("health") then 
+			tex = tex.."-back"
+			r, g, b, a = 1, 1, 1, 1
+		end
+		
 		self.barback:SetTexture( tex, true, false  )
-		self.barback:SetVertexColor( r or 1, g or 1, b or 1, 0.3 ) 
+		self.barback:SetVertexColor( r or 1, g or 1, b or 1, a ) 
 	end;
 }
 

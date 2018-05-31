@@ -403,15 +403,22 @@ end
 -- Update the UI for the charges frame.
 --
 function Me.RefreshChargesFrame( tooltip, color )
-	DiceMasterChargesFrame.bar:SetMax( Profile.charges.max ) 
-	DiceMasterChargesFrame.bar:SetFilled( Profile.charges.count ) 
 	
 	if not Me.db.char.hidepanel then
 		DiceMasterChargesFrame:Show()
 		if Profile.charges.enable then
-			DiceMasterChargesFrame.bar:Show()
+			if not Profile.charges.symbol:find("charge") then
+				DiceMasterChargesFrame.bar:Hide()
+				DiceMasterChargesFrame.bar2:Show()
+			else
+				DiceMasterChargesFrame.bar:Show()
+				DiceMasterChargesFrame.bar2:Hide()
+			end
+			DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 36)
 		else
 			DiceMasterChargesFrame.bar:Hide()
+			DiceMasterChargesFrame.bar2:Hide()
+			DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 12)
 		end
 	else
 		DiceMasterChargesFrame:Hide()
@@ -424,13 +431,30 @@ function Me.RefreshChargesFrame( tooltip, color )
 			"Represents the amount of "..chargesPlural.." you have accumulated for certain traits.|n"
 			.."|cFF707070<Left Click to Add "..chargesPlural..">|n"
 			.."<Right Click to Remove "..chargesPlural..">")
+		Me.SetupTooltip( DiceMasterChargesFrame.bar2, nil, chargesPlural, 
+			nil, nil, nil, 
+			"Represents the amount of "..chargesPlural.." you have accumulated for certain traits.|n"
+			.."|cFF707070<Left Click to Add "..chargesPlural..">|n"
+			.."<Right Click to Remove "..chargesPlural..">")
 	end
 	
 	if color then
 		DiceMasterChargesFrame.bar:SetTexture( 
-			"Interface/AddOns/DiceMaster/Texture/charge-orb", 
+			"Interface/AddOns/DiceMaster/Texture/"..Profile.charges.symbol or "Interface/AddOns/DiceMaster/Texture/charge-orb", 
 			Profile.charges.color[1], Profile.charges.color[2], Profile.charges.color[3] )
+		DiceMasterChargesFrame.bar2:SetStatusBarColor( Profile.charges.color[1], Profile.charges.color[2], Profile.charges.color[3] )
 	end
+	
+	-- Check for an Interface path.
+	if not Profile.charges.symbol:find("charge") then
+		DiceMasterChargesFrame.bar2.frame:SetTexture("Interface/UNITPOWERBARALT/"..Profile.charges.symbol.."_Horizontal_Frame")
+		DiceMasterChargesFrame.bar2.text:SetText( Profile.charges.count.."/"..Profile.charges.max )
+	end
+	
+	DiceMasterChargesFrame.bar:SetMax( Profile.charges.max ) 
+	DiceMasterChargesFrame.bar:SetFilled( Profile.charges.count ) 
+	DiceMasterChargesFrame.bar2:SetMinMaxValues( 0 , Profile.charges.max ) 
+	DiceMasterChargesFrame.bar2:SetValue( Profile.charges.count ) 
 end
 
 -------------------------------------------------------------------------------

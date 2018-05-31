@@ -98,20 +98,39 @@ function Me.Inspect_Refresh( status, trait )
 		if store.charges.max > 0 and not ourChargesHack then
 			DiceMasterInspectFrame.charges:SetMax( store.charges.max )
 			DiceMasterInspectFrame.charges:SetFilled( store.charges.count )
+			DiceMasterInspectFrame.charges2:SetMinMaxValues( 0 , store.charges.max ) 
+			DiceMasterInspectFrame.charges2:SetValue( store.charges.count )
+			
+			local symbol = store.charges.symbol or "charge-orb"
 			
 			DiceMasterInspectFrame.charges:SetTexture( 
-				"Interface/AddOns/DiceMaster/Texture/charge-orb", 
+				"Interface/AddOns/DiceMaster/Texture/"..symbol, 
 				store.charges.color[1], store.charges.color[2], store.charges.color[3] )
+			DiceMasterInspectFrame.charges2:SetStatusBarColor( store.charges.color[1], store.charges.color[2], store.charges.color[3] )
+				
+			-- Check for an Interface path.
+			if not symbol:find("charge") then
+				DiceMasterInspectFrame.charges2.frame:SetTexture("Interface/UNITPOWERBARALT/"..symbol.."_Horizontal_Frame")
+				DiceMasterInspectFrame.charges2.text:SetText( store.charges.count.."/"..store.charges.max )
+				DiceMasterInspectFrame.charges:Hide()
+				DiceMasterInspectFrame.charges2:Show()
+			else
+				DiceMasterInspectFrame.charges:Show()
+				DiceMasterInspectFrame.charges2:Hide()
+			end
 				
 			local chargesPlural = store.charges.name:gsub( "/.*", "" )
 			Me.SetupTooltip( DiceMasterInspectFrame.charges, nil, 
 				chargesPlural, nil, nil, nil, 
 				"Represents the amount of "..chargesPlural.." the player has accumulated for certain traits." )
+			Me.SetupTooltip( DiceMasterInspectFrame.charges2, nil, 
+				chargesPlural, nil, nil, nil, 
+				"Represents the amount of "..chargesPlural.." the player has accumulated for certain traits." )
 				
-			DiceMasterInspectFrame.charges:Show()
-			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 58 )
+			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 64 )
 		else
 			DiceMasterInspectFrame.charges:Hide()
+			DiceMasterInspectFrame.charges2:Hide()
 			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 42 )
 		end
 		DiceMasterInspectFrame.health:SetMax( store.healthMax )
@@ -221,6 +240,34 @@ function Me.Inspect_OnTraitUpdated( name, index )
 end
 
 -------------------------------------------------------------------------------
+-- When a trait button is clicked.
+--
+function Me.Inspect_OnTraitClicked( self, button )
+	if not self.traitIndex then return end -- this handler is only for the target's traits
+	
+	if button == "LeftButton" then
+		if IsShiftKeyDown() then
+			-- Create chat link.
+			
+			-- We convert ability names' spaces to U+00A0 No-Break Space
+			-- so that chat addons that split up messages see the link as 
+			-- a whole word and have a lesser chance to screw up
+			--
+			-- We could use something another symbol that would be more secure
+			-- but then people without the addon would see that ugly symbol
+			--
+			local name = DiceMaster4.inspectData[UnitName("target")].traits[self.traitIndex].name:gsub( " ", " " )
+			--                                                       |    |
+			--                                                space -'    |
+			--                                            no-break-space -'
+			
+			ChatEdit_InsertLink(
+				string.format( "[DiceMaster4:%s:%d:%s]", UnitName("target"), self.traitIndex, name ) ) 
+		end
+	end
+end
+
+-------------------------------------------------------------------------------
 -- Called when a player's Status is updated.
 --
 -- @param name Name of player that was updated.
@@ -302,6 +349,7 @@ local function DoSendStatus()
 			c  = Profile.charges.count;
 			cm = Profile.charges.max;
 			cn = Profile.charges.name;
+			cs = Profile.charges.symbol;
 			cc = ToHex(Profile.charges.color);
 		}
 		if not Profile.charges.enable then
@@ -438,6 +486,7 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	data.c  = tonumber(data.c)
 	data.cm = tonumber(data.cm)
 	data.cn = tostring(data.cn)
+	if data.cs then data.cs = tostring(data.cs) end
 	if #data.cc ~= 6 then data.cc = "FFFFFF" end
 	
 	if not data.s or not data.h or not data.hm or not data.c 
@@ -457,6 +506,7 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	store.charges.max    = data.cm
 	store.charges.name   = data.cn
 	store.charges.color  = FromHex( data.cc )
+	if data.cs then store.charges.symbol = data.cs end
 	store.health         = data.h
 	store.healthMax      = data.hm
 	store.hasDM4         = true

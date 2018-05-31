@@ -28,6 +28,9 @@
           self.traits[i]:SetSize( 24, 24 )
           self.traits[i]:SetPoint( "TOP", -56 + 28*(i-1), 24 )
           self.traits[i].traitIndex = i
+		  self.traits[i]:SetScript( "OnMouseDown", function( self, button )
+			DiceMaster4.Inspect_OnTraitClicked( self, button )
+		end)
         end
       </OnLoad>
     </Scripts>
@@ -37,21 +40,51 @@
       <!-- Charges bar. -->
       <DiceMasterStatusBar parentKey="charges">
         
-        <Size x="16" y="16"/>
+        <Size x="32" y="32"/>
         <Anchors>
-          <Anchor point="CENTER" x="0" y="42"/>
+          <Anchor point="CENTER" x="0" y="90"/>
         </Anchors>
         <Scripts>
           <OnLoad>
+			self:SetScale( 0.5 )
             self:SetTexture( "Interface/AddOns/DiceMaster/Texture/charge-orb"  ) 
           </OnLoad>
         </Scripts>
       </DiceMasterStatusBar> 
+	  
+	  <StatusBar parentKey="charges2" minValue="0" maxValue="100" defaultValue="30" orientation="HORIZONTAL">
+		<Size x="150" y="32"/>
+		<Anchors>
+          <Anchor point="CENTER" x="0" y="55"/>
+        </Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="background" setAllPoints="true" >
+				</Texture>
+		    </Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="frame" setAllPoints="true" >
+				</Texture>
+		    </Layer>
+			<Layer level="HIGHLIGHT">
+				<FontString parentKey="text" inherits="GameFontHighlightSmall2" justifyH="center" setallpoints="true">
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self:SetScale( 0.8 )
+				self:SetStatusBarTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Fill")
+				self.frame:SetTexture("Interface/UNITPOWERBARALT/FuelGauge_Horizontal_Frame")
+				self.background:SetTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Bgnd")
+			</OnLoad>
+		</Scripts>
+	  </StatusBar>
       
       <DiceMasterStatusBar parentKey="health">
         <Size x="16" y="16"/>
         <Anchors>
-          <Anchor point="CENTER" x="0" y="58"/>
+          <Anchor point="CENTER" x="0" y="80"/>
         </Anchors>
         
         <Scripts>

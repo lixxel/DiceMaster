@@ -38,6 +38,7 @@ local DB_DEFAULTS = {
 			color   = {1,1,1};
 			count   = 0;
 			max     = 3;
+			symbol	= "charge-orb";
 		};
 		health       = 5;
 		healthMax    = 5;
@@ -160,7 +161,7 @@ Me.configOptions = {
 				chargesColor = {
 					order = 30;
 					name  = "Charges Color";
-					desc  = "Color of this character's charge icons.";
+					desc  = "Color of this character's charges bar.";
 					type  = "color";
 					set = function( info, r, g, b ) 
 						Me.db.profile.charges.color = {r,g,b}
@@ -186,6 +187,50 @@ Me.configOptions = {
 						Me.OnChargesChanged()
 					end;
 					get   = function( info ) return Me.db.profile.charges.max end;
+				}; 
+				
+				chargesSymbol = {
+					order = 50;
+					name  = "Charges Skin";
+					desc  = "Custom skin for this character's charges bar.";
+					type  = "select"; 
+					style = "dropdown";
+					values = {
+						["charge-orb"] = "Charge Orbs",
+						["charge-fire"] = "Burning Embers",
+						["charge-rune"] = "Death Knight Runes",
+						["charge-shadow"] = "Shadow Orbs",
+						["charge-soulshards"] = "Soul Shards",
+						["charge-hourglass"] = "Hourglasses",
+						["Air"] = "Air",
+						["Ice"] = "Ice",
+						["Fire"] = "Fire",
+						["Rock"] = "Rock",
+						["Water"] = "Water",
+						["Meat"] = "Meat",
+						["UndeadMeat"] = "Undead Meat",
+						["WowUI"] = "Generic",
+						["WoodPlank"] = "Wood Plank",
+						["WoodwithMetal"] = "Wood with Metal",
+						["Darkmoon"] = "Darkmoon",
+						["MoltenRock"] = "Molten Rock",
+						["Alliance"] = "Alliance",
+						["Horde"] = "Horde",
+						["Amber"] = "Amber",
+						["Druid"] = "Druid",
+						["FancyPanda"] = "Pandaren",
+						["Mechanical"] = "Mechanical",
+						["Map"] = "Map",
+						["InquisitionTorment"] = "Inquisitor",
+						["Bamboo"] = "Bamboo",
+						["Onyxia"] = "Onyxia",
+						["StoneDesign"] = "Stone Design",
+					};
+					set   = function( info, val ) 
+						Me.db.profile.charges.symbol = val
+						Me.OnChargesChanged()
+					end;
+					get   = function( info ) return Me.db.profile.charges.symbol end;
 				}; 
 			};
 		};
