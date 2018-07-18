@@ -1,3 +1,6 @@
+### 4.81
+ - Added help system for trait rules to the Trait Editor.
+
 ### 4.8
  - Added shift-click tooltip line for dice panel traits.
  - Other players' traits can be linked from the Inspect frame.

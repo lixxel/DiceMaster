@@ -39,9 +39,6 @@ local GUILDS_ALLOWED = {
 	["The League of Lordaeron"] = true;
 }
 
--- Message shown when a non-guildie tries to use it.
-local NOT_PERMITTED_MESSAGE = "|cFFFFFF00DiceMaster is for use by members of <|rThe League of Lordaeron|cFFFFFF00> only. Visit our website at leagueoflordaeron.enjin.com to join!"
-
 -------------------------------------------------------------------------------
 -- Trait.usage modes.
 --
