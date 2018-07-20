@@ -393,7 +393,7 @@ local function SendRollMessage( count, min, max, mod, vanilla )
 		-- We don't use AceComm here because this is really sensitive on timing
 		-- The message is small so it shouldn't cause connection instability.
 
-		SendAddonMessage( "DCM4", msg, "RAID" )
+		C_ChatInfo.SendAddonMessage( "DCM4", msg, "RAID" )
 	end
 	
 	AddRollInfo( UnitName("player"), count, min, max, mod, vanilla )

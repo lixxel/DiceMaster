@@ -1,4 +1,8 @@
-### 4.81
+### 4.8.2
+ - Battle for Azeroth compatibility.
+ - Fixed an issue with dice rolls while in a party.
+
+### 4.8.1
  - Added help system for trait rules to the Trait Editor.
 
 ### 4.8
