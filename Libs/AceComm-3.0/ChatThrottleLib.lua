@@ -497,7 +497,9 @@ function ChatThrottleLib:SendAddonMessage(prio, prefix, text, chattype, target, 
 		-- USER CALLBACK MAY ERROR
 		return
 	end
-
+	
+	print("TEST")
+	
 	-- Message needs to be queued
 	local msg = NewMsg()
 	msg.f = _G.C_ChatInfo and _G.C_ChatInfo.SendAddonMessage or _G.SendAddonMessage

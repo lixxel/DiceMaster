@@ -35,6 +35,10 @@ local chat_events = {
 	"CHANNEL";
 }
 
+local club_events = {
+	"COMMUNITIES_CHANNEL";
+}
+
 -------------------------------------------------------------------------------
 -- For public events, we have to request chat link data manually.
 -- Otherwise, it's sent by the addon instantly along with the message
@@ -208,17 +212,44 @@ local function OnSendChatMessage( text, chatType, lang, channel )
 			traits[t] = true
 		end
 	end
-	 
+	
 	if not traits then 
 		-- no traits in this message
 		-- nothing to worry about
 		return 
 	end 
-
+	
 	local bc = BROADCAST_CHAT_TYPES[chatType]
 	if bc then
 		SendTraits( traits, bc, channel )
 	end
+end
+
+-- separate handling for 8.0
+-- big thanks to Silvz - Moon Guard (US) for helping with this fix!! <3
+
+local streamTypeTable = {
+	[0] = "GENERAL",
+	[1] = "GUILD",
+	[2] = "OFFICER",
+	[3] = "CLUB_CHANNEL"
+}
+
+local function OnSendClubMessage(clubId, streamId, message)
+	local streamInfo = C_Club.GetStreamInfo(clubId, streamId)
+		
+	local channel = nil
+    local chatType = streamTypeTable[streamInfo["streamType"]]
+    if(chatType == "CLUB_CHANNEL") then
+        channelName = string.format("Community:%s:%s", clubId, streamId)
+        channelId, channelName, instanceId = GetChannelName(channelName)
+        if(channelId) then
+            chatType = "CHANNEL"
+            channel = tonumber(channelId)
+        end
+    end
+	
+	OnSendChatMessage(message, chatType, nil, channel)
 end
 
 -------------------------------------------------------------------------------
@@ -232,6 +263,14 @@ function Me.ChatLinks_Init()
 	hooksecurefunc( "SendChatMessage", OnSendChatMessage )
 	for i, event in ipairs(chat_events) do
 		ChatFrame_AddMessageEventFilter( "CHAT_MSG_" .. event, ChatFilter );
+	end
+	
+	-- for 8.0, adds support for clubs
+	if( C_Club ) then
+		hooksecurefunc( C_Club, "SendMessage", OnSendClubMessage )
+		for i, event in ipairs(club_events) do
+			ChatFrame_AddMessageEventFilter( "CHAT_MSG_" .. event, ChatFilter );
+		end
 	end
 end
 

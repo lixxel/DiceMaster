@@ -213,7 +213,7 @@ function ChatThrottleLib:Init()
 			return ChatThrottleLib.Hook_SendChatMessage(...)
 		end)
 		--SendAddonMessage
-		hooksecurefunc("SendAddonMessage", function(...)
+		hooksecurefunc(C_ChatInfo, "SendAddonMessage", function(...)
 			return ChatThrottleLib.Hook_SendAddonMessage(...)
 		end)
 	end

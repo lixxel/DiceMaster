@@ -514,6 +514,9 @@ function Me.SetupWorldClickDetection()
 end
 
 -------------------------------------------------------------------------------
+Me.frame = Me.frame or CreateFrame( "Frame" )
+Me.frame:UnregisterAllEvents()
+
 function Me:OnEnable()
 	Me.SetupDB()
 	Me.MinimapButton_Init()

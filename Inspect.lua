@@ -326,7 +326,8 @@ function Me.Inspect_SendTrait( index, dist, channel )
 		t = trait.icon;
 	})
 	
-	Me:SendCommMessage( "DCM4", msg, dist, tostring(channel), "NORMAL" )
+	if (channel and (not type(channel) == "number")) then channel = tostring(channel) end
+    Me:SendCommMessage( "DCM4", msg, dist, channel, "NORMAL" )
 end
 
 local sendStatusQueue   = {}

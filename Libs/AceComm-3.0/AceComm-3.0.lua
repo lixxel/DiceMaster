@@ -115,7 +115,7 @@ function AceComm:SendCommMessage(prefix, text, distribution, target, prio, callb
 			text = "\004" .. text
 		end
 	end
-
+	
 	if not forceMultipart and textlen <= maxtextlen then
 		-- fits all in one message
 		CTL:SendAddonMessage(prio, prefix, text, distribution, target, queueName, ctlCallback, textlen)

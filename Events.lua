@@ -15,7 +15,7 @@ local eventMap = {}
 -- When the player changes their target.
 --
 function eventMap.PLAYER_TARGET_CHANGED()
-
+	
 	if UnitExists("target") and UnitIsPlayer("target") 
 	        and UnitIsFriend( "player", "target" )
 			and UnitIsSameServer( "target" )
