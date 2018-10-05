@@ -565,7 +565,7 @@ local FOLLOWER_DATA = {
 function Me.Inspect_OnLevelMessage( data, dist, sender )
  
 	-- make sure only the raid leader can grant us a level.
-	--if not UnitIsGroupLeader( sender ) then return end
+	if not UnitIsGroupLeader( sender ) then return end
  
 	-- make sure we're using a follower.
 	if not Profile.follower.name then return end
