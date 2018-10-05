@@ -42,8 +42,11 @@ local DB_DEFAULTS = {
 		};
 		health       = 5;
 		healthMax    = 5;
-		dust		 = 0;
 		traits       = {};
+		follower	 = {
+			name	= nil;
+			level	= 0;
+		};
 	} 
 }
 

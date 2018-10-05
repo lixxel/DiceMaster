@@ -63,6 +63,7 @@ local function PrimeInspectData( name )
 		};
 		health        = 5;
 		healthMax     = 5;
+		follower = {};
 		hasDM4        = false;
 	}
 	
@@ -324,6 +325,8 @@ function Me.Inspect_SendTrait( index, dist, channel )
 		d = trait.desc;
 		e = trait.enchant;
 		t = trait.icon;
+		l = Profile.follower.level;
+		f = Profile.follower.name;
 	})
 	
 	if (channel and (not type(channel) == "number")) then channel = tostring(channel) end
@@ -352,6 +355,8 @@ local function DoSendStatus()
 			cn = Profile.charges.name;
 			cs = Profile.charges.symbol;
 			cc = ToHex(Profile.charges.color);
+			fn = Profile.follower.name;
+			fl = Profile.follower.level;
 		}
 		if not Profile.charges.enable then
 			msg.c  = 0
@@ -443,6 +448,8 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 	data.d = tostring( data.d or "" )
 	data.e = tostring( data.e or "" )
 	data.t = tostring( data.t or DEFAULT_ICON )
+	data.l = tonumber( data.l or 0 )
+	data.f = tostring( data.f or "" )
 	
 	if not data.i or not data.s or data.i < 1 or data.i > Me.traitCount then 
 		-- another pass after number sanitization
@@ -458,6 +465,13 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 		enchant = data.e;
 		icon    = data.t;
 	}
+	
+	if data.l then 
+	Me.inspectData[sender].follower = {
+		name	= data.f;
+		level	= data.l;
+	}
+	end
 	
 	-- we flag them as having dicemaster once we receive their first message
 	-- if they don't have this set, then the inspect panel isn't shown
@@ -484,6 +498,8 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	data.s  = tonumber(data.s)
 	data.h  = tonumber(data.h)
 	data.hm = tonumber(data.hm)
+	data.fn = tostring(data.fn)
+	data.fl = tonumber(data.fl)
 	data.c  = tonumber(data.c)
 	data.cm = tonumber(data.cm)
 	data.cn = tostring(data.cn)
@@ -510,11 +526,69 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	if data.cs then store.charges.symbol = data.cs end
 	store.health         = data.h
 	store.healthMax      = data.hm
+	if data.fn then
+	store.follower.level  = data.fl
+	store.follower.name	 = data.fn
+	end
 	store.hasDM4         = true
 	
 	Me.Inspect_OnStatusUpdated( sender )
 end
 
+---------------------------------------------------------------------------
+-- Received LEVEL data.
+--
+
+local FOLLOWER_DATA = {
+	["Witch Hunter"] = {
+		path = "Interface/AddOns/DiceMaster_UnitFrames/Texture/portrait-witch-hunter",
+		sounds = {
+			"Well fought.",
+			"I feel stronger.",
+			"Nothing will stop me now.",
+			"Together we are unstoppable.",
+			"My hunt continues.",
+		},
+	},
+	["Inquisitor"] = {
+		path = "Interface/AddOns/DiceMaster_UnitFrames/Texture/portrait-inquisitor",
+		sounds = {
+			"Impressive work.",
+			"Perhaps I underestimated you.",
+			"You make for an admirable ally.",
+			"Now you I can count on.",
+			"You are a valuable ally.",
+		},
+	}
+}
+
+function Me.Inspect_OnLevelMessage( data, dist, sender )
+ 
+	-- make sure only the raid leader can grant us a level.
+	--if not UnitIsGroupLeader( sender ) then return end
+ 
+	-- make sure we're using a follower.
+	if not Profile.follower.name then return end
+	
+	-- Level up the follower we're currently using.
+	local level = Profile.follower.level or 0
+	Profile.follower.level = level + 1
+	print("|cFFFFFF00Your |cff71d5ff|HDiceMaster4:"..UnitName("player")..":5|h["..Profile.follower.name.."]|h|r|cFFFFFF00 has reached level "..Profile.follower.level.."!")
+	
+	local sound = random(5)
+	local prefix = Profile.follower.name:gsub("%s+", "")
+	PlaySound(46893)
+	PlaySoundFile("Interface/AddOns/DiceMaster/Sounds/"..prefix.."_LevelUp00"..sound..".ogg")
+	
+	--Talking Heads integration
+	if DiceMasterUnitsPanel and Me.db.global.talkingHeads then
+		DiceMasterTalkingHeadFrame_SetUnit(FOLLOWER_DATA[Profile.follower.name].path, Profile.follower.name)
+		DiceMasterTalkingHeadFrame_PlayCurrent(FOLLOWER_DATA[Profile.follower.name].sounds[sound])
+	end
+	
+	Me.Inspect_SendStatus( "RAID" )
+	Me.Inspect_OnStatusUpdated( UnitName( "player" ) )
+end
 
 -------------------------------------------------------------------------------
 -- ADDON_LOADED handler

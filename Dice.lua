@@ -8,6 +8,7 @@
 
 -------------------------------------------------------------------------------
 local Me = DiceMaster4 
+local Profile = Me.Profile
 
 local ROLL_TIMEOUT = 1.5   -- timeout before printing rolls normally
 local CLEAN_TIME   = 5     -- timeout before we throw data away
@@ -143,6 +144,40 @@ end
 -------------------------------------------------------------------------------
 -- Version 2 with natural amounts and color codes for crits.
 --
+
+local FOLLOWER_DATA = {
+	["Witch Hunter"] = {
+		path = "Interface/AddOns/DiceMaster_UnitFrames/Texture/portrait-witch-hunter",
+		sounds = {
+			fail = {
+				"That could have gone better.",
+				"An unfortunate turn.",
+				"Curses!",
+			},
+			success = {
+				"An excellent strike.",
+				"Good work.",
+				"Well done!",
+			},
+		},
+	},
+	["Inquisitor"] = {
+		path = "Interface/AddOns/DiceMaster_UnitFrames/Texture/portrait-inquisitor",
+		sounds = {
+			fail = {
+				"My sincerest apologies.",
+				"They are cutting us down!",
+				"Allies like you make me want to stand alone!",
+			},
+			success = {
+				"Hah! Excellent work!",
+				"We are gaining ground!",
+				"No quarter!",
+			},
+		},
+	}
+}
+
 local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
 	local sum = 0
 	for k,v in pairs( rolls ) do 
@@ -187,6 +222,27 @@ local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
 	if not you then
 		return name .. " rolls " .. rollstring
 	else
+		if Profile.follower.name then
+			if sum == 1 then
+				local sound = random(3)
+				local prefix = Profile.follower.name:gsub("%s+", "")
+		
+				--Talking Heads integration
+				if DiceMasterUnitsPanel and Me.db.global.talkingHeads then
+					DiceMasterTalkingHeadFrame_SetUnit(FOLLOWER_DATA[Profile.follower.name].path, Profile.follower.name)
+					C_Timer.After(1, function() DiceMasterTalkingHeadFrame_PlayCurrent(FOLLOWER_DATA[Profile.follower.name].sounds.fail[sound]); PlaySoundFile("Interface/AddOns/DiceMaster/Sounds/"..prefix.."_CritFail00"..sound..".ogg"); end);
+				end
+			elseif sum == sides then
+				local sound = random(3)
+				local prefix = Profile.follower.name:gsub("%s+", "")
+		
+				--Talking Heads integration
+				if DiceMasterUnitsPanel and Me.db.global.talkingHeads then
+					DiceMasterTalkingHeadFrame_SetUnit(FOLLOWER_DATA[Profile.follower.name].path, Profile.follower.name)
+					C_Timer.After(1, function() DiceMasterTalkingHeadFrame_PlayCurrent(FOLLOWER_DATA[Profile.follower.name].sounds.success[sound]); PlaySoundFile("Interface/AddOns/DiceMaster/Sounds/"..prefix.."_CritSuccess00"..sound..".ogg"); end);
+				end
+			end
+		end
 		return "You roll " .. rollstring
 	end
 end

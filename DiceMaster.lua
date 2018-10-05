@@ -55,9 +55,9 @@ local TOOLTIP_DESC_SUBS = {
 	{ "Rescue",             "|cFFFFFFFFRescue|r" };                                                       -- "rescue"
 	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                    -- "advantage"
 	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                                 -- "disadvantage"
-	{ "(Stun[snedig]*)",    "|cFFFFFFFF%1|r" };   -- "stun"
-	{ "(Poison[sedig]*)",   "|cFFFFFFFF%1|r" };   -- "poison"
-	{ "(Control[sledig]*)", "|cFFFFFFFF%1|r" };	  -- "control"
+	{ "(Stun[sneding]*)",    "|cFFFFFFFF%1|r" };   -- "stun"
+	{ "(Poison[sneding]*)",   "|cFFFFFFFF%1|r" };   -- "poison"
+	{ "(Control[sleding]*)", "|cFFFFFFFF%1|r" };	  -- "control"
 	{ "(NAT1)", "|cFFFFFFFF%1|r" };	  -- "NAT1"
 	{ "(NAT20)", "|cFFFFFFFF%1|r" };	  -- "NAT20"
 	{ "%s?[+]%d+",           "|cFF00FF00%1|r" };                                                           -- e.g. "+1"
@@ -197,11 +197,12 @@ local TRAIT_USAGE = {
 	["PASSIVE"] = "Passive";
 	["CHARGE1"] = "1 &cs"; ["CHARGE2"] = "2 &cp"; ["CHARGE3"] = "3 &cp";
 	["CHARGE4"] = "4 &cp"; ["CHARGE5"] = "5 &cp"; ["CHARGE6"] = "6 &cp";
-	["CHARGE7"] = "7 &cp"; ["CHARGE8"] = "8 &cp";
+	["CHARGE7"] = "7 &cp"; ["CHARGE8"] = "8 &cp"; ["LEVEL"] = "Level &fl Follower";
 }
 
 function Me.FormatUsage( usage, name )
 	name = name or UnitName("player")
+	local level = Me.inspectData[name].follower.level or 0
 	
 	local text = TRAIT_USAGE[usage] or "<Unknown Usage>"
 	
@@ -214,6 +215,7 @@ function Me.FormatUsage( usage, name )
 	-- sub charges
 	text = text:gsub( "&cs", singular_charges )
 	text = text:gsub( "&cp", plural_charges )
+	text = text:gsub( "&fl", level )
 	return text
 end
 
@@ -278,12 +280,65 @@ function Me.FormatTooltipColors( text )
 end
 
 -------------------------------------------------------------------------------
+-- Add follower upgrades for a trait description tooltip.
+--
+-- @param text Text to format.
+-- @returns formatted text.
+--
+
+local FOLLOWER_UPGRADES = {
+	["Witch Hunter"] = {
+		{name="|TInterface/AddOns/DiceMaster/Icons/diablo3_groundstomp:16|t Fleetfoot Boots", desc="You are unable to critically fail any defence roll."},
+		{name="|TInterface/AddOns/DiceMaster/Icons/diablo3_impale:16|t Stakethrowers", desc="You may forego any defence round of your choosing and roll with Double or Nothing."},
+		{name="|TInterface/AddOns/DiceMaster/Icons/Valla_Master:16|t Witchfinder", desc="Reduces the DC against witches by -3 and allows you to plainly see who is controlling Bewitched monsters."},
+		},
+	["Inquisitor"] = {
+		{name="|TInterface/AddOns/DiceMaster/Icons/Varian_TwinBladesOfFury:16|t Silver Armaments", desc="Your successful attacks may now strike Phantasmal monsters."},
+		{name="|TInterface/AddOns/DiceMaster/Icons/Valeera_Cripplingpoison:16|t Alchemical Fire", desc="Reduces the DC against Wicker monsters by -5 for you, but your failed defence rolls cost you twice as much health."},
+		{name="|TInterface/AddOns/DiceMaster/Icons/TheButcher_FurnaceBlast_Fire:16|t Inquisition", desc="You have Advantage against all witches until you lose a defence roll."},
+		},
+}
+
+function Me.FormatTooltipFollowers( text, player )
+	player = player or UnitName("player")
+	local level = Me.inspectData[player].follower.level or 0
+	local follower = Me.inspectData[player].follower.name or nil
+	
+	if follower then
+		local tierOne = "|cff9d9d9d- Unlocked at Follower Level 2|r"
+		local tierTwo = "|cff9d9d9d- Unlocked at Follower Level 3|r"
+		local tierThree = "|cff9d9d9d- Unlocked at Follower Level 5|r"
+		
+		local upgrades = 0;
+		
+		if level >= 2 then 
+			tierOne = "|cFFFFFFFF"..FOLLOWER_UPGRADES[follower][1].name.."|r|n|cFF00FF00"..FOLLOWER_UPGRADES[follower][1].desc.."|r"
+			upgrades = upgrades + 1
+		end
+		if level >= 3 then 
+			tierTwo = "|cFFFFFFFF"..FOLLOWER_UPGRADES[follower][2].name.."|r|n|cFF00FF00"..FOLLOWER_UPGRADES[follower][2].desc.."|r"
+			upgrades = upgrades + 1
+		end
+		if level >= 5 then 
+			tierThree = "|cFFFFFFFF"..FOLLOWER_UPGRADES[follower][3].name.."|r|n|cFF00FF00"..FOLLOWER_UPGRADES[follower][3].desc.."|r"
+			upgrades = upgrades + 1
+		end
+		
+		local upgradeData = "Follower Upgrades ("..upgrades.."/3):|n"..tierOne.."|n"..tierTwo.."|n"..tierThree
+		text = string.gsub(text,"Follower Upgrades",upgradeData)
+	end
+	
+	return text
+end
+
+-------------------------------------------------------------------------------
 -- Add color codes to a trait description tooltip.
 --
 -- @param text Text to format.
 -- @returns formatted text.
 --
-function Me.FormatDescTooltip( text )
+function Me.FormatDescTooltip( text, name )
+	name = name or UnitName("player")
 	for k, v in ipairs( TOOLTIP_DESC_SUBS ) do
 		text = gsub( text, v[1], v[2] )
 	end
@@ -307,9 +362,74 @@ function Me.FormatDescTooltip( text )
 	for i = 1, colorCount do
 		text = Me.FormatTooltipColors( text )
 	end
+	
+	text = Me.FormatTooltipFollowers( text, name )
 
 	return text
 end
+
+-------------------------------------------------------------------------------
+-- Confirmation prompt for switching followers.
+--
+
+local FOLLOWER_DATA = {
+	["inquisitor"] = {
+		name = "Inquisitor",
+		icon = "Interface/AddOns/DiceMaster/Icons/Followers_Inquisitor",
+		desc = "The Order of Embers has trained hard to steel their mettle and resist the forces of witchcraft, granting you an extra 2 Health at the start of every event.|n|nFollower Upgrades|n|n\"The monster has many forms. You must know them all.\"",
+		sound = "Interface/AddOns/DiceMaster/Sounds/Inquisitor_Intro.ogg",
+		text = "Our foes will rue this day.",
+		path = "Interface/AddOns/DiceMaster_UnitFrames/Texture/portrait-inquisitor",
+	},
+	["witch hunter"] = {
+		name = "Witch Hunter",
+		icon = "Interface/AddOns/DiceMaster/Icons/Followers_WitchHunter",
+		desc = "The Witch Hunters hone the darkness of their enemies into a formidable weapon, increasing all of the modifiers on your traits by +1.|n|nFollower Upgrades|n|n\"The shadows are the hunter's greatest weapon.\"",
+		sound = "Interface/AddOns/DiceMaster/Sounds/WitchHunter_Intro.ogg",
+		text = "Our enemies will beg for mercy.",
+		path = "Interface/AddOns/DiceMaster_UnitFrames/Texture/portrait-witch-hunter",
+	},
+}
+
+StaticPopupDialogs["DICEMASTER_CHANGE_FOLLOWERS"] = {
+  text = "Changing followers will wipe out your existing Command Trait and reset your follower's level to 1. Are you sure you wish to continue?",
+  button1 = "Yes",
+  button2 = "No",
+  OnAccept = function(self, data)
+    if data == "inquisitor" or data == "witch hunter" then
+		Profile.follower.name = FOLLOWER_DATA[data].name
+		Profile.follower.level = 1
+		Profile.traits[5].name = FOLLOWER_DATA[data].name
+		Profile.traits[5].icon = FOLLOWER_DATA[data].icon
+		Profile.traits[5].usage = "LEVEL"
+		Profile.traits[5].desc = FOLLOWER_DATA[data].desc
+		PlaySound(44296)
+		PlaySoundFile(FOLLOWER_DATA[data].sound)
+		
+		print("|cff71d5ff|HDiceMaster4:"..UnitName("player")..":5|h["..FOLLOWER_DATA[data].name.."]|h|r|cFFFFFF00 is now your follower.")
+		
+		--Talking Heads integration
+		if DiceMasterUnitsPanel and Me.db.global.talkingHeads then
+			DiceMasterTalkingHeadFrame_SetUnit(FOLLOWER_DATA[data].path, Profile.follower.name)
+			DiceMasterTalkingHeadFrame_PlayCurrent(FOLLOWER_DATA[data].text)
+		end
+	elseif data == "clear" then
+		Profile.follower.name = nil
+		Profile.follower.level = 0
+		Profile.traits[5].name = "Command Trait"
+		Profile.traits[5].icon = "Interface/Icons/inv_misc_questionmark"
+		Profile.traits[5].usage = Me.TRAIT_USAGE_MODES[1]
+		Profile.traits[5].desc = "Type a description for your trait here."
+	end
+	Me.UpdatePanelTraits()
+  end,
+  OnCancel = function ()
+  end,
+  showAlert = true,
+  timeout = 30,
+  whileDead = true,
+  hideOnEscape = true,
+}
 
 -------------------------------------------------------------------------------
 -- Setup the trait buttons on the dice panel.

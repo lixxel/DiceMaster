@@ -174,6 +174,7 @@
             
           </OnLoad>
           <OnClick>
+			if DiceMaster4.db.profile.follower.level > 0 and DiceMaster4.editing_trait==5 then return end
             PlaySound(54132)
             DiceMaster4.IconPicker_Open()
           </OnClick>
@@ -195,6 +196,13 @@
 		  <OnEditFocusLost>
 			DiceMaster4.TraitEditor_SaveName()
 		  </OnEditFocusLost>
+		  <OnEnter>
+			if DiceMaster4.db.profile.follower.level > 0 and DiceMaster4.editing_trait==5 then
+				self:Disable()
+			else	
+				self:Enable()
+			end
+		  </OnEnter>
 		  <OnEscapePressed function="EditBox_ClearFocus"/>
 		  <OnEnterPressed function="EditBox_ClearFocus"/>
 		</Scripts>
@@ -217,6 +225,7 @@
             self:RegisterForClicks( "LeftButtonDown", "RightButtonDown" )
           </OnLoad>
           <OnClick>
+			if DiceMaster4.db.profile.follower.level > 0 and DiceMaster4.editing_trait==5 then return end
             DiceMaster4.TraitEditor_ChangeUsage( button )
           </OnClick>
         </Scripts>
@@ -307,6 +316,13 @@
               <OnEditFocusLost>
                 DiceMaster4.TraitEditor_SaveDescription()
               </OnEditFocusLost>
+			  <OnEnter>
+				if DiceMaster4.db.profile.follower.level > 0 and DiceMaster4.editing_trait==5 then
+					self:Disable()
+				else	
+					self:Enable()
+				end
+			  </OnEnter>
               
               <OnEscapePressed function="EditBox_ClearFocus"/>
             </Scripts>
