@@ -14,7 +14,6 @@ local MessageHandlers = {
 	INSP   = "Inspect_OnInspectMessage";
 	TRAIT  = "Inspect_OnTraitMessage";
 	STATUS = "Inspect_OnStatusMessage";
-	LEVEL  = "Inspect_OnLevelMessage";
 	
 	R      = "Dice_OnRollMessage";
 	ROLL   = "Dice_OnRollMessage";

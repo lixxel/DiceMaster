@@ -63,7 +63,6 @@ local function PrimeInspectData( name )
 		};
 		health        = 5;
 		healthMax     = 5;
-		follower = {};
 		hasDM4        = false;
 	}
 	
@@ -325,8 +324,6 @@ function Me.Inspect_SendTrait( index, dist, channel )
 		d = trait.desc;
 		e = trait.enchant;
 		t = trait.icon;
-		l = Profile.follower.level;
-		f = Profile.follower.name;
 	})
 	
 	if (channel and (not type(channel) == "number")) then channel = tostring(channel) end
@@ -355,8 +352,6 @@ local function DoSendStatus()
 			cn = Profile.charges.name;
 			cs = Profile.charges.symbol;
 			cc = ToHex(Profile.charges.color);
-			fn = Profile.follower.name;
-			fl = Profile.follower.level;
 		}
 		if not Profile.charges.enable then
 			msg.c  = 0
@@ -448,8 +443,6 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 	data.d = tostring( data.d or "" )
 	data.e = tostring( data.e or "" )
 	data.t = tostring( data.t or DEFAULT_ICON )
-	data.l = tonumber( data.l or 0 )
-	data.f = tostring( data.f or "" )
 	
 	if not data.i or not data.s or data.i < 1 or data.i > Me.traitCount then 
 		-- another pass after number sanitization
@@ -465,13 +458,6 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 		enchant = data.e;
 		icon    = data.t;
 	}
-	
-	if data.l then 
-	Me.inspectData[sender].follower = {
-		name	= data.f;
-		level	= data.l;
-	}
-	end
 	
 	-- we flag them as having dicemaster once we receive their first message
 	-- if they don't have this set, then the inspect panel isn't shown
@@ -498,8 +484,6 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	data.s  = tonumber(data.s)
 	data.h  = tonumber(data.h)
 	data.hm = tonumber(data.hm)
-	data.fn = tostring(data.fn)
-	data.fl = tonumber(data.fl)
 	data.c  = tonumber(data.c)
 	data.cm = tonumber(data.cm)
 	data.cn = tostring(data.cn)
@@ -526,15 +510,12 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	if data.cs then store.charges.symbol = data.cs end
 	store.health         = data.h
 	store.healthMax      = data.hm
-	if data.fn then
-	store.follower.level  = data.fl
-	store.follower.name	 = data.fn
-	end
 	store.hasDM4         = true
 	
 	Me.Inspect_OnStatusUpdated( sender )
 end
 
+<<<<<<< HEAD
 ---------------------------------------------------------------------------
 -- Received LEVEL data.
 --
@@ -589,6 +570,8 @@ function Me.Inspect_OnLevelMessage( data, dist, sender )
 	Me.Inspect_SendStatus( "RAID" )
 	Me.Inspect_OnStatusUpdated( UnitName( "player" ) )
 end
+=======
+>>>>>>> parent of ea8530c... 4.8.4 (Followers)
 
 -------------------------------------------------------------------------------
 -- ADDON_LOADED handler

@@ -109,18 +109,6 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		else
 			Me.db.char.showRaidRolls = false
 		end
-	elseif command == "follower" and Me.PermittedUse() then
-		if rest:lower() == "inquisitor" or rest:lower() == "witch hunter" or rest:lower() == "clear" then
-			local data = rest:lower()
-			local dialog = StaticPopup_Show("DICEMASTER_CHANGE_FOLLOWERS")
-			if (dialog) then
-				 dialog.data = data
-			end
-		end
-	elseif command == "levelup" and Me.PermittedUse() then
-		local msg = "LEVEL"
-		local msg = Me:Serialize( "LEVEL", msg )
-		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 	else
 		print("|cFFFFFF00- /dicemaster config");
 		print("|cFFFFFF00- /dicemaster scale (number)");
@@ -130,7 +118,6 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		print("|cFFFFFF00- /dicemaster maxcharges (number)");
 		print("|cFFFFFF00- /dicemaster chargescolor (r g b)");
 		print("|cFFFFFF00- /dicemaster showraidrolls (true || false)");
-		print("|cFFFFFF00- /dicemaster follower (follower)");
 		print("|cFFFFFF00- /dicemaster reset");
 	end
 end 

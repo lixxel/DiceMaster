@@ -95,9 +95,9 @@ local function RefreshItemRef()
 	ItemRefTooltip:AddLine( name, 1,1,1,1 )
 	ItemRefTooltip:AddLine( Me.FormatUsage( trait.usage, Me.itemRefPlayer ), 1,1,1,1 )
 	
-	local desc = Me.FormatDescTooltip( trait.desc, Me.itemRefPlayer )
+	local desc = Me.FormatDescTooltip( trait.desc )
 	if trait.enchant and trait.enchant~="" then
-		local enchant = Me.FormatDescTooltip( trait.enchant, Me.itemRefPlayer )
+		local enchant = Me.FormatDescTooltip( trait.enchant )
 		desc = desc .. "|n|n|cFFFF00FF"..enchant
 	end
 	ItemRefTooltip:AddLine( desc, 1,0.83,0.09,1 )

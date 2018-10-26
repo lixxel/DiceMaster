@@ -87,7 +87,7 @@ function Me.OpenTraitTooltip( owner, trait, index )
     GameTooltip:AddLine( nil, 1, 1, 1, true )
 	
 	if trait.desc then
-		local desc = Me.FormatDescTooltip( trait.desc, playername )
+		local desc = Me.FormatDescTooltip( trait.desc )
 		if Me.db.global.hideTips then
 			Me.CheckTooltipForTerms( desc )
 		end

@@ -1,7 +1,3 @@
-### 4.8.4
- - Added new icons.
- - Added followers integration.
-
 ### 4.8.3
  - Fixed chat links in public channels.
  - Added new Battle for Azeroth icons to the icon library.
