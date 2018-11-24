@@ -17,6 +17,7 @@ local DB_DEFAULTS = {
 		version     = nil;
 		hideInspect = false; -- hide inspect frame when panel is hidden
 		hideTips	= true; -- turn enhanced tooltips on for newbies
+		hideTracker = false; -- hide the roll tracker.
 	};
 	
 	char = { 
@@ -122,6 +123,23 @@ Me.configOptions = {
 				Me.db.global.hideTips = val
 			end;
 			get = function( info ) return Me.db.global.hideTips end;
+		};
+		
+		hideTracker = {
+			order = 7;
+			name  = "Enable Roll Tracker";
+			desc  = "Enable the Roll Tracker frame to keep track of your group's rolls.";
+			type  = "toggle";
+			width = "full";
+			set = function( info, val )
+				Me.db.global.hideTracker = val
+				if val == true then
+					DiceMasterRollFrame:Show()
+				else
+					DiceMasterRollFrame:Hide()
+				end
+			end;
+			get = function( info ) return Me.db.global.hideTracker end;
 		};
 	
 		enableCharges = {

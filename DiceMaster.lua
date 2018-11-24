@@ -472,6 +472,7 @@ function Me.ApplyUiScale()
 	DiceMasterTraitEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterInspectFrame:SetScale( Me.db.char.uiScale * 1.2 )
 	DiceMasterChargesFrame:SetScale( Me.db.char.uiScale * 1.2 )
+	DiceMasterRollFrame:SetScale( Me.db.char.uiScale * 1.4 )
 end
 
 function Me.ShowPanel( show )
@@ -480,9 +481,13 @@ function Me.ShowPanel( show )
 	if not show then
 		DiceMasterPanel:Hide()
 		DiceMasterChargesFrame:Hide()
+		DiceMasterRollFrame:Hide()
 	else
 		DiceMasterPanel:Show()
 		DiceMasterChargesFrame:Show()
+		if Me.db.global.hideTracker then
+			DiceMasterRollFrame:Show()
+		end
 	end
 	
 	Me.RefreshChargesFrame( true, true )

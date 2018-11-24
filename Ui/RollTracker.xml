@@ -1,0 +1,484 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  
+  <Button name="DiceMasterRollTrackerButtonTemplate" virtual="true">
+		<Size x="256" y="16"/>
+		<Layers>
+			<Layer level="BORDER">
+				<FontString name="$parentName" inherits="GameFontNormalSmall" justifyH="LEFT">
+					<Size x="88" y="14"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-3"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentRoll" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="32" y="14"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentName" relativePoint="RIGHT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentTimestamp" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="75" y="8"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentRoll" relativePoint="RIGHT" x="8" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentTarget" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="32" y="8"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentTimestamp" relativePoint="RIGHT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+			</OnLoad>
+			<OnClick>
+				DiceMasterRollTrackerButton_OnClick(self, button);
+				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+			</OnClick>
+		</Scripts>
+		<HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">
+			<Size x="256" y="16"/>
+			<Anchors>
+				<Anchor point="TOP" x="5" y="-2"/>
+			</Anchors>
+		</HighlightTexture>
+	</Button>
+	
+	<Button name="DiceMasterRollTrackerHistoryButtonTemplate" virtual="true">
+		<Size x="150" y="16"/>
+		<Layers>
+			<Layer level="BORDER">
+				<FontString name="$parentRoll" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="26" y="14"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-3"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentTimestamp" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="75" y="8"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentRoll" relativePoint="RIGHT" x="8" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentDice" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="50" y="8"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentTimestamp" relativePoint="RIGHT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+		</Scripts>
+		<HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">
+			<Size x="150" y="16"/>
+			<Anchors>
+				<Anchor point="TOP" x="5" y="-2"/>
+			</Anchors>
+		</HighlightTexture>
+	</Button>
+	
+	<Frame name="DiceMasterRollTrackerDetailFrameTemplate" toplevel="true" enableMouse="true" virtual="true">
+		<Size x="212" y="270"/>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background-Dark" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="11" top="11" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="BackBackground" blendMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="3" y="-5"/>
+						<Anchor point="BOTTOMRIGHT" x="-3" y="5"/>
+					</Anchors>
+					<Color r="0" g="0" b="0" a="0.6"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" justifyH="LEFT" inherits="GameFontNormal">
+					<Size x="165" y="0"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="17" y="-18"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="AverageLabel" inherits="GameFontNormalSmall" text="Average Roll:">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" x="0" y="-4"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="AverageText" inherits="GameFontHighlight" justifyH="LEFT" text="15">
+					<Size x="147" y="12"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.AverageLabel" relativePoint="RIGHT" x="2" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="RollHistoryLabel" inherits="GameFontNormalSmall" text="Roll">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.AverageLabel" relativePoint="BOTTOMLEFT" x="4" y="-13"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="TimestampHistoryLabel" inherits="GameFontNormalSmall" text="Timestamp">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.RollHistoryLabel" relativePoint="RIGHT" x="16" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="DiceHistoryLabel" inherits="GameFontNormalSmall" text="Dice">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.TimestampHistoryLabel" relativePoint="RIGHT" x="16" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Corner" file="Interface\DialogFrame\UI-DialogBox-Corner">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="-6" y="-7"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button parentKey="CloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-3" y="-3"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						HideParentPanel(self);
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Frame parentKey="ListInset" inherits="InsetFrameTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="12" y="-72"/>
+					<Anchor point="BOTTOMRIGHT" x="-12" y="45"/>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Totals" inherits="GameFontNormalSmall">
+							<Size x="150" y="16"/>
+							<Anchors>
+								<Anchor point="BOTTOM" x="0" y="5"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<ScrollFrame name="$parentDetailScrollFrame" inherits="FauxScrollFrameTemplate">
+				<Size x="150" y="142"/>
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-38" y="-80"/>
+				</Anchors>
+				<Scripts>
+					<OnVerticalScroll>
+						FauxScrollFrame_OnVerticalScroll(self, offset, 16, DiceMaster4.DiceMasterRollDetailFrame_Update);
+					</OnVerticalScroll>
+				</Scripts>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+							<Size x="31" y="115"/>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-2" y="5"/>
+							</Anchors>
+							<TexCoords left="0" right="0.484375" top="0" bottom="0.5"/>
+						</Texture>
+						<Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+							<Size x="31" y="106"/>
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="-2" y="-2"/>
+							</Anchors>
+							<TexCoords left="0.515625" right="1.0" top="0" bottom="0.4140625"/>
+						</Texture>
+					</Layer>
+				</Layers>
+			</ScrollFrame>
+			<Button parentKey="RemoveButton" inherits="UIPanelButtonTemplate" text="Clear">
+				<Size x="96" y="22"/>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" x="10" y="12"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						DiceMaster4.HistoryRolls[self:GetParent().Name:GetText()] = {}
+						DiceMaster4.DiceMasterRollDetailFrame_Update()
+						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+					</OnClick>
+				</Scripts>
+				<NormalFont style="GameFontNormalSmall"/>
+				<HighlightFont style="GameFontHighlightSmall"/>
+				<DisabledFont style="GameFontDisableSmall"/>
+			</Button>
+			<Button parentKey="MessageButton" inherits="UIPanelButtonTemplate" text="Send Message">
+				<Size x="96" y="22"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.RemoveButton" relativePoint="RIGHT" x="1" y="0"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						ChatFrame_SendTell(DiceMasterRollTracker.selectedName);
+						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+					</OnClick>
+				</Scripts>
+				<NormalFont style="GameFontNormalSmall"/>
+				<HighlightFont style="GameFontHighlightSmall"/>
+				<DisabledFont style="GameFontDisableSmall"/>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				for i = 2, 9 do
+					local button = CreateFrame("Button", "DiceMasterRollTrackerHistoryButton"..i, self, "DiceMasterRollTrackerHistoryButtonTemplate");
+					button:SetID(i)
+					button:SetPoint("TOP", _G["DiceMasterRollTrackerHistoryButton"..(i-1)], "BOTTOM");
+				end
+			</OnLoad>
+			<OnShow>
+				DiceMaster4.DiceMasterRollDetailFrame_Update()
+			</OnShow>
+			<OnHide>
+				DiceMasterRollTracker.selected = nil
+				DiceMaster4.DiceMasterRollFrame_Update()
+			</OnHide>
+		</Scripts>
+	</Frame>
+  
+  <Frame name="DiceMasterRollFrame" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="LOW">
+    <Size x="265" y="384" />
+    <Anchors>
+      <Anchor point="LEFT" x="300" y="100" />
+    </Anchors>
+    
+    <Scripts>
+      <OnLoad>
+		DiceMaster4.DiceMasterRollFrame_OnLoad( self )
+	  </OnLoad>
+    </Scripts>
+    <Frames>
+		<Frame name="DiceMasterRollTracker" setAllPoints="true" hidden="false">
+			<Frames>
+				<Frame name="DiceMasterRollTrackerListInset" inherits="InsetFrameTemplate">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" y="-80"/>
+						<Anchor point="BOTTOMRIGHT" x="-5" y="26"/>
+					</Anchors>
+					<Layers>
+						<Layer level="ARTWORK">
+							<FontString name="DiceMasterRollTrackerTotals" inherits="GameFontNormalSmall">
+								<Size x="298" y="16"/>
+								<Anchors>
+									<Anchor point="BOTTOM" x="0" y="5"/>
+								</Anchors>
+							</FontString>
+						</Layer>
+					</Layers>
+				</Frame>
+				
+				<EditBox name="$parentDCThreshold" parentKey="DCThreshold" font="GameFontNormalMed2" inherits="InputBoxTemplate">
+					<Size x="30" y="12"/> 
+					<Anchors>
+					  <Anchor point="TOPRIGHT" relativeTo="DiceMasterRollTracker" relativePoint="TOPRIGHT" x="-16" y="-34"/> 
+					</Anchors>
+					<Layers>
+						<Layer level="ARTWORK">
+					  <FontString name="$parentDCThresholdTitle" inherits="GameFontNormalLeft" justifyH="left" text="Difficulty Class:">
+							<Size x="100" y="12"/>
+							<Anchors>
+							  <Anchor point="RIGHT" relativePoint="LEFT" x="0" y="0"/> 
+							</Anchors>
+						</FontString>
+					  </Layer>
+					</Layers>
+					<Scripts> 
+					  <OnLoad>
+						self:SetAutoFocus( false )
+						self:SetTextColor( 1, 1, 1 )
+						self:SetMaxLetters( 3 )
+						self:SetNumeric( true )
+					  </OnLoad>
+					  <OnTextChanged>
+						DiceMaster4.DiceMasterRollFrame_Update()
+						if self:GetText()~= "" then
+							DiceMasterRollTrackerListResultsButton:Enable()
+						else
+							DiceMasterRollTrackerListResultsButton:Disable()
+						end
+					  </OnTextChanged>
+					  <OnEscapePressed function="EditBox_ClearFocus"/>
+					  <OnEnterPressed function="EditBox_ClearFocus"/>
+					</Scripts>
+				</EditBox>
+
+				<Button name="RollTrackerColumnHeader1" inherits="WhoFrameColumnHeaderTemplate" text="Name">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="7" y="-57"/>
+					</Anchors>
+					<Scripts>
+						<OnLoad>
+							WhoFrameColumn_SetWidth(self, 83);
+							self.sortType = "name";
+							self.reversed = false;
+						</OnLoad>
+						<OnClick>
+							DiceMaster4.SortRolls( self, self.reversed, self.sortType )
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						</OnClick>
+					</Scripts>
+				</Button>
+				
+				<Button name="RollTrackerColumnHeader2" inherits="WhoFrameColumnHeaderTemplate" text="Roll">
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="RollTrackerColumnHeader1" relativePoint="RIGHT" x="-2" y="0"/>
+					</Anchors>
+					<Scripts>
+						<OnLoad>
+							WhoFrameColumn_SetWidth(self, 42);
+							self.sortType = "roll";
+							self.reversed = false;
+						</OnLoad>
+						<OnClick>
+							DiceMaster4.SortRolls( self, self.reversed, self.sortType )
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						</OnClick>
+					</Scripts>
+				</Button>
+				
+				<Button name="RollTrackerColumnHeader3" inherits="WhoFrameColumnHeaderTemplate" text="Timestamp">
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="RollTrackerColumnHeader2" relativePoint="RIGHT" x="-2" y="0"/>
+					</Anchors>
+					<Scripts>
+						<OnLoad>
+							WhoFrameColumn_SetWidth(self, 73);
+							self.sortType = "time";
+							self.reversed = false;
+						</OnLoad>
+						<OnClick>
+							DiceMaster4.SortRolls( self, self.reversed, self.sortType )
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						</OnClick>
+					</Scripts>
+				</Button>
+				
+				<Button name="RollTrackerColumnHeader4" inherits="WhoFrameColumnHeaderTemplate" text="Target">
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="RollTrackerColumnHeader3" relativePoint="RIGHT" x="-2" y="0"/>
+					</Anchors>
+					<Scripts>
+						<OnLoad>
+							WhoFrameColumn_SetWidth(self, 52);
+							self.sortType = "target";
+							self.reversed = false;
+						</OnLoad>
+						<OnClick>
+							DiceMaster4.SortRolls( self, self.reversed, self.sortType )
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						</OnClick>
+					</Scripts>
+				</Button>
+				
+				<Button name="DiceMasterRollTrackerButton1" inherits="DiceMasterRollTrackerButtonTemplate" id="1">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeTo="DiceMasterRollTracker" x="2" y="-82"/>
+						</Anchors>
+				</Button>
+				
+				<Button name="$parentListResultsButton" inherits="UIPanelButtonTemplate" text="List Results...">
+					<Size x="120" y="22"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="-6" y="4"/>
+					</Anchors>
+					<Scripts>
+						<OnLoad>
+						UIDropDownMenu_Initialize( self, DiceMaster4.RollListDropDown_OnLoad )
+						
+						UIDropDownMenu_SetWidth(self, 120, 5)
+						self:SetHeight(22)
+					  </OnLoad>
+						<OnClick>
+							UIDropDownMenu_Initialize( self, DiceMaster4.RollListDropDown_OnLoad )
+							ToggleDropDownMenu(1, nil, self, self, 0, 0)
+							self:SetHeight(22)
+						</OnClick>
+					</Scripts>
+				</Button>
+				<Button name="$parentRefreshButton" inherits="UIPanelButtonTemplate" text="Clear">
+					<Size x="85" y="22"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeTo="DiceMasterRollFrame" x="4" y="4"/>
+					</Anchors>
+					<Scripts>
+						<OnClick>
+							DiceMaster4.SavedRolls = {}
+							DiceMasterRollTracker.selected = nil;
+							DiceMaster4.DiceMasterRollFrame_Update()
+							DiceMasterRollFrame.DetailFrame:Hide()
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						</OnClick>
+					</Scripts>
+				</Button>
+				
+				<ScrollFrame name="$parentScrollFrame" inherits="FauxScrollFrameTemplate">
+					<Size x="256" y="287"/>
+					<Anchors>
+						<Anchor point="TOPRIGHT" relativeTo="DiceMasterRollTracker" relativePoint="TOPRIGHT" x="-33" y="-87"/>
+					</Anchors>
+					<Scripts>
+						<OnVerticalScroll>
+							FauxScrollFrame_OnVerticalScroll(self, offset, 16, DiceMaster4.DiceMasterRollFrame_Update);
+						</OnVerticalScroll>
+					</Scripts>
+					<Layers>
+						<Layer level="BACKGROUND">
+							<Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+								<Size x="31" y="256"/>
+								<Anchors>
+									<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-2" y="5"/>
+								</Anchors>
+								<TexCoords left="0" right="0.484375" top="0" bottom="1.0"/>
+							</Texture>
+							<Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+								<Size x="31" y="106"/>
+								<Anchors>
+									<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="-2" y="-2"/>
+								</Anchors>
+								<TexCoords left="0.515625" right="1.0" top="0" bottom="0.4140625"/>
+							</Texture>
+						</Layer>
+					</Layers>
+				</ScrollFrame>
+
+			</Frames>
+			<Scripts>
+				<OnLoad>
+				</OnLoad>
+			</Scripts>
+		</Frame>
+		
+		<Frame parentKey="DetailFrame" frameLevel="100" inherits="DiceMasterRollTrackerDetailFrameTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPRIGHT" x="-8" y="-76"/>
+				</Anchors>
+				<Frames>
+					<Button name="DiceMasterRollTrackerHistoryButton1" inherits="DiceMasterRollTrackerHistoryButtonTemplate" id="1">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parentKey.DetailFrame" x="12" y="-75"/>
+						</Anchors>
+					</Button>
+				</Frames>
+		</Frame>
+	
+	</Frames>
+</Frame>
+</Ui>

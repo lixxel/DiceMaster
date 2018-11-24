@@ -1,3 +1,7 @@
+### 4.8.6
+ - Fixed an issue with an outdated Lib.
+ - Added new Roll Tracker.
+
 ### 4.8.5
  - Fixed issues with an erroneous update.
  - Added new icons to the icon library.

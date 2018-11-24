@@ -109,6 +109,15 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		else
 			Me.db.char.showRaidRolls = false
 		end
+	elseif command == "tracker" then
+	
+		if rest:lower() == "show" then
+			Me.db.global.hideTracker = true
+			DiceMasterRollFrame:Show()
+		elseif rest:lower() == "hide" then
+			Me.db.global.hideTracker = false
+			DiceMasterRollFrame:Hide()
+		end
 	else
 		print("|cFFFFFF00- /dicemaster config");
 		print("|cFFFFFF00- /dicemaster scale (number)");
@@ -118,6 +127,7 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		print("|cFFFFFF00- /dicemaster maxcharges (number)");
 		print("|cFFFFFF00- /dicemaster chargescolor (r g b)");
 		print("|cFFFFFF00- /dicemaster showraidrolls (true || false)");
+		print("|cFFFFFF00- /dicemaster tracker (show || hide)");
 		print("|cFFFFFF00- /dicemaster reset");
 	end
 end 

@@ -17,6 +17,8 @@ local MessageHandlers = {
 	
 	R      = "Dice_OnRollMessage";
 	ROLL   = "Dice_OnRollMessage";
+	
+	DMSAY  = "UnitFrame_OnDMSAY";
 }
 
 -------------------------------------------------------------------------------
@@ -35,6 +37,28 @@ function Me:OnCommMessage( prefix, packed_message, dist, sender )
 	local handler = MessageHandlers[msgtype]
 	if Me[handler] then
 		Me[handler]( data, dist, sender )
+	end
+end
+
+---------------------------------------------------------------------------
+-- Received a talking head request.
+--  na = name							string
+--	md = model							number
+-- 	ms = message						string
+--  so = sound							number
+
+function Me.UnitFrame_OnDMSAY( data, dist, sender )	
+	-- Ignore our own data.
+	if sender == UnitName( "player" )  then return end
+ 
+	-- sanitize message
+	if not data.na and not data.md and not data.ms then
+	   
+		return
+	end
+	
+	if UnitIsGroupLeader( sender ) and not DiceMasterTalkingHeadFrame then
+		print("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms)
 	end
 end
 
