@@ -116,7 +116,7 @@
 						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" x="0" y="-4"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="AverageText" inherits="GameFontHighlight" justifyH="LEFT" text="15">
+				<FontString parentKey="AverageText" inherits="GameFontHighlight" justifyH="LEFT" text="--">
 					<Size x="147" y="12"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeKey="$parent.AverageLabel" relativePoint="RIGHT" x="2" y="0"/>

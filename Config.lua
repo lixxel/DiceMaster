@@ -18,6 +18,7 @@ local DB_DEFAULTS = {
 		hideInspect = false; -- hide inspect frame when panel is hidden
 		hideTips	= true; -- turn enhanced tooltips on for newbies
 		hideTracker = false; -- hide the roll tracker.
+		hideTypeTracker = false;
 	};
 	
 	char = { 
@@ -126,7 +127,7 @@ Me.configOptions = {
 		};
 		
 		hideTracker = {
-			order = 7;
+			order = 8;
 			name  = "Enable Roll Tracker";
 			desc  = "Enable the Roll Tracker frame to keep track of your group's rolls.";
 			type  = "toggle";
@@ -140,6 +141,18 @@ Me.configOptions = {
 				end
 			end;
 			get = function( info ) return Me.db.global.hideTracker end;
+		};
+		
+		hideTypeTracker = {
+			order = 9;
+			name  = "Enable Typing Tracker";
+			desc  = "Enable the Typing Tracker to alert you when group members are writing in say, emote, party, and raid.";
+			type  = "toggle";
+			width = "full";
+			set = function( info, val )
+				Me.db.global.hideTypeTracker = val
+			end;
+			get = function( info ) return Me.db.global.hideTypeTracker end;
 		};
 	
 		enableCharges = {

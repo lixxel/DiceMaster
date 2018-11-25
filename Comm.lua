@@ -19,6 +19,7 @@ local MessageHandlers = {
 	ROLL   = "Dice_OnRollMessage";
 	
 	DMSAY  = "UnitFrame_OnDMSAY";
+	TYPE   = "PostTracker_OnTyping";
 }
 
 -------------------------------------------------------------------------------

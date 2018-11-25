@@ -1,3 +1,7 @@
+### 4.8.7
+ - Fixed an issue with Roll Tracker.
+ - Added new Post Tracker.
+
 ### 4.8.6
  - Fixed an issue with an outdated Lib.
  - Added new Roll Tracker.

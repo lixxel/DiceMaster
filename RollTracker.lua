@@ -342,6 +342,9 @@ function Me.OnRollMessage( message )
 	end
 	
 	if roll then
+		if not Me.HistoryRolls[name] then
+			Me.HistoryRolls[name] = {}
+		end
 		local exists = false;
 		for i=1,#Me.SavedRolls do
 			if Me.SavedRolls[i].name == name then
@@ -353,9 +356,6 @@ function Me.OnRollMessage( message )
 		end
 		
 		if not exists then
-			if not Me.HistoryRolls[name] then
-				Me.HistoryRolls[name] = {}
-			end
 			local data = {}
 			data.roll = tonumber(roll)
 			data.time = date("%H%M%S")

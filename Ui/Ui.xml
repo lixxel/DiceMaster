@@ -13,5 +13,6 @@
   <Include file="Ui\IconPicker.xml"/>
   <Include file="Ui\InspectFrame.xml"/>
   <Include file="Ui\RollTracker.xml"/>
+  <Include file="Ui\PostTracker.xml"/>
 </Ui>
  
