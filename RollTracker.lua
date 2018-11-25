@@ -335,7 +335,7 @@ function Me.OnRollMessage( message )
 	local name = UnitName("player")
 	local roll, dice = message:match("You roll.* %|*[CcFf0]*([-]?%d+)%|*%a*%p* (%(%d*[dD]%d+[+-]?%d*%))")
 	if IsInGroup() then
-		name, roll, dice = message:match("(.+) rolls %|*[CcFf0]*([-]?%d+)%|*%a*%p* (%(%d*[dD]%d+[+-]?%d*%))")
+		name, roll, dice = message:match("(.+) rolls.* %|*[CcFf0]*([-]?%d+)%|*%a*%p* (%(%d*[dD]%d+[+-]?%d*%))")
 	end
 	if not roll then
 		name, roll, dice = message:match("(.+) rolls (%d+) (%(%d+[-]%d+%))")
