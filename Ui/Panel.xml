@@ -23,21 +23,12 @@
       </Layer>
       
       <Layer level="OVERLAY">
-      
-        <!-- Traits button -->
-        <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
-          <Size x="48" y="48" />
-          <Anchors>
-            <Anchor point="TOP" x="80" y="0"/>
-          </Anchors>
-          <TexCoords left="0.25" right="0.5" top="0.5" bottom="1" />
-        </Texture>
         
         <!-- Roll button -->
         <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
           <Size x="48" y="48" />
           <Anchors>
-            <Anchor point="TOP" x="48" y="0"/>
+            <Anchor point="TOP" x="80" y="0"/>
           </Anchors>
           <TexCoords left="0" right="0.25" top="0.5" bottom="1" />
         </Texture>
@@ -69,9 +60,9 @@
           self.traits[i]:SetSize( 24, 24 )
           self.traits[i]:SetPoint( "TOP", -56 + 28*(i-1), 20 )
           self.traits[i].traitIndex = i
-		  self.traits[i].noteditable = true;
+		  self.traits[i].editable_trait = true;
 		  self.traits[i]:SetScript( "OnMouseDown", function( self, button )
-			DiceMaster4.TraitEditor_OnTraitClicked( self, button )
+			if IsShiftKeyDown() then DiceMaster4.TraitEditor_OnTraitClicked( self, button ) else DiceMaster4.TraitButtonClicked() DiceMaster4.TraitEditor_StartEditing( self.traitIndex ) end
 		end)
         end
       </OnLoad>
@@ -84,7 +75,7 @@
       
         <Size x="80" y="14" />
         <Anchors>
-          <Anchor point="TOP" x="-12" y="-17" />
+          <Anchor point="TOP" x="0" y="-17" />
         </Anchors>
         <Scripts>
           <OnLoad>
@@ -99,31 +90,11 @@
         </Scripts>
       </EditBox>
       
-      <!-- Traits/book button. -->
-      <Button parentKey="traits">
-        <Size x="32" y="32"/>
-        <Anchors>
-          <Anchor point="TOP" x="80" y="-8"/>
-        </Anchors>
-        
-        <HighlightTexture file="Interface/UNITPOWERBARALT/PandarenTrainingLarge_Circular_Flash" alphaMode="ADD" /> 
-        
-        <Scripts>
-          <OnLoad>
-            DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click to open your Traits Editor." )
-          </OnLoad>
-          <OnClick>
-            DiceMaster4.TraitButtonClicked()
-          </OnClick>
-        </Scripts>
-        
-      </Button>
-      
       <!-- Dice button. -->
       <Button parentKey="roll">
         <Size x="32" y="32"/>
         <Anchors>
-          <Anchor point="TOP" x="48" y="-8"/>
+          <Anchor point="TOP" x="80" y="-8"/>
         </Anchors>
         
         <HighlightTexture file="Interface/UNITPOWERBARALT/PandarenTrainingLarge_Circular_Flash" alphaMode="ADD" /> 

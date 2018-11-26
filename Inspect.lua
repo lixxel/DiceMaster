@@ -142,10 +142,20 @@ function Me.Inspect_Refresh( status, trait )
 	if trait == "all" then
 		for i = 1, Me.traitCount do
 			DiceMasterInspectFrame.traits[i]:SetPlayerTrait( Me.inspectName, i )
+			DiceMasterInspectFrame.traits[i]:SetPoint( "TOP", -56 + 28*(i-1), 24 )
 		end
 	elseif trait then
 		DiceMasterInspectFrame.traits[trait]:SetPlayerTrait( Me.inspectName, trait )
 	end 
+	
+	if store.traits[5].name == "Command Trait" then
+		DiceMasterInspectFrame.traits[5]:Hide()
+		for i = 1, Me.traitCount do 
+			DiceMasterInspectFrame.traits[i]:SetPoint( "TOP", -42 + 28*(i-1), 24 )
+		end
+	else
+		DiceMasterInspectFrame.traits[5]:Show()
+	end
 	
 	if not Me.db.char.hidepanel or not Me.db.global.hideInspect then
 		if store.hasDM4 then
@@ -245,7 +255,7 @@ end
 function Me.Inspect_OnTraitClicked( self, button )
 	if not self.traitIndex then return end -- this handler is only for the target's traits
 	
-	if button == "LeftButton" then
+	if button == "LeftButton" and ACTIVE_CHAT_EDIT_BOX then
 		if IsShiftKeyDown() then
 			-- Create chat link.
 			
@@ -256,7 +266,33 @@ function Me.Inspect_OnTraitClicked( self, button )
 			-- We could use something another symbol that would be more secure
 			-- but then people without the addon would see that ugly symbol
 			--
-			local name = DiceMaster4.inspectData[UnitName("target")].traits[self.traitIndex].name:gsub( " ", " " )
+			local trait = DiceMaster4.inspectData[UnitName("target")].traits[self.traitIndex]
+			
+			-- find the name of the channel we mean to link to.
+			local dist = tostring(ACTIVE_CHAT_EDIT_BOX:GetAttribute("chatType"))
+			local channel = nil
+			if dist == "WHISPER" then
+				channel = ACTIVE_CHAT_EDIT_BOX:GetAttribute("tellTarget")
+			end
+			
+			if UnitName("target") == UnitName("player") then
+				Me.Inspect_SendTrait( self.traitIndex, dist, channel )
+			else
+				local msg = Me:Serialize( "TRAIT", {
+					i = self.traitIndex;
+					s = trait.serial;
+					n = trait.name;
+					u = trait.usage;
+					d = trait.desc;
+					e = trait.enchant;
+					t = trait.icon;
+					l = UnitName("target");
+				})
+			
+				Me:SendCommMessage( "DCM4", msg, dist, channel, "NORMAL" )
+			end
+			
+			local name = trait.name:gsub( " ", " " )
 			--                                                       |    |
 			--                                                space -'    |
 			--                                            no-break-space -'
@@ -443,6 +479,9 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 	data.d = tostring( data.d or "" )
 	data.e = tostring( data.e or "" )
 	data.t = tostring( data.t or DEFAULT_ICON )
+	
+	-- we're receiving someone else's traits, not the sender
+	if data.l then sender = tostring( data.l ) end
 	
 	if not data.i or not data.s or data.i < 1 or data.i > Me.traitCount then 
 		-- another pass after number sanitization

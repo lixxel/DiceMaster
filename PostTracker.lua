@@ -27,7 +27,7 @@ end
 function Me.PostTracker_Typing( self )
 	if IsInGroup(2) then return end
 	
-	local chatType = ChatFrame1EditBoxHeader:GetText()
+	local chatType = _G[self:GetName() .. "Header"]:GetText()
 	local msg = self:GetText()
 	if string.len(msg) > 0 and not msg:match("%/%.*") then 
 		msg = true
@@ -35,7 +35,7 @@ function Me.PostTracker_Typing( self )
 		msg = false 
 	end
 	
-	if msg and trackTypes[chatType] and ChatFrame1EditBox:HasFocus() then
+	if msg and trackTypes[chatType] and self:HasFocus() then
 		if not self.Typing then
 			self.Typing = true;
 			Me.PostTracker_SendUpdate( self.Typing )
@@ -47,8 +47,26 @@ function Me.PostTracker_Typing( self )
 end
 
 function Me.PostTracker_OnLoad( self )
-	ChatFrame1EditBox:HookScript("OnTextChanged", Me.PostTracker_Typing)
-	ChatFrame1EditBox:HookScript("OnEditFocusLost", Me.PostTracker_Typing)
+	for i = 1, NUM_CHAT_WINDOWS do
+		local frame = _G["ChatFrame" .. i .. "EditBox"]
+		frame:HookScript("OnTextChanged", Me.PostTracker_Typing)
+		frame:HookScript("OnEditFocusLost", Me.PostTracker_Typing)
+	end
+	
+	local f = CreateFrame("Frame")
+	f:RegisterEvent( "GROUP_ROSTER_UPDATE" )
+	f:SetScript( "OnEvent", function( self, event )
+		if event and #Me.WhoIsTyping > 0 then
+			for i=1,#Me.WhoIsTyping do
+				if not UnitInParty(Me.WhoIsTyping[i]) and not UnitInRaid(Me.WhoIsTyping[i]) then
+					tremove(Me.WhoIsTyping, i)
+				end
+			end
+			if #Me.WhoIsTyping == 0 then
+				DiceMasterPostTrackerFrame:Hide()
+			end
+		end
+	end)
 end
 
 ---------------------------------------------------------------------------
@@ -58,7 +76,7 @@ end
 
 function Me.PostTracker_OnTyping( data, dist, sender )	
 	-- Ignore our own data.
-	if sender == UnitName( "player" )  then return end
+	--if sender == UnitName( "player" )  then return end
  
 	-- sanitize message
 	if not data.na or not Me.db.global.hideTypeTracker then
@@ -103,13 +121,13 @@ function Me.PostTracker_OnTyping( data, dist, sender )
 			text = "|TInterface/GossipFrame/ChatBubbleGossipIcon:16|t "..text..plural.." typing..."
 			DiceMasterPostTrackerFrame.Message:SetText( text )
 		end
-		DiceMasterPostTrackerFrame.Message:Show()
+		DiceMasterPostTrackerFrame:Show()
 	else
-		DiceMasterPostTrackerFrame.Message:Hide()
+		DiceMasterPostTrackerFrame:Hide()
 	end
 	
 	-- ElvUI peasants...
 	if ElvUI then
-		DiceMasterPostTrackerFrame.Message:SetPoint("BOTTOMLEFT", "ChatFrame1EditBox", "BOTTOMLEFT", 4, -20)
+		DiceMasterPostTrackerFrame:SetPoint("BOTTOMLEFT", "ChatFrame1EditBox", "BOTTOMLEFT", 4, -30)
 	end
 end

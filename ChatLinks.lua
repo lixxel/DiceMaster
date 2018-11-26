@@ -66,8 +66,10 @@ local function ChatFilter( self, event, msg, sender, ... )
 		-- (See trait editor code for a better explanation.)
 		ability = ability:gsub( " ", " " )
 		
+		local icon = Me.inspectData[name].traits[tonumber(guid)].icon
+		
 		-- convert into chat link
-        return string.format("|cff71d5ff|HDiceMaster4:"..name..":"..guid.."|h[%s]|h|r", ability);
+        return string.format("|T"..icon..":16|t |cff71d5ff|HDiceMaster4:"..name..":"..guid.."|h[%s]|h|r", ability);
 	end);
 	
 	if public_events[event] and found_links then

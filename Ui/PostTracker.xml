@@ -1,11 +1,20 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
   
-  <Frame name="DiceMasterPostTrackerFrame" parent="UIParent" hidden="false" framestrata="LOW">
+  <Frame name="DiceMasterPostTrackerFrame" parent="UIParent" hidden="true" framestrata="LOW">
+    <Anchors>
+		<Anchor point="BOTTOMLEFT" relativeTo="ChatFrame1EditBox" x="4" y="-25"/>
+	</Anchors>
+	<Size x="301" y="28"/>
     <Layers>
+		<Layer level="BACKGROUND">
+			<Texture parentKey="Background" file="Interface/FriendsFrame/SocialQueuingToast" setAllPoints="true">
+				<TexCoords left="0" right="0.59" top="0" bottom="0.5"/>
+			</Texture>
+		</Layer>
 		<Layer level="ARTWORK">
-			<FontString parentKey="Message" inherits="GameFontNormal" hidden="true">
+			<FontString parentKey="Message" inherits="GameFontNormal" hidden="false" setAllPoints="true">
 				<Anchors>
-					<Anchor point="BOTTOMLEFT" relativeTo="ChatFrame1EditBox" x="4" y="-15"/>
+					<Anchor point="LEFT" x="8" y="0"/>
 				</Anchors>
 			</FontString>
 		</Layer>
@@ -14,6 +23,11 @@
       <OnLoad>
 		DiceMaster4.PostTracker_OnLoad( self )
 	  </OnLoad>
+	  <OnUpdate>
+		local width = self.Message:GetWidth() + 25
+		if 200 > width then width = 200 end
+		self:SetWidth(width)
+	  </OnUpdate>
     </Scripts>
 </Frame>
 </Ui>
