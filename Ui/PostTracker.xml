@@ -22,6 +22,13 @@
     <Scripts>
       <OnLoad>
 		DiceMaster4.PostTracker_OnLoad( self )
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(true)
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		self:SetUserPlaced( true )
 	  </OnLoad>
 	  <OnUpdate>
 		local width = self.Message:GetWidth() + 25
