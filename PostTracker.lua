@@ -25,7 +25,7 @@ function Me.PostTracker_SendUpdate( typing )
 end
 
 function Me.PostTracker_Typing( self )
-	if IsInGroup("LE_PARTY_CATEGORY_INSTANCE") then return end
+	if IsInGroup(2) then return end
 	
 	local chatType = ChatFrame1EditBoxHeader:GetText()
 	local msg = self:GetText()
