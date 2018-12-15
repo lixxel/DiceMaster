@@ -20049,6 +20049,7 @@ DiceMaster4.iconList = {
 	"spell_yorsahj_bloodboil_purple",
 	"spell_yorsahj_bloodboil_yellow",
 	"warrior_skullbanner",
+	"AddOns/DiceMaster/Icons/DiceMaster",
 	"AddOns/DiceMaster/Icons/Bard_DancingBlade",
 	"AddOns/DiceMaster/Icons/Bard_Encore",
 	"AddOns/DiceMaster/Icons/Bard_Inspiration",

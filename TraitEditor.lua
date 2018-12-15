@@ -66,13 +66,14 @@ local LEAGUE_RANKS = {
 local TRAIT_RULES = {
 	[1] = "When designing your traits, avoid overpowered or unreasonable abilities that grant you an unfair advantage.|n|nIf a trait seems too powerful, you can balance it by adding a drawback, such as a negative modifier or built-in consequence.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName rolls D40 this turn, but sustains twice as severe an injury if the roll fails.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName rolls D40 for the next three rounds.\"",
 	[2] = "Traits cannot decide their own |cFFFFd100Difficulty Class|r, or the number set by the DM that you must score in order to succeed.|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"This trait succeeds with a roll of at least 10.\"",
-	[3] = "Active trait modifiers may not exceed |cFF00FF00+5|r.|n|nPassive trait modifiers may not exceed |cFF00FF00+3|r, or |cFF00FF00+5|r if a specific creature family is specified (e.g. Undead, Demons, Beasts).|n|nTraits that use |cFFFFd100Charges|r are exempt from this rule.|n|nTraits that grant other players a bonus may not exceed a modifier of |cFF00FF00+2|r.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName gains +5 to attacks made against the Undead.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +7 for the next attack.\"",
+	[3] = "Active trait modifiers may not exceed |cFF00FF00+5|r.|n|nPassive trait modifiers may not exceed |cFF00FF00+3|r, or |cFF00FF00+5|r if they target specific effects or creatures (e.g. Undead, Demons, Beasts).|n|nTraits that use |cFFFFd100Charges|r are exempt from this rule.|n|nTraits that grant other players a bonus may not exceed a modifier of |cFF00FF00+2|r.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName gains +5 to attacks made against the Undead.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +7 for the next attack.\"",
 	[4] = "|cFFFFd100Advantage|r cannot be used for passive traits and cannot be granted to more than one target at a time.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName grants a chosen ally Advantage this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"All players gain Advantage this turn.\"",
 	[5] = "Avoid giving a trait too many modifiers or effects.|n|nIf each effect can stand alone, it is probably best to separate them into multiple traits.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName benefits from +3 to attack this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +3 to attack, +3 to defence, +3 to perception, and +3 to stealth checks.\"",
 	[6] = "Traits may not assign their own critical threshold. Only the DM can determine which rolls are critical.|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"This ability critically strikes with a roll of at least 15.\"",
-	[7] = "Traits may not decide the action of any unit controlled by the DM, and may not modify the DM's dice. Traits can sometimes affect an enemy's modifiers, but this is left up to the DM's discretion.|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName forces the enemy to roll with a D10 for the rest of combat.\"",
+	[7] = "Traits may not decide the action of any unit controlled by the DM, and may not decide the DM's dice. Traits can sometimes affect an enemy's modifiers, but this is left up to the DM's discretion.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"Reduces the target's attack attempts by -3 for the next turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName forces the enemy to roll with a D10 for the rest of combat.\"",
 	[8] = "Traits that grant a player |cFFFFd100Immunity|r, or bypass a failed roll to spare a player from the consequences, should be limited to one or two uses and can only target a single player at a time.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName spares a single chosen ally from failure this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName spares all players from failure this turn.\"",
-	[9] = "Your traits |cFFFF0000must|r be approved by a ranking officer before they are considered \"legal\" and allowed to be used in guild events. Please reach out to an officer when you are ready to have your traits reviewed.",
+	[9] = "An |cFFFFd100Ultimate|r trait, or a powerful, single-use slot four trait, may sometimes bend or break these rules, however they must still obey Rule I and require officer approval. An |cFFFFd100Ultimate|r is intended to give a character a short moment of heroic action - not to guarantee success or overshadow the actions of others.",
+	[10] = "Your traits |cFFFF0000must|r be approved by two ranking officers before they are considered \"legal\" and allowed to be used in guild events. Please reach out to an officer when you are ready to have your traits reviewed.",
 }
 
 local Me      = DiceMaster4
@@ -119,6 +120,8 @@ function Me.TraitEditor_OnCloseClicked()
 	PlaySound(840); 
 	Me.IconPicker_Close()
 	Me.editor:Hide()
+	Me.buffeditor:Hide()
+	Me.removebuffeditor:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -133,6 +136,8 @@ function Me.TraitEditor_StartEditing( index )
 	PlaySound(54130)
 	
 	Me.TraitEditor_Refresh() 
+	Me.buffeditor:Hide()
+	Me.removebuffeditor:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -143,6 +148,25 @@ function Me.TraitEditor_OnTraitClicked( self, button )
 	
 	if button == "LeftButton" then
 		if IsShiftKeyDown() then
+			local channels = {
+				"PARTY",
+				"RAID",
+				"GUILD",
+				"WHISPER",
+			}
+			local channelName = tostring(LAST_ACTIVE_CHAT_EDIT_BOX:GetAttribute("chatType")) or nil
+			local dist = "GUILD"
+			for i = 1, #channels do
+				if channels[i] == channelName then
+					dist = channels[i]
+					break;
+				end
+			end
+			local channel = nil
+			if dist == "WHISPER" then
+				channel = ACTIVE_CHAT_EDIT_BOX:GetAttribute("tellTarget") or nil
+			end
+			Me.Inspect_SendTrait( self.traitIndex, dist, channel )
 			-- Create chat link.
 			
 			-- We convert ability names' spaces to U+00A0 No-Break Space
@@ -163,6 +187,12 @@ function Me.TraitEditor_OnTraitClicked( self, button )
 		else 
 			if not self.noteditable then
 				Me.TraitEditor_StartEditing( self.traitIndex ) 
+				if Me.buffeditor:IsShown() then
+					Me.buffeditor:Hide()
+				end
+				if Me.removebuffeditor:IsShown() then
+					Me.removebuffeditor:Hide()
+				end
 			end
 		end
 	end
@@ -177,11 +207,6 @@ function Me.TraitEditor_Refresh()
 	Me.editor.traitName:SetText( trait.name )
 	Me.editor.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
 	Me.editor.scrollFrame.descEditor:SetText( trait.desc )
-	if trait.enchant and trait.enchant~="" then
-		Me.editor.traitIcon.ants:Show()
-	else
-		Me.editor.traitIcon.ants:Hide()
-	end
 	
 	for i = 1, 5 do
 		Me.editor.trait_buttons[i]:Refresh()
@@ -189,6 +214,7 @@ function Me.TraitEditor_Refresh()
 	end
 	Me.editor.trait_buttons[Me.editing_trait]:Select( true )
 	
+	local buff = Profile.buffs[Me.editing_trait]
 end
 
 -------------------------------------------------------------------------------
@@ -293,6 +319,8 @@ end
 function Me.TraitEditor_SaveDescription()
 	local trait = Profile.traits[Me.editing_trait]
 	trait.desc = Me.editor.scrollFrame.descEditor:GetText()
+	trait.approved = 0;
+	trait.officers = nil;
 	TraitUpdated()
 end
 

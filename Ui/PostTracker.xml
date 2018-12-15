@@ -1,30 +1,34 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
   
-  <Frame name="DiceMasterPostTrackerFrame" parent="UIParent" hidden="true" framestrata="LOW">
+  <Frame name="DiceMasterPostTrackerFrame" parent="UIParent" hidden="false" framestrata="LOW">
     <Anchors>
-		<Anchor point="BOTTOMLEFT" relativeTo="ChatFrame1EditBox" x="4" y="-25"/>
+		<Anchor point="BOTTOMLEFT" relativeTo="ChatFrame1Tab" relativePoint="TOPLEFT" x="0" y="-2"/>
 	</Anchors>
 	<Size x="301" y="28"/>
     <Layers>
 		<Layer level="BACKGROUND">
-			<Texture parentKey="Background" file="Interface/FriendsFrame/SocialQueuingToast" setAllPoints="true">
+			<Texture parentKey="Background" file="Interface/FriendsFrame/SocialQueuingToast" setAllPoints="true" hidden="true">
 				<TexCoords left="0" right="0.59" top="0" bottom="0.5"/>
 			</Texture>
 		</Layer>
 		<Layer level="ARTWORK">
-			<FontString parentKey="Message" inherits="GameFontNormal" hidden="false" setAllPoints="true">
+			<FontString parentKey="Message" inherits="GameFontNormal" hidden="true" setAllPoints="true">
 				<Anchors>
 					<Anchor point="LEFT" x="8" y="0"/>
 				</Anchors>
 			</FontString>
 		</Layer>
 	</Layers>
+	<Frames>
+		<Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
+	</Frames>
     <Scripts>
       <OnLoad>
 		DiceMaster4.PostTracker_OnLoad( self )
+		self.Title = "Typing Tracker"
 		self:SetClampedToScreen( true )
 		self:SetMovable(true)
-		self:EnableMouse(true)
+		self:EnableMouse(false)
 		self:RegisterForDrag( "LeftButton" )
 		self:SetScript( "OnDragStart", self.StartMoving )
 		self:SetScript( "OnDragStop", self.StopMovingOrSizing )

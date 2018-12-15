@@ -15,9 +15,12 @@ local filteredList = nil
 -- When one of the icon buttons are clicked.
 --
 function Me.IconPickerButton_OnClick( self )
-
 	-- Apply the icon to the edited trait and close the picker. 
-	Me.TraitEditor_SelectIcon( self:GetNormalTexture():GetTexture() ) 
+	if self:GetParent():GetParent():GetParent() == DiceMasterBuffEditor then
+		Me.BuffEditor_SelectIcon( self:GetNormalTexture():GetTexture() ) 
+	else
+		Me.TraitEditor_SelectIcon( self:GetNormalTexture():GetTexture() ) 
+	end
 	PlaySound(54129)
 	Me.IconPicker_Close()
 end
@@ -129,14 +132,21 @@ function Me.IconPicker_Close()
 
 	-- unhighlight the traitIcon button.
 	Me.editor.traitIcon:Select( false )
+	DiceMasterBuffEditor.buffIcon:Select( false )
 	DiceMasterIconPicker:Hide()
 end
     
 -------------------------------------------------------------------------------
 -- Open the icon picker window.
 --
-function Me.IconPicker_Open()
-	Me.editor.traitIcon:Select( true )
+function Me.IconPicker_Open( parent )
+	DiceMasterIconPicker:SetParent( parent )
+	DiceMasterIconPicker:SetPoint("TOPRIGHT", parent, "TOPLEFT", -48, -60)
+	if parent == Me.editor then
+		parent.traitIcon:Select( true )
+	else
+		parent.buffIcon:Select( true )
+	end
 	filteredList = nil
 	
 	Me.IconPicker_RefreshScroll( true )

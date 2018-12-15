@@ -60,7 +60,7 @@ end
 -- @param sides Number of sides on dice
 -- @param mod   Modifier applied, e.g. 5 or -5
 --
-local function FormatDiceType( count, sides, mod )
+function Me.FormatDiceType( count, sides, mod )
 	
 	local dice = "D" .. sides;
 	if count ~= 1 then
@@ -73,47 +73,6 @@ local function FormatDiceType( count, sides, mod )
 	end
 	
 	return dice
-end
-
--------------------------------------------------------------------------------
--- Original DiceMaster roll format.
---
-local function FormatDiceMasterRoll_v1( name, you, count, sides, mod, rolls )
-	local sum = 0
-	for k,v in pairs( rolls ) do 
-		sum = sum + v
-	end
-	
-	sum = sum + mod 
-	
-	local rollstring = ""
-	if count == 1 then
-		rollstring = sum
-	else
-		rollstring = rolls[1]
-		for i = 2,count do
-			if i == count then
-				if count > 2 then
-					rollstring = rollstring .. ", and " .. rolls[i]
-				else
-					rollstring = rollstring .. " and " .. rolls[i]
-				end
-			else
-				rollstring = rollstring .. ", " .. rolls[i]
-			end
-		end
-		rollstring = rollstring .. " = " .. sum
-	end
-	
-	local dice = FormatDiceType( count, sides, mod )
-	
-	rollstring = rollstring .. " (" .. dice .. ")"
-	
-	if not you then
-		return name .. " rolls " .. rollstring
-	else
-		return "You roll " .. rollstring
-	end
 end
 
 -------------------------------------------------------------------------------
@@ -146,6 +105,7 @@ end
 local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
 	local sum = 0
 	for k,v in pairs( rolls ) do 
+		Me.OnRollMessage( name, you, count, sides, mod, v ) 
 		sum = sum + v
 	end
 	
@@ -180,7 +140,7 @@ local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
 		
 	end
 	
-	local dice = FormatDiceType( count, sides, mod )
+	local dice = Me.FormatDiceType( count, sides, mod )
 	
 	rollstring = rollstring .. " (" .. dice .. ")"
 	
@@ -235,6 +195,7 @@ local function PrintDiceMasterRoll( name, count, sides, mod, rolls, broadcast )
 		local msg = FormatDiceMasterRoll( name, true, count, sides, mod, rolls )
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
+		Me.OnRollMessage( name, you, count, sides, mod, sum ) 
 	end 
 end
 
@@ -253,6 +214,7 @@ local function PrintRoll( data )
 	local msg = string.format( RANDOM_ROLL_RESULT, data.name, data.roll, data.min, data.max )
 	PrintSystemMessage( msg )
 	Me:SendMessage( "DiceMaster4_Roll", data.name, msg )
+	Me.OnVanillaRollMessage( data.name, data.roll, data.min, data.max ) 
 end
 
 -------------------------------------------------------------------------------

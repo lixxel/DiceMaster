@@ -58,12 +58,22 @@ function Me.PostTracker_OnLoad( self )
 	f:SetScript( "OnEvent", function( self, event )
 		if event and #Me.WhoIsTyping > 0 then
 			for i=1,#Me.WhoIsTyping do
-				if not UnitInParty(Me.WhoIsTyping[i]) and not UnitInRaid(Me.WhoIsTyping[i]) then
+				if not UnitInParty(Me.WhoIsTyping[i]) and not UnitInRaid(Me.WhoIsTyping[i])  then
 					tremove(Me.WhoIsTyping, i)
 				end
+				C_Timer.After( 1.0, function()
+					if Me.WhoIsTyping[i] and not UnitIsConnected(Me.WhoIsTyping[i]) then
+						tremove(Me.WhoIsTyping, i)
+						if #Me.WhoIsTyping == 0 and not Me.FramesUnlocked then
+							DiceMasterPostTrackerFrame.Message:Hide()
+							DiceMasterPostTrackerFrame.Background:Hide()
+						end
+					end
+				end)
 			end
-			if #Me.WhoIsTyping == 0 then
-				DiceMasterPostTrackerFrame:Hide()
+			if #Me.WhoIsTyping == 0 and not Me.FramesUnlocked then
+				DiceMasterPostTrackerFrame.Message:Hide()
+				DiceMasterPostTrackerFrame.Background:Hide()
 			end
 		end
 	end)
@@ -76,7 +86,7 @@ end
 
 function Me.PostTracker_OnTyping( data, dist, sender )	
 	-- Ignore our own data.
-	--if sender == UnitName( "player" )  then return end
+	if sender == UnitName( "player" )  then return end
  
 	-- sanitize message
 	if not data.na or not Me.db.global.hideTypeTracker then
@@ -121,13 +131,24 @@ function Me.PostTracker_OnTyping( data, dist, sender )
 			text = "|TInterface/GossipFrame/ChatBubbleGossipIcon:16|t "..text..plural.." typing..."
 			DiceMasterPostTrackerFrame.Message:SetText( text )
 		end
-		DiceMasterPostTrackerFrame:Show()
-	else
-		DiceMasterPostTrackerFrame:Hide()
-	end
-	
-	-- ElvUI peasants...
-	if ElvUI then
-		DiceMasterPostTrackerFrame:SetPoint("BOTTOMLEFT", "ChatFrame1EditBox", "BOTTOMLEFT", 4, -30)
+		
+		local tooltip = "|cFFffd100" .. Me.WhoIsTyping[1]
+		for i=2,#Me.WhoIsTyping do
+			tooltip = tooltip .. "|n" .. Me.WhoIsTyping[i]
+		end
+		Me.SetupTooltip( DiceMasterPostTrackerFrame, nil, tooltip )
+		if GameTooltip:IsOwned(DiceMasterPostTrackerFrame) then
+			DiceMasterPostTrackerFrame:GetScript("OnEnter")(DiceMasterPostTrackerFrame)
+		end
+		
+		DiceMasterPostTrackerFrame.Message:Show()
+		DiceMasterPostTrackerFrame.Background:Show()
+	elseif not Me.FramesUnlocked then
+		if GameTooltip:IsOwned(DiceMasterPostTrackerFrame) then
+			GameTooltip:Hide()
+		end
+		DiceMasterPostTrackerFrame:SetScript( "OnEnter", nil )
+		DiceMasterPostTrackerFrame.Message:Hide()
+		DiceMasterPostTrackerFrame.Background:Hide()
 	end
 end

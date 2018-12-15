@@ -50,14 +50,15 @@ local TRAIT_USAGE_MODES = {
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
 	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                                    -- "double or nothing"
-	{ "Reload",             "|cFFFFFFFFReload|r" };                                                       -- "reload"
+	{ "Reload[sing]*",             "|cFFFFFFFFReload|r" };                                                       -- "reload"
+	{ "(Reviv[esing]*)",             "|cFFFFFFFF%1|r" };                                                       -- "revive"
 	{ "(%d+)%sHealth",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 health"
-	{ "Rescue",             "|cFFFFFFFFRescue|r" };                                                       -- "rescue"
+	{ "Immunity",             "|cFFFFFFFFImmunity|r" };                                                       -- "immunity"
 	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                    -- "advantage"
 	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                                 -- "disadvantage"
 	{ "(Stun[snedig]*)",    "|cFFFFFFFF%1|r" };   -- "stun"
-	{ "(Poison[sedig]*)",   "|cFFFFFFFF%1|r" };   -- "poison"
-	{ "(Control[sledig]*)", "|cFFFFFFFF%1|r" };	  -- "control"
+	{ "(Poison[seding]*)",   "|cFFFFFFFF%1|r" };   -- "poison"
+	{ "(Control[sleding]*)", "|cFFFFFFFF%1|r" };	  -- "control"
 	{ "(NAT1)", "|cFFFFFFFF%1|r" };	  -- "NAT1"
 	{ "(NAT20)", "|cFFFFFFFF%1|r" };	  -- "NAT20"
 	{ "%s?[+]%d+",           "|cFF00FF00%1|r" };                                                           -- e.g. "+1"
@@ -100,6 +101,37 @@ function Me.PermittedUse()
 	end
 end
 
+-------------------------------------------------------------------------------
+-- Check to see if the player is an officer.
+--
+-- @returns true if the player is an officer.
+--
+function Me.IsOfficer()
+	local guildName, guildRankName, guildRankIndex = GetGuildInfo( "player" )
+	
+	if Me.PermittedUse() and guildRankIndex < 4 then
+		return true
+	end
+end
+
+-------------------------------------------------------------------------------
+-- Check to see if the player is the group leader.
+--
+-- @returns true if the player is the leader.
+--
+function Me.IsLeader( allowAssistant )
+	if allowAssistant and UnitIsGroupAssistant("player", 1) then
+		return true
+	end
+	
+	if not IsInGroup(1) then
+		return true
+	end
+	
+	if UnitIsGroupLeader("player", 1) then
+		return true
+	end
+end
 
 -------------------------------------------------------------------------------
 -- Handler for showing tooltips for frames that have used SetupTooltip.
@@ -411,11 +443,11 @@ function Me.RefreshChargesFrame( tooltip, color )
 				DiceMasterChargesFrame.bar:Show()
 				DiceMasterChargesFrame.bar2:Hide()
 			end
-			DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 36)
+			DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 20)
 		else
 			DiceMasterChargesFrame.bar:Hide()
 			DiceMasterChargesFrame.bar2:Hide()
-			DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 12)
+			DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 0)
 		end
 	else
 		DiceMasterChargesFrame:Hide()
@@ -425,13 +457,11 @@ function Me.RefreshChargesFrame( tooltip, color )
 		local chargesPlural = Profile.charges.name:gsub( "/.*", "" )
 		Me.SetupTooltip( DiceMasterChargesFrame.bar, nil, chargesPlural, 
 			nil, nil, nil, 
-			"Represents the amount of "..chargesPlural.." you have accumulated for certain traits.|n"
-			.."|cFF707070<Left Click to Add "..chargesPlural..">|n"
+			Profile.charges.tooltip.."|n|cFF707070<Left Click to Add "..chargesPlural..">|n"
 			.."<Right Click to Remove "..chargesPlural..">")
 		Me.SetupTooltip( DiceMasterChargesFrame.bar2, nil, chargesPlural, 
 			nil, nil, nil, 
-			"Represents the amount of "..chargesPlural.." you have accumulated for certain traits.|n"
-			.."|cFF707070<Left Click to Add "..chargesPlural..">|n"
+			Profile.charges.tooltip.."|n|cFF707070<Left Click to Add "..chargesPlural..">|n"
 			.."<Right Click to Remove "..chargesPlural..">")
 	end
 	
@@ -467,12 +497,52 @@ function Me.RollButtonClicked()
 	end
 end
 
+function Me.UnlockFrames()
+	DiceMasterUnlockDialog:Show()
+	if Me.db.global.hideTypeTracker then
+		if DiceMasterPostTrackerFrame.Message:GetText() ~= nil then
+			DiceMasterPostTrackerFrame.Message:SetText("No one is typing.")
+		end
+		DiceMasterPostTrackerFrame.Message:Show()
+		DiceMasterPostTrackerFrame.Background:Show()
+		DiceMasterPostTrackerFrameDragFrame:Show()
+	end
+	DiceMasterPanelDragFrame:Show()
+	DiceMasterInspectFrame:Show()
+	DiceMasterInspectFrameDragFrame:Show()
+	DiceMasterBuffFrameDragFrame:Show()
+	DiceMasterInspectBuffFrameDragFrame:Show()
+	DiceMasterChargesFrameDragFrame:Show()
+	DiceMasterMoraleBarDragFrame:Show()
+end
+
+function Me.LockFrames()
+	DiceMasterUnlockDialog:Hide()
+	if DiceMaster4.db.global.hideTypeTracker then
+		DiceMasterPostTrackerFrameDragFrame:Hide()
+		if #DiceMaster4.WhoIsTyping == 0 then
+			DiceMasterPostTrackerFrame.Message:Hide()
+			DiceMasterPostTrackerFrame.Background:Hide()
+		end
+	end
+	DiceMasterPanelDragFrame:Hide()
+	DiceMasterInspectFrameDragFrame:Hide()
+	DiceMaster4.Inspect_Open( UnitName("target") )
+	DiceMasterBuffFrameDragFrame:Hide()
+	DiceMasterInspectBuffFrameDragFrame:Hide()
+	DiceMasterChargesFrameDragFrame:Hide()
+	DiceMasterMoraleBarDragFrame:Hide()
+end
+
 function Me.ApplyUiScale()
 	DiceMasterPanel:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterTraitEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterInspectFrame:SetScale( Me.db.char.uiScale * 1.2 )
+	DiceMasterBuffEditor:SetScale( Me.db.char.uiScale * 1.4 )
+	DiceMasterRemoveBuffEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterChargesFrame:SetScale( Me.db.char.uiScale * 1.2 )
-	DiceMasterRollFrame:SetScale( Me.db.char.uiScale * 1.4 )
+	DiceMasterRollFrame:SetScale( Me.db.char.trackerScale * 1.4 )
+	DiceMasterMoraleBar:SetScale( Me.db.char.uiScale * 1.2 )
 end
 
 function Me.ShowPanel( show )
@@ -482,15 +552,20 @@ function Me.ShowPanel( show )
 		DiceMasterPanel:Hide()
 		DiceMasterChargesFrame:Hide()
 		DiceMasterRollFrame:Hide()
+		DiceMasterMoraleBar:Hide()
 	else
 		DiceMasterPanel:Show()
 		DiceMasterChargesFrame:Show()
 		if Me.db.global.hideTracker then
 			DiceMasterRollFrame:Show()
 		end
+		if Profile.morale.enable then
+			DiceMasterMoraleBar:Show()
+		end
 	end
 	
 	Me.RefreshChargesFrame( true, true )
+	Me.Inspect_Open( UnitName( "target" ))
 end
 
 -------------------------------------------------------------------------------
@@ -500,6 +575,7 @@ function Me.OnChargesChanged()
 	Me.RefreshChargesFrame( true, true )
 	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.Inspect_ShareStatusWithParty()
+	Me.Inspect_Open( UnitName( "target" ))
 end
 
 -------------------------------------------------------------------------------
@@ -543,6 +619,7 @@ function Me:OnEnable()
 	 
 	Me.RefreshChargesFrame( true, true ) 
 	Me.RefreshHealthbarFrame ( true, true )
+	Me.RefreshMoraleFrame( Me.db.profile.morale.count )
 	
 	Me.Inspect_ShareStatusWithParty()
 	

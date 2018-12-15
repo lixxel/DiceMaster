@@ -28,6 +28,9 @@ function Me.EnchantDescriptionUpdate( altdesc, enchant )
 end
 
 function Me.ImportDM3Saved()
+	Me.Profile.buffsActive = {}
+	if not Me.Profile.buffs then Me.Profile.buffs = {} end
+	if not Me.Profile.removebuffs then Me.Profile.removebuffs = {} end
 	if Me.db.char.dm3Imported then return end
 	
 	local traits = { DiceMaster_TraitOne, DiceMaster_TraitTwo, DiceMaster_TraitThree, DiceMaster_TraitFour, DiceMaster_TraitFive }
@@ -59,9 +62,6 @@ function Me.ImportDM3Saved()
 			Profile.traits[i].name  = traits[i][1]
 			Profile.traits[i].usage = usage
 			Profile.traits[i].desc  = traits[i][3]
-			Profile.traits[i].enchant = traits[i][5]
-			Profile.traits[i].altusage = traits[i][6]
-			Profile.traits[i].altdesc = traits[i][7]
 			
 		end
 	end

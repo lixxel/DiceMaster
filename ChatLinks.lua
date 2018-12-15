@@ -98,10 +98,16 @@ local function RefreshItemRef()
 	ItemRefTooltip:AddLine( Me.FormatUsage( trait.usage, Me.itemRefPlayer ), 1,1,1,1 )
 	
 	local desc = Me.FormatDescTooltip( trait.desc )
-	if trait.enchant and trait.enchant~="" then
-		local enchant = Me.FormatDescTooltip( trait.enchant )
-		desc = desc .. "|n|n|cFFFF00FF"..enchant
+	
+	if trait.approved == 2 then
+		DiceMasterItemRefApproved.icon:SetTexture("Interface/AddOns/DiceMaster/Texture/trait-approved-left")
+	elseif trait.approved == 1 then
+		DiceMasterItemRefApproved.icon:SetTexture("Interface/AddOns/DiceMaster/Texture/trait-unapproved-left")
+	else
+		DiceMasterItemRefApproved.icon:SetTexture(nil)
 	end
+	DiceMasterItemRefApproved:Show()
+	
 	ItemRefTooltip:AddLine( desc, 1,0.83,0.09,1 )
 	ItemRefTooltip:Show();
 end
@@ -147,6 +153,7 @@ function ItemRefTooltip:SetHyperlink(link)
 		if Me.itemRefOpen and not IsModifiedClick("CHATLINK") then
 			Me.itemRefOpen = false
 			ItemRefTooltip:Hide()
+			DiceMasterItemRefApproved:Hide()
 		end
         SetHyperlink(self, link)
     end

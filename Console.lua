@@ -61,10 +61,13 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 	
 		Me.ShowPanel( false )
 		
-	elseif command == "reset" then
+	elseif command == "lock" then
 	
-		DiceMasterInspectFrame:ClearAllPoints()
-		DiceMasterInspectFrame:SetPoint( "CENTER", 0, 0 )
+		Me.LockFrames()
+		
+	elseif command == "unlock" then
+	
+		Me.UnlockFrames()
 		
 	elseif command == "charges" then
 	
@@ -114,10 +117,31 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		if rest:lower() == "show" then
 			Me.db.global.hideTracker = true
 			DiceMasterRollFrame:Show()
+			Me.configOptions.args.trackerScale.hidden = false
 		elseif rest:lower() == "hide" then
 			Me.db.global.hideTracker = false
 			DiceMasterRollFrame:Hide()
+			Me.configOptions.args.trackerScale.hidden = true
 		end
+		Me.ApplyUiScale() 
+	elseif command == "trackerscale" then
+	
+		rest = tonumber(rest)
+		if rest then
+			rest = Me.Clamp( rest, 0.25, 10 )
+			Me.db.char.trackerScale = rest
+			Me.ApplyUiScale() 
+		end
+	elseif command == "progressbar" then
+	
+		if rest:lower() == "show" then
+			Me.db.profile.morale.enable = true; 
+			Me.RefreshMoraleFrame() 
+		elseif rest:lower() == "hide" then
+			Me.db.profile.morale.enable = false; 
+			Me.RefreshMoraleFrame() 
+		end
+		Me.ApplyUiScale() 
 	else
 		print("|cFFFFFF00- /dicemaster config");
 		print("|cFFFFFF00- /dicemaster scale (number)");
@@ -128,6 +152,8 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		print("|cFFFFFF00- /dicemaster chargescolor (r g b)");
 		print("|cFFFFFF00- /dicemaster showraidrolls (true || false)");
 		print("|cFFFFFF00- /dicemaster tracker (show || hide)");
-		print("|cFFFFFF00- /dicemaster reset");
+		print("|cFFFFFF00- /dicemaster trackerscale (number)");
+		print("|cFFFFFF00- /dicemaster progressbar (show || hide)");
+		print("|cFFFFFF00- /dicemaster (lock || unlock)");
 	end
 end 

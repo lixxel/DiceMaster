@@ -16,7 +16,7 @@ function Me.MinimapButton_Init()
 	self.data = LDB:NewDataObject( "DiceMaster", {
 		type = "data source";
 		text = "DiceMaster";
-		icon = "Interface/AddOns/DiceMaster/Icons/WH_RuneDice";
+		icon = "Interface/AddOns/DiceMaster/Icons/DiceMaster";
 		OnClick = function(...) Me.MinimapButton:OnClick(...) end;
 		OnEnter = function(...) Me.MinimapButton:OnEnter(...) end;
 		OnLeave = function(...) Me.MinimapButton:OnLeave(...) end;

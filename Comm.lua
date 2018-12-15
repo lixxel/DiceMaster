@@ -11,15 +11,25 @@ local Me = DiceMaster4
 --
 local MessageHandlers = {
  
-	INSP   = "Inspect_OnInspectMessage";
-	TRAIT  = "Inspect_OnTraitMessage";
-	STATUS = "Inspect_OnStatusMessage";
+	INSP    = "Inspect_OnInspectMessage";
+	TRAIT   = "Inspect_OnTraitMessage";
+	STATUS  = "Inspect_OnStatusMessage";
+	APPROVE = "Inspect_OnTraitApprove";
 	
-	R      = "Dice_OnRollMessage";
-	ROLL   = "Dice_OnRollMessage";
+	R       = "Dice_OnRollMessage";
+	ROLL    = "Dice_OnRollMessage";
 	
-	DMSAY  = "UnitFrame_OnDMSAY";
-	TYPE   = "PostTracker_OnTyping";
+	DMSAY   = "UnitFrame_OnDMSAY";
+	
+	TYPE    = "PostTracker_OnTyping";
+	
+	BANNER  = "RollTracker_OnBanner";
+	TARGET  = "RollTracker_OnTargetMessage";
+	
+	BUFF    = "BuffFrame_OnBuffMessage";
+	REMOVE  = "BuffFrame_OnRemoveBuffMessage";
+	
+	MORALE  = "MoraleBar_OnStatusMessage";
 }
 
 -------------------------------------------------------------------------------

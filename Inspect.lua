@@ -45,7 +45,8 @@ local WAITING_FOR_TRAIT = {
 	name    = "";
 	serial  = 0; 
 	desc    = "Waiting for data from player.";
-	enchant = "";
+	approved = 0;
+	officers = {};
 }
 
 -------------------------------------------------------------------------------
@@ -53,6 +54,7 @@ local function PrimeInspectData( name )
 	
 	Me.inspectData[name] = {
 		traits = {};
+		buffsActive = {};
 		statusSerial  = 0;
 		charges = {
 			enable    = false;
@@ -60,6 +62,8 @@ local function PrimeInspectData( name )
 			color     = {1, 1, 1};
 			count     = 0;
 			max       = 0;
+			tooltip   = "Represents the amount of Charges you have accumulated for certain traits.";
+			symbol    = "charge-orb";
 		};
 		health        = 5;
 		healthMax     = 5;
@@ -82,6 +86,145 @@ setmetatable( Me.inspectData, {
 		return table[key]
 	end;
 })
+
+-------------------------------------------------------------------------------
+-- Update the 
+--
+
+function Me.Inspect_UpdateBuffButton(buttonName, playerName, index)
+	local data = Me.inspectData[playerName].buffsActive[index] or nil
+	local name, icon, description, count, duration, expirationTime, sender
+	if data then 
+		name = data.name
+		icon = data.icon
+		description = data.description
+		count = data.count or 1
+		duration = data.duration
+		expirationTime = data.expirationTime
+		sender = data.sender
+	end
+	
+	local buffName = buttonName..index;
+	local buff = _G[buffName];
+	
+	if ( not name ) then
+		-- No buff so hide it if it exists
+		if ( buff ) then
+			buff:Hide();
+			buff.duration:Hide();
+		end
+		return nil;
+	else
+		-- Setup Buff
+		buff.owner = playerName;
+		buff:SetID(index);
+		buff:SetAlpha(1.0);
+		--buff:SetScript("OnUpdate", Me.Inspect_BuffButton_OnUpdate);
+		Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), "|cFF707070Given by "..sender )
+		buff:Show();
+
+		if ( duration > 0 and expirationTime ) then
+			if ( SHOW_BUFF_DURATIONS == "1" ) then
+				buff.duration:Show();
+			else
+				buff.duration:Hide();
+			end
+			
+			local timeLeft = (expirationTime - GetTime());
+
+			if ( not buff.timeLeft ) then
+				buff.timeLeft = timeLeft;
+				buff:SetScript("OnUpdate", Me.Inspect_BuffButton_OnUpdate);
+			else
+				buff.timeLeft = timeLeft;
+			end
+
+			buff.expirationTime = expirationTime;		
+		else
+			buff.duration:Hide();
+			if ( buff.timeLeft ) then
+				buff:SetScript("OnUpdate", nil);
+			end
+			buff.timeLeft = nil;
+		end
+
+		-- Set Icon
+		local texture = _G[buffName.."Icon"];
+		texture:SetTexture(icon);
+
+		-- Set the number of applications of an aura
+		if ( count > 1 ) then
+			buff.count:SetText(count);
+			buff.count:Show();
+		else
+			buff.count:Hide();
+		end
+
+		-- Refresh tooltip
+		if ( GameTooltip:IsOwned(buff) ) then
+			if timeLeft then
+				Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ),  Me.BuffButton_FormatTime(timeLeft).." remaining|n|cFF707070Given by "..sender )
+			else
+				Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), "|cFF707070Given by "..sender )
+			end
+		end
+	end
+	return 1;
+end
+
+function Me.Inspect_BuffButton_OnUpdate(self)
+	local data = Me.inspectData[self.owner].buffsActive[self:GetID()] or nil
+	local index = self:GetID();
+	if ( self.timeLeft < BUFF_WARNING_TIME ) then
+		self:SetAlpha(BuffFrame.BuffAlphaValue);
+	else
+		self:SetAlpha(1.0);
+	end
+
+	-- Update duration
+	Me.Inspect_BuffButton_UpdateDuration( self, self.timeLeft )
+	
+	-- Update our timeLeft
+	local timeLeft = self.expirationTime - GetTime();
+	self.timeLeft = max( timeLeft, 0 );
+	
+	if ( SMALLER_AURA_DURATION_FONT_MIN_THRESHOLD ) then
+		local aboveMinThreshold = self.timeLeft > SMALLER_AURA_DURATION_FONT_MIN_THRESHOLD;
+		local belowMaxThreshold = not SMALLER_AURA_DURATION_FONT_MAX_THRESHOLD or self.timeLeft < SMALLER_AURA_DURATION_FONT_MAX_THRESHOLD;
+		if ( aboveMinThreshold and belowMaxThreshold ) then
+			self.duration:SetFontObject(SMALLER_AURA_DURATION_FONT);
+			self.duration:SetPoint("TOP", self, "BOTTOM", 0, SMALLER_AURA_DURATION_OFFSET_Y);
+		else
+			self.duration:SetFontObject(DEFAULT_AURA_DURATION_FONT);
+			self.duration:SetPoint("TOP", self, "BOTTOM");
+		end
+	end
+
+	if ( GameTooltip:IsOwned(self) ) and timeLeft > 0 then
+		Me.SetupTooltip( self, nil, "|cFFffd100"..data.name, nil, nil, Me.FormatDescTooltip( data.description ), Me.BuffButton_FormatTime(timeLeft).." remaining|n|cFF707070Given by "..data.sender )
+		self:GetScript("OnEnter")( self )
+	end
+end
+
+
+function Me.Inspect_BuffButton_UpdateDuration( button, timeLeft )
+	if timeLeft == 0 then
+		Me.inspectData[button.owner].buffsActive[button:GetID()] = nil
+		Me.Inspect_UpdateBuffButton("DiceMasterInspectBuffButton", button.owner, button:GetID())
+	end
+	local duration = button.duration;
+	if ( SHOW_BUFF_DURATIONS == "1" and timeLeft ) then
+		duration:SetFormattedText(SecondsToTimeAbbrev(timeLeft));
+		if ( timeLeft < BUFF_DURATION_WARNING_TIME ) then
+			duration:SetVertexColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+		else
+			duration:SetVertexColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
+		end
+		duration:Show();
+	else
+		duration:Hide();
+	end
+end
 
 -------------------------------------------------------------------------------
 -- Refresh the inspect panel.
@@ -114,24 +257,24 @@ function Me.Inspect_Refresh( status, trait )
 				DiceMasterInspectFrame.charges2.text:SetText( store.charges.count.."/"..store.charges.max )
 				DiceMasterInspectFrame.charges:Hide()
 				DiceMasterInspectFrame.charges2:Show()
+				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 33 )
 			else
 				DiceMasterInspectFrame.charges:Show()
 				DiceMasterInspectFrame.charges2:Hide()
+				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 25 )
 			end
 				
 			local chargesPlural = store.charges.name:gsub( "/.*", "" )
 			Me.SetupTooltip( DiceMasterInspectFrame.charges, nil, 
 				chargesPlural, nil, nil, nil, 
-				"Represents the amount of "..chargesPlural.." the player has accumulated for certain traits." )
+				store.charges.tooltip )
 			Me.SetupTooltip( DiceMasterInspectFrame.charges2, nil, 
 				chargesPlural, nil, nil, nil, 
-				"Represents the amount of "..chargesPlural.." the player has accumulated for certain traits." )
-				
-			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 64 )
+				store.charges.tooltip )
 		else
 			DiceMasterInspectFrame.charges:Hide()
 			DiceMasterInspectFrame.charges2:Hide()
-			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 42 )
+			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 10 )
 		end
 		DiceMasterInspectFrame.health:SetMax( store.healthMax )
 		DiceMasterInspectFrame.health:SetFilled( store.health )
@@ -142,19 +285,19 @@ function Me.Inspect_Refresh( status, trait )
 	if trait == "all" then
 		for i = 1, Me.traitCount do
 			DiceMasterInspectFrame.traits[i]:SetPlayerTrait( Me.inspectName, i )
-			DiceMasterInspectFrame.traits[i]:SetPoint( "TOP", -56 + 28*(i-1), 24 )
+			DiceMasterInspectFrame.traits[i]:SetPoint( "CENTER", -56 + 28*(i-1), -14 )
 		end
 	elseif trait then
 		DiceMasterInspectFrame.traits[trait]:SetPlayerTrait( Me.inspectName, trait )
 	end 
 	
-	if store.traits[5].name == "Command Trait" then
-		DiceMasterInspectFrame.traits[5]:Hide()
-		for i = 1, Me.traitCount do 
-			DiceMasterInspectFrame.traits[i]:SetPoint( "TOP", -42 + 28*(i-1), 24 )
+	if store.buffsActive then
+		for i = 1, 5 do
+			Me.Inspect_UpdateBuffButton("DiceMasterInspectBuffButton", Me.inspectName, i)
 		end
+		DiceMasterInspectBuffFrame:Show()
 	else
-		DiceMasterInspectFrame.traits[5]:Show()
+		DiceMasterInspectBuffFrame:Hide()
 	end
 	
 	if not Me.db.char.hidepanel or not Me.db.global.hideInspect then
@@ -172,7 +315,8 @@ end
 --
 function Me.Inspect_Open( name )
 	Me.inspectName = name
-	DiceMasterInspectFrame:Hide() 
+	DiceMasterInspectFrame:Hide()
+	if Me.FramesUnlocked then DiceMasterInspectFrame:Show() end
 	if name == nil then return end
 	
 	Me.Inspect_UpdatePlayer( name )
@@ -284,12 +428,13 @@ function Me.Inspect_OnTraitClicked( self, button )
 					n = trait.name;
 					u = trait.usage;
 					d = trait.desc;
-					e = trait.enchant;
+					a = trait.approved;
+					o = trait.officers;
 					t = trait.icon;
 					l = UnitName("target");
 				})
 			
-				Me:SendCommMessage( "DCM4", msg, dist, channel, "NORMAL" )
+				Me:SendCommMessage( "DCM4", msg, dist, channel, "ALERT" )
 			end
 			
 			local name = trait.name:gsub( " ", " " )
@@ -300,6 +445,16 @@ function Me.Inspect_OnTraitClicked( self, button )
 			ChatEdit_InsertLink(
 				string.format( "[DiceMaster4:%s:%d:%s]", UnitName("target"), self.traitIndex, name ) ) 
 		end
+	elseif button == "RightButton" and Me.IsOfficer() then
+		local trait = DiceMaster4.inspectData[UnitName("target")].traits[self.traitIndex]
+		
+		local msg = Me:Serialize( "APPROVE", {
+			i = self.traitIndex;
+		})
+			
+		Me:SendCommMessage( "DCM4", msg, "WHISPER", UnitName("target"), "ALERT" )
+		
+		C_Timer.After( 1.0, function() Me.Inspect_Open( UnitName( "target" )) end)
 	end
 end
 
@@ -358,7 +513,8 @@ function Me.Inspect_SendTrait( index, dist, channel )
 		n = trait.name;
 		u = trait.usage;
 		d = trait.desc;
-		e = trait.enchant;
+		a = trait.approved;
+		o = trait.officers;
 		t = trait.icon;
 	})
 	
@@ -392,6 +548,12 @@ local function DoSendStatus()
 		if not Profile.charges.enable then
 			msg.c  = 0
 			msg.cm = 0
+		end
+		
+		if #Profile.buffsActive > 0 then
+			msg.buffs = Profile.buffsActive
+		else
+			msg.buffs = {}
 		end
 		
 		local msg = Me:Serialize( "STATUS", msg )
@@ -457,6 +619,49 @@ function Me.Inspect_OnInspectMessage( data, dist, sender )
 		Me.Inspect_SendStatus( "WHISPER", sender )
 	end
 end
+
+---------------------------------------------------------------------------
+-- Received APPROVE data.
+--
+function Me.Inspect_OnTraitApprove( data, dist, sender )
+
+	-- sanitize message
+	if not data.i or not Me.PermittedUse() then
+		-- we require index in message
+		return
+	end
+	
+	local trait = Profile.traits[data.i]
+	
+	if not trait.icon or not trait.name then
+		-- another pass after sanitization
+		return
+	end
+	
+	if trait.officers and #trait.officers > 0 then
+		for i=1,#trait.officers do
+			if trait.officers[i] == sender then
+				trait.approved = trait.approved - 1
+				tremove(trait.officers, i)
+				print("|cFFFFFF00"..sender.." has revoked their approval of |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r|cFFFFFF00.")
+				Me.Inspect_SendTrait( data.i, "WHISPER", sender )
+				return
+			end
+		end
+	end
+	
+	if not trait.approved or trait.approved == 0 then 
+		trait.approved = 1
+		trait.officers = {}
+		trait.officers[1] = sender
+		print("|cFFFFFF00"..sender.." has approved |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r|cFFFFFF00! You need the approval of one more officer to use this trait during guild events.")
+	elseif trait.approved == 1 then
+		trait.approved = 2
+		tinsert( trait.officers, sender )
+		print("|cFFFFFF00"..sender.." has approved |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r|cFFFFFF00! You may now use this trait during guild events.")
+	end
+	Me.Inspect_SendTrait( data.i, "WHISPER", sender )
+end
 	
 ---------------------------------------------------------------------------
 -- Received TRAIT data.
@@ -477,7 +682,8 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 	data.u = tostring( data.u or "UNKNOWN" ) 
 	data.n = tostring( data.n or "<Unknown name.>" )
 	data.d = tostring( data.d or "" )
-	data.e = tostring( data.e or "" )
+	data.a = tonumber( data.a or 0 )
+	data.o = data.o or nil
 	data.t = tostring( data.t or DEFAULT_ICON )
 	
 	-- we're receiving someone else's traits, not the sender
@@ -494,7 +700,8 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 		name    = data.n;
 		usage   = data.u;
 		desc    = data.d;
-		enchant = data.e;
+		approved = data.a;
+		officers = data.o;
 		icon    = data.t;
 	}
 	
@@ -526,6 +733,7 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	data.c  = tonumber(data.c)
 	data.cm = tonumber(data.cm)
 	data.cn = tostring(data.cn)
+	if data.ct then data.ct = tostring(data.ct) end
 	if data.cs then data.cs = tostring(data.cs) end
 	if #data.cc ~= 6 then data.cc = "FFFFFF" end
 	
@@ -538,6 +746,10 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 		-- cover all those bases . . .
 		return 
 	end
+	
+	if data.buffs then
+		Me.inspectData[sender].buffsActive = data.buffs
+	end
 
 	local store = Me.inspectData[sender]
 	store.statusSerial   = data.s
@@ -546,6 +758,7 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	store.charges.max    = data.cm
 	store.charges.name   = data.cn
 	store.charges.color  = FromHex( data.cc )
+	if data.ct then store.charges.tooltip = data.ct end
 	if data.cs then store.charges.symbol = data.cs end
 	store.health         = data.h
 	store.healthMax      = data.hm

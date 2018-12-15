@@ -5,16 +5,17 @@
 local Me = DiceMaster4
 
 local DICEMASTER_TERMS = {
-	["Advantage"] = "Allows the player to roll the same dice twice, and take the greater of the two resulting numbers.",
-	["Disadvantage"] = "Allows the player to roll the same dice twice, and take the lesser of the two resulting numbers.",
-	["Double or Nothing"] = "An unmodified D40 roll. If the roll succeeds, the player is rewarded with a critical success; however, if the roll fails, the player suffers critically failure.",
-	["Reload"] = "Grants the player's active trait another use.",
+	["Advantage"] = "Allows the character to roll the same dice twice, and take the greater of the two resulting numbers.",
+	["Disadvantage"] = "Allows the character to roll the same dice twice, and take the lesser of the two resulting numbers.",
+	["Double or Nothing"] = "An unmodified D40 roll. If the roll succeeds, the character is rewarded with a critical success; however, if the roll fails, the character suffers critically failure.",
+	["Reload"] = "Grants the character's active trait another use.",
+	["Revive"] = "Allows a character with |cFFFFFFFF0|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t remaining to return to battle with diminished health.",
 	["Poison"] = "Causes additional damage to a target each round.",
-	["Control"] = "Allows the player to take command of a target until the effect expires.",
+	["Control"] = "Allows the character to take command of a target until the effect expires.",
 	["Stun"] = "Incapacitates a target, preventing them from performing any action next round.",
-	["Rescue"] = "Allows the player to spare another player from failure.",
 	["NAT1"] = "A roll of 1 that is achieved before dice modifiers are applied that results in critical failure.",
 	["NAT20"] = "A roll of 20 that is achieved before dice modifiers are applied that results in critical success.",
+	["Immunity"] = "Prevents a character from suffering the effects of a failure this round.",
 }
 
 -------------------------------------------------------------------------------
@@ -83,6 +84,15 @@ function Me.OpenTraitTooltip( owner, trait, index )
 		local usage = Me.FormatUsage( trait.usage, playername )
 		GameTooltip:AddDoubleLine( usage, nil, 1, 1, 1, 1, 1, 1, true )
 	end
+	
+	if trait.approved and trait.approved > 0 and Me.PermittedUse() then
+		if trait.approved == 1 then
+			DiceMasterTooltipApproved.icon:SetTexture("Interface/AddOns/DiceMaster/Texture/trait-unapproved")
+		elseif trait.approved == 2 then
+			DiceMasterTooltipApproved.icon:SetTexture("Interface/AddOns/DiceMaster/Texture/trait-approved")
+		end
+		DiceMasterTooltipApproved:Show()
+	end
 	 
     GameTooltip:AddLine( nil, 1, 1, 1, true )
 	
@@ -94,19 +104,49 @@ function Me.OpenTraitTooltip( owner, trait, index )
 		GameTooltip:AddLine( desc, 1, 0.81, 0, true )
 	end
 	
-	if owner and owner.editable_trait then
-		GameTooltip:AddLine( "<Left Click to Edit>|n<Shift-Click to Link to Chat>", 0.44, 0.44, 0.44, true )
-	else
-		GameTooltip:AddLine( "<Shift-Click to Link to Chat>", 0.44, 0.44, 0.44, true )
+	local usable = ""
+	local guildName, guildRankName, guildRankIndex = GetGuildInfo( "player" )
+	
+	if owner:GetParent():GetName() == "DiceMasterInspectFrame" and not UnitIsUnit("target", "player") and Me.IsOfficer() then
+		local found = false;
+		if trait.officers then
+			for i=1,#trait.officers do
+				if trait.officers[i] == UnitName("player") then	
+					found = true;
+					break;
+				end
+			end
+		end
+		if not found then
+			usable = "<Right Click to Approve>|n"
+		else
+			usable = "<Right Click to Remove Approval>|n"
+		end
 	end
 	
-    GameTooltip:Show() 
+	if owner and owner.editable_trait then
+		if Me.Profile.buffs[ index ] and owner:GetParent():GetName() == "DiceMasterPanel" then
+			if Me.Profile.buffs[ index ].blank == false then
+				usable = usable .. "<Right Click to Use>|n"
+			end
+		end
+		if Me.Profile.removebuffs[ index ] and owner:GetParent():GetName() == "DiceMasterPanel" then
+			if Me.Profile.removebuffs[ index ].blank == false then
+				usable = usable .. "<Right Click to Use>|n"
+			end
+		end
+		usable = usable .. "<Left Click to Edit>|n"
+	end
+	GameTooltip:AddLine( usable .. "<Shift-Click to Link to Chat>", 0.44, 0.44, 0.44, true )
+	
+    GameTooltip:Show()
 end
 
 -------------------------------------------------------------------------------
 function Me.CloseTraitTooltip()
 	Me.playerTraitTooltipOpen = false
     GameTooltip:Hide()
+	DiceMasterTooltipApproved:Hide()
 	DiceMasterTooltip:Hide()
 end
 
@@ -145,6 +185,7 @@ local function OnLeave( self )
 		Me.playerTraitTooltipOpen = false
 	end
     GameTooltip:Hide()
+	DiceMasterTooltipApproved:Hide()
 	DiceMasterTooltip:Hide()
 end
 
@@ -192,20 +233,8 @@ local methods = {
 	Refresh = function( self )
 		if self.trait then
 			self.icon:SetTexture( self.trait.icon )
-			local IsEnchanted = self.trait.enchant
-			if isEnchanted and isEnchanted~="" then
-				self.ants:Show()
-			else
-				self.ants:Hide()
-			end
 		elseif self.traitPlayer then
 			self.icon:SetTexture( Me.inspectData[self.traitPlayer].traits[self.traitIndex].icon )
-			local isEnchanted = Me.inspectData[self.traitPlayer].traits[self.traitIndex].enchant
-			if isEnchanted and isEnchanted~="" then
-				self.ants:Show()
-			else
-				self.ants:Hide()
-			end
 		end
 	end;
 	
@@ -240,9 +269,5 @@ function Me.TraitButton_Init( self )
 	self:SetScript( "OnEnter", OnEnter )
 	self:SetScript( "OnLeave", OnLeave ) 
 	self.editable_trait = false 
-end
-
-function Me.TraitButton_OverlayGlowOnUpdate(self, elapsed)
-	AnimateTexCoords(self.ants, 256, 256, 48, 48, 25, elapsed, 0.01);
 end
 

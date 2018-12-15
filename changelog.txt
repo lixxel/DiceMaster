@@ -1,3 +1,31 @@
+### 4.9
+ - Added new Progress Bar frame, allowing players to track a group-wide resource (controlled by the leader).
+ - Added Progress Bar options to the config menu.
+ - Fixed an error calculating the duration of buffs.
+ - Buffs Frame can now be moved from its default anchor position.
+ - Guild officers can now approve traits (League of Lordaeron only).
+ - Charges can now have custom tooltip descriptions.
+ - Players can now cast/remove buffs on themselves regardless of their party status.
+ - Fixed an issue with the Typing Tracker firing Lua errors for offline members.
+ - Fixed an issue where icons in trait chat links were showing as empty.
+ - The Roll Tracker now tracks all individual rolls for multiple dice rolls (e.g. 2D20).
+ - You can now select a target manually from the Roll Tracker.
+ - Resolved an issue where sending messages via Roll Tracker was using the wrong name.
+
+### 4.8.9
+ - Added "Apply Buff" and "Remove Buff" modules to traits.
+ - Added new Buff Frame (anchors to default buff frame).
+ - Added new Target Buff Frame (anchors above Inspect Frame by default).
+ - Removed grey drag tabs. Frames can now be unlocked/moved in the config menu or with the command /dicemaster (lock | unlock).
+ - Roll history entries in the Roll Tracker are now coloured based on Difficulty Class.
+ - Roll Tracker now scales independently (config menu, or /dicemaster trackerscale (number).
+ - "List Results..." now includes roll values.
+ - Added new Roll Prompt Banner option (League of Lordaeron only).
+ - Moved default Post Tracker anchor to above chat frame.
+ - You should no longer appear in your own Post Tracker.
+ - Players who log out while typing should no longer remain in the Post Tracker.
+ - Term "Rescue" is now "Immunity."
+
 ### 4.8.8
  - Many new QoL changes.
  - Removed Trait Editor button from panel.

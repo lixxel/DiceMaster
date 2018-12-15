@@ -11,6 +11,45 @@ local Me = DiceMaster4
 Me.SavedRolls = {}
 Me.HistoryRolls = {}
 
+local ROLL_ROUND_TYPES = {
+	["Attack"] = "Roll to attempt a combat action of your choosing.",
+	["Defence"] = "Roll to defend yourself from enemy damage.",
+	["Healing"] = "Roll to restore health to yourself or others.",
+	["Perception"] = "Roll to gain information about the area.",
+	["Magical Perception"] = "Roll to detect magic in the area.",
+	["Stealth"] = "Roll to conceal yourself from detection.",
+}
+
+StaticPopupDialogs["DICEMASTER4_ROLLBANNER"] = {
+  text = "What type of round is your group rolling for?|n(Attack, Defence, Healing, etc.)",
+  button1 = "Accept",
+  button2 = "Cancel",
+  OnShow = function (self, data)
+    self.editBox:SetText("Attack")
+	self.editBox:HighlightText()
+  end,
+  OnAccept = function (self, data, data2)
+	local name = UnitName("player")
+    local text = self.editBox:GetText()
+	if text == "" then
+		UIErrorsFrame:AddMessage( "Invalid name: too short.", 1.0, 0.0, 0.0, 53, 5 );
+	elseif strlen(text) > 30 then
+		UIErrorsFrame:AddMessage( "Invalid name: too long.", 1.0, 0.0, 0.0, 53, 5 );
+	else
+		local msg = Me:Serialize( "BANNER", {
+			na = tostring( name );
+			tp = tostring( text );
+		})
+		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
+	end
+  end,
+  hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
 function Me.DiceMasterRollFrame_OnLoad(self)
 	self:SetClampedToScreen( true )
 	self:SetMovable(true)
@@ -33,22 +72,6 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 	
 	Me.DiceMasterRollFrame_Update()
 	
-	local hooks = {};
-	
-	local function AddMessage(self, message, ...)
-		Me.OnRollMessage( message )
-	 
-		return hooks[self](self, message, ...)
-	end
-	
-	for index = 1, NUM_CHAT_WINDOWS do
-		if(index ~= 2) then
-			local frame = _G['ChatFrame'..index]
-			hooks[frame] = frame.AddMessage
-			frame.AddMessage = AddMessage
-		end
-	end
-	
 	local chat_events = { 
 		"WHISPER";
 		"PARTY";
@@ -68,6 +91,30 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 	end)
 end
 
+function Me.RollTargetDropDown_OnClick(self, arg1)
+	UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, self:GetText()) 
+	local msg = Me:Serialize( "TARGET", {
+		ta = tonumber( arg1 );
+	})
+	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
+	
+	if not IsInGroup(1) then
+		Me.OnChatMessage( "{rt"..arg1.."}", UnitName("player") ) 
+	end
+end
+
+function Me.RollTargetDropDown_OnLoad(frame, level, menuList)
+	local info = UIDropDownMenu_CreateInfo()
+
+	for i = 1, 8 do
+	   info.text = "|TInterface/TARGETINGFRAME/UI-RaidTargetingIcon_"..i..":16|t"
+	   info.arg1 = i
+	   info.notCheckable = true;
+	   info.func = Me.RollTargetDropDown_OnClick;
+	   UIDropDownMenu_AddButton(info, level)
+	end
+end
+
 function Me.RollListDropDown_OnClick(self, arg1)
 	local dc = tonumber(DiceMasterRollTrackerDCThreshold:GetText()) or nil
 	local list = nil
@@ -77,9 +124,9 @@ function Me.RollListDropDown_OnClick(self, arg1)
 		for i=1,#Me.SavedRolls do
 			if Me.SavedRolls[i].roll > dc then
 				if not list then 
-					list = Me.SavedRolls[i].name
+					list = Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
 				else
-					list = list..", "..Me.SavedRolls[i].name
+					list = list..", "..Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
 				end
 			end
 		end
@@ -87,9 +134,9 @@ function Me.RollListDropDown_OnClick(self, arg1)
 		for i=1,#Me.SavedRolls do
 			if Me.SavedRolls[i].roll == dc then
 				if not list then 
-					list = Me.SavedRolls[i].name
+					list = Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
 				else
-					list = list..", "..Me.SavedRolls[i].name
+					list = list..", "..Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
 				end
 			end
 		end
@@ -97,9 +144,9 @@ function Me.RollListDropDown_OnClick(self, arg1)
 		for i=1,#Me.SavedRolls do
 			if Me.SavedRolls[i].roll < dc then
 				if not list then 
-					list = Me.SavedRolls[i].name
+					list = Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
 				else
-					list = list..", "..Me.SavedRolls[i].name
+					list = list..", "..Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
 				end
 			end
 		end
@@ -181,6 +228,18 @@ function Me.Format_TimeStamp( timestamp )
 	return (timestamp.." "..period)
 end
 
+function Me.ColourHistoryRolls( roll )
+	local r, g, b = 1, 1, 1
+	local dc = tonumber(DiceMasterRollTrackerDCThreshold:GetText()) or nil
+	if not tonumber(roll) or not dc then return r, g, b end
+	
+	g = ( roll / dc )
+	r = ( dc / roll )
+	b = 0
+	
+	return r, g, b
+end
+
 function Me.DiceMasterRollFrame_Update()
 	local name, roll, time, timestamp, target;
 	local rollIndex;
@@ -192,6 +251,11 @@ function Me.DiceMasterRollFrame_Update()
 	end
 	
 	local rollOffset = FauxScrollFrame_GetOffset(DiceMasterRollTrackerScrollFrame);
+	
+	local showScrollBar = nil;
+	if ( #Me.SavedRolls > 17 ) then
+		showScrollBar = 1;
+	end
 	
 	for i=1,17,1 do
 		rollIndex = rollOffset + i;
@@ -208,7 +272,7 @@ function Me.DiceMasterRollFrame_Update()
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Name"];
 		buttonText:SetText(name)
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Roll"];
-		buttonText:SetText(roll)
+		buttonText:SetText(roll or "--")
 		buttonText:SetTextColor(Me.ColourRolls( roll ))
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Timestamp"];
 		buttonText:SetText(Me.Format_TimeStamp( timestamp ))
@@ -231,6 +295,13 @@ function Me.DiceMasterRollFrame_Update()
 		else
 			button:Show();
 		end
+		
+		-- If need scrollbar resize columns
+		if ( showScrollBar ) then
+			Me.RollTrackerColumn_SetWidth(i, 225);
+		else
+			Me.RollTrackerColumn_SetWidth(i, 256);
+		end
 	end
 	
 	if DiceMasterRollTracker.selected then
@@ -238,6 +309,10 @@ function Me.DiceMasterRollFrame_Update()
 	end
 	
 	FauxScrollFrame_Update(DiceMasterRollTrackerScrollFrame, #Me.SavedRolls, 17, 16 );
+end
+
+function Me.RollTrackerColumn_SetWidth(index, width)
+	_G["DiceMasterRollTrackerButton"..index.."Highlight"]:SetWidth(width);
 end
 
 function Me.DiceMasterRollDetailFrame_Update()
@@ -272,6 +347,7 @@ function Me.DiceMasterRollDetailFrame_Update()
 		sum = math.floor( sum / divider )
 	end
 	frame.AverageText:SetText(sum);
+	frame.AverageText:SetTextColor(Me.ColourHistoryRolls( sum ))
 	
 	for i=1,9,1 do
 		rollIndex = rollOffset + i;
@@ -286,6 +362,7 @@ function Me.DiceMasterRollDetailFrame_Update()
 		end
 		local buttonText = _G["DiceMasterRollTrackerHistoryButton"..i.."Roll"];
 		buttonText:SetText(roll)
+		buttonText:SetTextColor(Me.ColourHistoryRolls( roll ))
 		local buttonText = _G["DiceMasterRollTrackerHistoryButton"..i.."Timestamp"];
 		buttonText:SetText(Me.Format_TimeStamp( timestamp ))
 		local buttonText = _G["DiceMasterRollTrackerHistoryButton"..i.."Dice"];
@@ -329,17 +406,70 @@ function Me.DiceMasterRollFrame_AddRoll( roll )
 	end
 end
 
-------------------------------------------------------------------------------- Find enchant roll in chat.
+-------------------------------------------------------------------------------
+-- Record a DiceMaster roll.
 
-function Me.OnRollMessage( message ) 
-	local name = UnitName("player")
-	local roll, dice = message:match("You roll.* %|*[CcFf0]*([-]?%d+)%|*%a*%p* (%(%d*[dD]%d+[+-]?%d*%))")
-	if IsInGroup() then
-		name, roll, dice = message:match("(.+) rolls.* %|*[CcFf0]*([-]?%d+)%|*%a*%p* (%(%d*[dD]%d+[+-]?%d*%))")
+function Me.OnRollMessage( name, you, count, sides, mod, roll ) 
+	
+	if not count or not sides or not mod or not roll then
+		return
 	end
-	if not roll then
-		name, roll, dice = message:match("(.+) rolls (%d+) (%(%d+[-]%d+%))")
+	
+	if you then
+		name = UnitName("player")
 	end
+	
+	local dice = Me.FormatDiceType( count, sides, mod )
+	
+	if roll then
+		if not Me.HistoryRolls[name] then
+			Me.HistoryRolls[name] = {}
+		end
+		local exists = false;
+		for i=1,#Me.SavedRolls do
+			if Me.SavedRolls[i].name == name then
+				Me.SavedRolls[i].roll = tonumber(roll)
+				Me.SavedRolls[i].time = date("%H%M%S")
+				Me.SavedRolls[i].timestamp = date("%H:%M:%S")
+				exists = true;
+			end
+		end
+		
+		if not exists then
+			local data = {}
+			data.roll = tonumber(roll)
+			data.time = date("%H%M%S")
+			data.timestamp = date("%H:%M:%S")
+			data.target = 0
+			data.name = name
+			tinsert(Me.SavedRolls, data)
+		end
+		
+		local data = {}
+		data.roll = tonumber(roll)
+		data.time = date("%H%M%S")
+		data.timestamp = date("%H:%M:%S")
+		data.dice = dice
+		tinsert(Me.HistoryRolls[name], 1, data)
+		
+		Me.DiceMasterRollFrame_Update()
+		
+		if DiceMasterRollTracker.selectedName then
+			Me.DiceMasterRollDetailFrame_Update()
+		end
+	end
+end
+
+-------------------------------------------------------------------------------
+-- Record a vanilla roll.
+
+function Me.OnVanillaRollMessage( name, roll, min, max ) 
+	
+	if not name or not roll or not min or not max then
+		return
+	end
+	
+	local dice = ( "(" .. min .. "-" .. max .. ")" )
 	
 	if roll then
 		if not Me.HistoryRolls[name] then
@@ -432,8 +562,75 @@ function Me.OnChatMessage( message, sender )
 	end
 end
 
-function Me.DiceMasterRollFrameScrollBar_Update()
-   FauxScrollFrame_Update(DiceMasterRollTrackerScrollFrame, #Me.SavedRolls, 17, 16 );
+---------------------------------------------------------------------------
+-- Received a target update.
+--	ta = target							number
+
+function Me.RollTracker_OnTargetMessage( data, dist, sender )	
+ 
+	-- sanitize message
+	if not data.ta then
+	   
+		return
+	end
+	
+	local icon = tonumber( data.ta )
+	
+	local exists = false;
+	for i=1,#Me.SavedRolls do
+		if Me.SavedRolls[i].name == sender then
+			Me.SavedRolls[i].time = date("%H%M%S")
+			Me.SavedRolls[i].timestamp = date("%H:%M:%S")
+			Me.SavedRolls[i].target = icon
+			exists = true;
+		end
+	end
+	
+	if not exists then
+		local msg = {}
+		msg.name = sender
+		msg.time = date("%H%M%S")
+		msg.timestamp = date("%H:%M:%S")
+		msg.target = icon
+		tinsert(Me.SavedRolls, msg)
+	end
+	Me.DiceMasterRollFrame_Update()
+end
+
+---------------------------------------------------------------------------
+-- Received a banner request.
+--  na = name							string
+--	tp = type							string
+
+function Me.RollTracker_OnBanner( data, dist, sender )	
+	-- Only the party leader can send us these.
+	if not Me.db.global.enableRoundBanners or not UnitIsGroupLeader(sender, 1) then return end
+ 
+	-- sanitize message
+	if not data.na or not data.tp then
+	   
+		return
+	end
+	
+	if Me.PermittedUse() and not DiceMasterRollBanner:IsShown() then
+		
+		DiceMasterRollBanner.Title:SetText( data.tp )
+		
+		if ROLL_ROUND_TYPES[ data.tp ] then
+			DiceMasterRollBanner.Title:SetText( data.tp .. " Round!" )
+			DiceMasterRollBanner.SubTitle:SetText(ROLL_ROUND_TYPES[ data.tp ])
+		else
+			DiceMasterRollBanner.SubTitle:SetText("")
+		end
+		
+		DiceMasterRollBanner.AnimIn:Play()
+		local timer = C_Timer.NewTimer(5, function()
+			if DiceMasterRollBanner:IsShown() then
+				DiceMasterRollBanner.AnimOut:Play()
+			end
+		end)
+		
+	end
 end
 
 

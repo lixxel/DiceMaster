@@ -1,24 +1,23 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
-
+	
   <!-- Inspect Panel / What shows when you target someone. -->
   
-  <Button name="DiceMasterInspectFrame" frameStrata="MEDIUM" movable="true" enableMouse="true" parent="UIParent">
-    <Size x="24" y="12"/>
+  <Button name="DiceMasterInspectFrame" frameStrata="MEDIUM" parent="UIParent">
+    <Size x="180" y="64"/>
     <Anchors>
       <Anchor point="CENTER" x="0" y="0"/>
     </Anchors>
     
-    <!-- Thumb that appears to drag -->
-    <HighlightTexture file="Interface/RAIDFRAME/Raid-Move-Down" alphaMode="BLEND"/>
-    
     <Scripts>
       <OnLoad>
-        self:SetClampedToScreen( true )
-        self:RegisterForDrag( "LeftButton" )
-        self:SetScript( "OnDragStart", self.StartMoving )
-        self:SetScript( "OnDragStop", self.StopMovingOrSizing )
-        self:SetScale( 1.2 )
-        self:SetUserPlaced( true )
+		self.Title = "Inspect Frame"
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(false)
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		self:SetUserPlaced( true )
         self:Hide()
         
         -- create trait buttons
@@ -26,7 +25,7 @@
         for i = 1,5 do
           self.traits[i] = CreateFrame( "DiceMasterTraitButton", nil, self )
           self.traits[i]:SetSize( 24, 24 )
-          self.traits[i]:SetPoint( "TOP", -56 + 28*(i-1), 24 )
+          self.traits[i]:SetPoint( "CENTER", -56 + 28*(i-1), 0 )
           self.traits[i].traitIndex = i
 		  self.traits[i]:SetScript( "OnMouseDown", function( self, button )
 			DiceMaster4.Inspect_OnTraitClicked( self, button )
@@ -36,13 +35,15 @@
     </Scripts>
     
     <Frames>
+		
+	  <Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
       
       <!-- Charges bar. -->
       <DiceMasterStatusBar parentKey="charges">
         
         <Size x="32" y="32"/>
         <Anchors>
-          <Anchor point="CENTER" x="0" y="90"/>
+          <Anchor point="CENTER" x="0" y="17"/>
         </Anchors>
         <Scripts>
           <OnLoad>
@@ -55,7 +56,7 @@
 	  <StatusBar parentKey="charges2" minValue="0" maxValue="100" defaultValue="30" orientation="HORIZONTAL">
 		<Size x="150" y="32"/>
 		<Anchors>
-          <Anchor point="CENTER" x="0" y="55"/>
+          <Anchor point="CENTER" x="0" y="17"/>
         </Anchors>
 		<Layers>
 			<Layer level="BACKGROUND">
@@ -84,7 +85,7 @@
       <DiceMasterStatusBar parentKey="health">
         <Size x="16" y="16"/>
         <Anchors>
-          <Anchor point="CENTER" x="0" y="80"/>
+          <Anchor point="CENTER" x="0" y="35"/>
         </Anchors>
         
         <Scripts>
@@ -94,7 +95,40 @@
           </OnLoad>
         </Scripts>
       </DiceMasterStatusBar>
-    </Frames>
-     
+    </Frames>     
   </Button>
+  
+  <Frame name="DiceMasterInspectBuffFrame" parent="DiceMasterInspectFrame">
+	<Size x="180" y="32"/>
+	<Anchors>
+		<Anchor point="BOTTOM" relativeTo="DiceMasterInspectFrame" relativePoint="TOP" x="0" y="0">
+		</Anchor>
+	</Anchors>
+	<Frames>
+		<Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
+	</Frames>
+	<Scripts>
+		<OnLoad> 
+			self.Title = "Target Buffs Frame"
+			self:SetClampedToScreen( true )
+			self:SetMovable(true)
+			self:EnableMouse(false)
+			self:RegisterForDrag( "LeftButton" )
+			self:SetScript( "OnDragStart", self.StartMoving )
+			self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+			self:SetUserPlaced( true )
+		
+			-- create buff buttons
+			self.buffs = {}
+			for i = 1,5 do
+			  self.buffs[i] = CreateFrame( "Button", "DiceMasterInspectBuffButton"..i, self, "DiceMasterBuffButtonTemplate" )
+			  self.buffs[i]:SetSize( 24, 24 )
+			  self.buffs[i]:SetPoint( "CENTER", -56 + 28*(i-1), 0 )
+			  self.buffs[i]:SetScript("OnLoad", nil);
+			  self.buffs[i]:SetScript("OnClick", nil);
+			  self.buffs[i].buffIndex = i
+			end
+		</OnLoad>
+	</Scripts>
+  </Frame>
 </Ui>

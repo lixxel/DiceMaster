@@ -23,7 +23,7 @@
     
     <Scripts>
       <OnLoad>
-        
+        self.NineSlice:SetFrameLevel(1)
         self:SetScale(0.8)
 		SetPortraitToTexture( self.portrait, "Interface/AddOns/DiceMaster/Icons/WH_RuneDice" )
         DiceMaster4.TraitEditor_OnLoad( self )
@@ -175,7 +175,7 @@
           </OnLoad>
           <OnClick>
             PlaySound(54132)
-            DiceMaster4.IconPicker_Open()
+            DiceMaster4.IconPicker_Open( self:GetParent() )
           </OnClick>
         </Scripts>
       </DiceMasterTraitButton>
@@ -314,6 +314,58 @@
         </Frames>
         
       </ScrollFrame>
+	  
+	  <Button name="$parentEditBuff" parentKey="editBuff">
+		<Size x="22" y="22"/>
+		<Anchors>
+			<Anchor point="BOTTOMRIGHT" x="-8" y="4"/>
+		</Anchors>
+		<NormalTexture file="Interface/Icons/Spell_Holy_WordFortitude"/>
+		<Layers>
+			<Layer level="HIGHLIGHT">
+				<Texture parentKey="highlight" file="Interface/Buttons/ButtonHilight-Square" alphaMode="ADD">
+					<Size x="22" y="22"/>	
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				 DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Apply Buff" )
+			</OnLoad>
+			<OnClick>
+				DiceMaster4.BuffEditor_Open()
+			</OnClick>
+		</Scripts>
+	  </Button>
+	  
+	  <Button name="$parentRemoveBuff" parentKey="removeBuff">
+		<Size x="22" y="22"/>
+		<Anchors>
+			<Anchor point="RIGHT" relativeKey="$parent.editBuff" relativePoint="LEFT" x="0" y="0"/>
+		</Anchors>
+		<NormalTexture file="Interface/Icons/Spell_Shadow_SacrificialShield"/>
+		<Layers>
+			<Layer level="HIGHLIGHT">
+				<Texture parentKey="highlight" file="Interface/Buttons/ButtonHilight-Square" alphaMode="ADD">
+					<Size x="22" y="22"/>	
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				 DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Remove Buff" )
+			</OnLoad>
+			<OnClick>
+				DiceMaster4.RemoveBuffEditor_Open()
+			</OnClick>
+		</Scripts>
+	  </Button>
       
     </Frames>
   </Frame>

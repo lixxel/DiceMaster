@@ -32,6 +32,36 @@
 	</Scripts>
   </Frame>
   
+  <Frame name="DiceMasterTooltipApproved" frameStrata="TOOLTIP" hidden="true" parent="GameTooltip">
+	<Size x="64" y="64"/>
+	<Layers>
+		<Layer level="ARTWORK">
+			<Texture parentKey="icon" setAllPoints="true" file="Interface/AddOns/DiceMaster/Texture/trait-unapproved">
+			</Texture>
+		</Layer>
+	</Layers>
+	<Scripts>
+		<OnShow>
+			self:SetPoint("TOPRIGHT", GameTooltip, "TOPRIGHT", -1, -1)
+		</OnShow>
+	</Scripts>
+  </Frame>
+  
+  <Frame name="DiceMasterItemRefApproved" frameStrata="TOOLTIP" hidden="true" parent="ItemRefTooltip">
+	<Size x="64" y="64"/>
+	<Layers>
+		<Layer level="ARTWORK">
+			<Texture parentKey="icon" setAllPoints="true" file="Interface/AddOns/DiceMaster/Texture/trait-unapproved-left">
+			</Texture>
+		</Layer>
+	</Layers>
+	<Scripts>
+		<OnShow>
+			self:SetPoint("TOPLEFT", ItemRefTooltip, "TOPLEFT", 1, -1)
+		</OnShow>
+	</Scripts>
+  </Frame>
+  
   <!-- Template for the main "trait" buttons. -->
   <Button name="DiceMasterTraitButton" enableMouse="true" intrinsic="true">
     <Size x="32" y="32"/>
@@ -62,19 +92,10 @@
 					</Anchors>
           
         </Texture>
-		<Texture parentKey="ants" file="Interface/Transmogrify/PurpleIconAlertAnts" hidden="true">
-			<Size x="48" y="48"/>
-			<Anchors>
-				<Anchor point="CENTER"/>
-			</Anchors>
-        </Texture>
       </Layer>
       
     </Layers>
     <Scripts>
-	  <OnUpdate>
-		DiceMaster4.TraitButton_OverlayGlowOnUpdate( self, elapsed )
-	  </OnUpdate>
       <OnLoad>
         DiceMaster4.TraitButton_Init( self )
       </OnLoad>
@@ -83,7 +104,6 @@
         local qw, qh = self:GetWidth() * 1.4, self:GetHeight() * 1.4
         self.border:SetSize( qw, qh )
         self.highlight:SetSize( qw, qh )
-		self.ants:SetSize( qw*0.8, qh*0.8 )
       </OnSizeChanged>
     </Scripts>
     

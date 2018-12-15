@@ -4,7 +4,7 @@
   
   <Frame name="DiceMasterPanel" movable="true" enableMouse="true" frameStrata="MEDIUM" parent="UIParent">
     
-    <Size x="100" y="48"/>
+    <Size x="200" y="90"/>
     <Anchors>
       <Anchor point="TOP" x="0" y="-64"/>
     </Anchors>	
@@ -15,7 +15,7 @@
         <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
           <Size x="192" y="48" />
           <Anchors>
-            <Anchor point="TOP" x="0" y="0"/>
+            <Anchor point="CENTER" x="0" y="-17"/>
           </Anchors>
           <TexCoords left="0" right="1" top="0" bottom="0.5" />
         </Texture>
@@ -28,54 +28,49 @@
         <Texture file="Interface/AddOns/DiceMaster/Texture/roll-frame">
           <Size x="48" y="48" />
           <Anchors>
-            <Anchor point="TOP" x="80" y="0"/>
+            <Anchor point="CENTER" x="80" y="-17"/>
           </Anchors>
           <TexCoords left="0" right="0.25" top="0.5" bottom="1" />
         </Texture>
       </Layer>
 	  
-	  <Layer level="HIGHLIGHT">
-		<Texture file="Interface/RAIDFRAME/Raid-Move-Down">
-          <Size x="24" y="12" />
-          <Anchors>
-            <Anchor point="BOTTOM" x="0" y="0"/>
-          </Anchors>
-        </Texture>
-	  </Layer>
     </Layers>
     
     <Scripts>
-      <OnLoad>
-        self:SetUserPlaced( true )
-        self:SetClampedToScreen(true)
-        self:RegisterForDrag("LeftButton")
-        self:SetScript("OnDragStart", self.StartMoving)
-        self:SetScript("OnDragStop", self.StopMovingOrSizing)
-        self:SetScale(1)
+      <OnLoad>		
+		self.Title = "Dice Panel"
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(false)
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		self:SetUserPlaced( true )
 		
 		-- create trait buttons
         self.traits = {}
         for i = 1,5 do
           self.traits[i] = CreateFrame( "DiceMasterTraitButton", nil, self )
           self.traits[i]:SetSize( 24, 24 )
-          self.traits[i]:SetPoint( "TOP", -56 + 28*(i-1), 20 )
+          self.traits[i]:SetPoint( "CENTER", -56 + 28*(i-1), 15 )
           self.traits[i].traitIndex = i
 		  self.traits[i].editable_trait = true;
 		  self.traits[i]:SetScript( "OnMouseDown", function( self, button )
-			if IsShiftKeyDown() then DiceMaster4.TraitEditor_OnTraitClicked( self, button ) else DiceMaster4.TraitButtonClicked() DiceMaster4.TraitEditor_StartEditing( self.traitIndex ) end
+			if IsShiftKeyDown() then DiceMaster4.TraitEditor_OnTraitClicked( self, button ) elseif button == "LeftButton" then DiceMaster4.TraitButtonClicked() DiceMaster4.TraitEditor_StartEditing( self.traitIndex ) elseif button == "RightButton" then DiceMaster4.BuffFrame_RemoveBuff( self.traitIndex ) DiceMaster4.BuffFrame_CastBuff( self.traitIndex ) end
 		end)
         end
       </OnLoad>
     </Scripts>
     
     <Frames>
+	  <Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
     
       <!-- Dice format editbox. -->
       <EditBox name="$parentDice" parentKey="dice" font="DiceMasterFontExtraThicc">
       
         <Size x="80" y="14" />
         <Anchors>
-          <Anchor point="TOP" x="0" y="-17" />
+          <Anchor point="CENTER" x="0" y="-17" />
         </Anchors>
         <Scripts>
           <OnLoad>
@@ -94,7 +89,7 @@
       <Button parentKey="roll">
         <Size x="32" y="32"/>
         <Anchors>
-          <Anchor point="TOP" x="80" y="-8"/>
+          <Anchor point="CENTER" x="80" y="-17"/>
         </Anchors>
         
         <HighlightTexture file="Interface/UNITPOWERBARALT/PandarenTrainingLarge_Circular_Flash" alphaMode="ADD" /> 

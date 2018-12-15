@@ -2,35 +2,37 @@
 
   <!-- Frame for showing your charges and adjusting them. -->
   
-  <Button name="DiceMasterChargesFrame" movable="true" enableMouse="true" frameStrata="MEDIUM" parent="UIParent">
+  <Button name="DiceMasterChargesFrame" frameStrata="MEDIUM" parent="UIParent">
     
-    <Size x="24" y="12"/>
+    <Size x="180" y="24"/>
     <Anchors>
       <Anchor point="CENTER" x="0" y="0"/>
     </Anchors>
-    
-    <!-- thumb that appears to drag -->
-    <HighlightTexture file="Interface/RAIDFRAME/Raid-Move-Down" alphaMode="BLEND"/>
         
     <Scripts>
       <OnLoad>
-        self:SetClampedToScreen( true )
-        self:RegisterForDrag( "LeftButton" )
-        self:SetScript( "OnDragStart", self.StartMoving )
-        self:SetScript( "OnDragStop", self.StopMovingOrSizing )
-        self:SetScale( 1.2 )
-        self:SetUserPlaced( true )
+        self.Title = "Charges Frame"
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(false)
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		 self:SetScale( 1.2 )
+		self:SetUserPlaced( true )
       </OnLoad>
     </Scripts>
     
     <Frames>
+	
+	  <Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
       
       <!-- The actual bar. Above is just a window and used for dragging. -->
       <DiceMasterStatusBar parentKey="bar">
         
         <Size x="32" y="32"/>
         <Anchors>
-          <Anchor point="CENTER" x="0" y="32"/>
+          <Anchor point="CENTER" x="0" y="0"/>
         </Anchors>
         <Scripts>
           <OnLoad>
@@ -44,7 +46,7 @@
 	  <StatusBar parentKey="bar2" minValue="0" maxValue="100" defaultValue="30" orientation="HORIZONTAL">
 		<Size x="150" y="32"/>
 		<Anchors>
-          <Anchor point="CENTER" x="0" y="20"/>
+          <Anchor point="CENTER" x="0" y="0"/>
         </Anchors>
 		<Layers>
 			<Layer level="BACKGROUND">
@@ -75,7 +77,7 @@
 	  <DiceMasterStatusBar parentkey="healthbar">
         <Size x="160" y="16"/>
         <Anchors>
-          <Anchor point="CENTER" x="0" y="12"/> 
+          <Anchor point="CENTER" x="0" y="10"/> 
         </Anchors>
         <Scripts>
           <OnLoad>
