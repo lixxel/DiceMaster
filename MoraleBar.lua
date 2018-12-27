@@ -416,6 +416,7 @@ function Me.MoraleBar_OnClick(self, button)
 end
 
 function Me.MoraleBar_OnEnter(self)
+	if not self.powerName then return end
 	GameTooltip:SetOwner(self.fill, "ANCHOR_RIGHT")
 	GameTooltip:SetText(self.powerName, 1, 1, 1);
 	GameTooltip:AddLine(self.powerTooltip, nil, nil, nil, true);
@@ -443,7 +444,7 @@ function Me.RefreshMoraleFrame( reset )
 		DiceMasterMoraleBar:Hide()
 	end
 	
-	if Me.IsLeader( true ) then
+	if Me.IsLeader( false ) then
 		Me.MoraleBar_ApplyTextures(Profile.morale.symbol, Profile.morale.name, Profile.morale.tooltip, reset, Profile.morale.color)
 		Me.MoraleBar_ShareStatusWithParty()
 	end
@@ -517,7 +518,7 @@ function Me.MoraleBar_SetUp(self)
 	self:SetUserPlaced( true )
 	self:RegisterEvent( "GROUP_ROSTER_UPDATE" )
 	self:SetScript( "OnEvent", function( self, event )
-		if event and Me.IsLeader( true ) then
+		if event and Me.IsLeader( false ) then
 			Me.MoraleBar_ShareStatusWithParty()
 		end
 	end)
@@ -544,6 +545,19 @@ function Me.MoraleBar_SetUp(self)
 	self.UpdateFill = Me.MoraleBar_UpdateFill;
 	
 	Me.MoraleBar_SetMinMaxPower(0, 100)
+	
+	if IsInGroup(1) and not Me.IsLeader( false ) then
+		for i = 1, GetNumGroupMembers(1) do
+			local name, rank = GetRaidRosterInfo(i)
+			if rank == 2 then
+				local msg = Me:Serialize( "MORREQ", {
+					me = true;
+				})
+				Me:SendCommMessage( "DCM4", msg, "WHISPER", name, "NORMAL" )
+				break
+			end
+		end
+	end
 end
 
 
@@ -582,20 +596,29 @@ end
 -- Send a MORALE message to the party.
 --
 function Me.MoraleBar_ShareStatusWithParty()
-	if not Me.IsLeader( true ) then
+	if not Me.IsLeader( true ) or not IsInGroup(1) then
 		return
 	end
 	
-	local msg = Me:Serialize( "MORALE", {
-		me = Profile.morale.enable;
-		mn = Profile.morale.name;
-		mv = DiceMasterMoraleBar.displayedValue;
-		mt = Profile.morale.tooltip;
-		ms = Profile.morale.symbol;
-		mc = Profile.morale.color;
-	})
-	
-	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
+	if Me.IsLeader( false ) then
+		-- This is from the raid leader.
+		local msg = Me:Serialize( "MORALE", {
+			me = Profile.morale.enable;
+			mn = Profile.morale.name;
+			mv = DiceMasterMoraleBar.displayedValue;
+			mt = Profile.morale.tooltip;
+			ms = Profile.morale.symbol;
+			mc = Profile.morale.color;
+		})
+		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
+	elseif DiceMasterMoraleBar:IsShown() then
+		-- This is from a raid assistant.
+		local msg = Me:Serialize( "MORALE", {
+			me = true;
+			mv = DiceMasterMoraleBar.displayedValue;
+		})
+		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
+	end
 end
 
 ---------------------------------------------------------------------------
@@ -607,6 +630,11 @@ function Me.MoraleBar_OnStatusMessage( data, dist, sender )
 	-- Ignore our own data.
 	if sender == UnitName( "player" ) then return end
  
+	if data.me and data.mv then
+		DiceMasterMoraleBar.displayedValue = tonumber(data.mv or 0);
+		DiceMasterMoraleBar:UpdateFill();
+	end
+	
 	-- sanitize message
 	if not data.mn or not data.mv or not data.mt or not data.ms or not data.mc then
 	   
@@ -619,7 +647,7 @@ function Me.MoraleBar_OnStatusMessage( data, dist, sender )
 	data.mv = tonumber(data.mv) -- value
 	data.mt = tostring(data.mt) -- tooltip
 	data.ms = tostring(data.ms) -- texture
-	if #data.mc ~= 6 then data.mc = {1, 1, 1} end -- colour
+	if #data.mc ~= 3 then data.mc = {1, 1, 1} end -- colour
 	
 	if not data.mn or not data.mv or not data.mt or not data.ms or not data.mc then
 	   
@@ -636,4 +664,26 @@ function Me.MoraleBar_OnStatusMessage( data, dist, sender )
 	end
 	
 	Me.MoraleBar_ApplyTextures(data.ms, data.mn, data.mt, data.mv, data.mc)
+end
+
+---------------------------------------------------------------------------
+-- Received MORREQ data.
+-- 
+
+function Me.MoraleBar_OnStatusRequest( data, dist, sender )
+
+	-- Ignore our own data.
+	if sender == UnitName( "player" ) then return end
+ 
+	if Me.IsLeader( false ) then
+		local msg = Me:Serialize( "MORALE", {
+			me = Profile.morale.enable;
+			mn = Profile.morale.name;
+			mv = DiceMasterMoraleBar.displayedValue;
+			mt = Profile.morale.tooltip;
+			ms = Profile.morale.symbol;
+			mc = Profile.morale.color;
+		})
+		Me:SendCommMessage( "DCM4", msg, "WHISPER", sender, "NORMAL" )
+	end
 end

@@ -469,6 +469,8 @@
     <Scripts>
       <OnLoad>
 		DiceMaster4.DiceMasterRollFrame_OnLoad( self )
+		PanelTemplates_SetNumTabs(self, 2);
+	    PanelTemplates_SetTab(self, 1);
 	  </OnLoad>
 	  <OnHide>
 		if DiceMaster4.db.global.hideTracker then
@@ -714,6 +716,159 @@
 			</Scripts>
 		</Frame>
 		
+		<Frame name="DiceMasterDMNotes" setAllPoints="true" hidden="true">
+			<Frames>
+				<Frame name="DiceMasterDMNotesInset" inherits="InsetFrameTemplate">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" y="-60"/>
+						<Anchor point="BOTTOMRIGHT" x="-5" y="26"/>
+					</Anchors>
+					<Layers>
+						<Layer level="ARTWORK">
+							<FontString name="DiceMasterRollTrackerTotals" inherits="GameFontNormalSmall">
+								<Size x="298" y="16"/>
+								<Anchors>
+									<Anchor point="BOTTOM" x="0" y="5"/>
+								</Anchors>
+							</FontString>
+						</Layer>
+					</Layers>
+				</Frame>
+				
+				<CheckButton name="$parentAllowAssistants" parentKey="AllowAssistants" inherits="ChatConfigCheckButtonTemplate">
+					<Anchors>
+					  <Anchor point="TOPLEFT" x="60" y="-30" />
+					</Anchors>
+					
+					<Scripts>
+						<OnLoad>
+							_G[self:GetName().."Text"]:SetText("|cFFFFD100Allow Raid Assistants to Edit")
+							self.tooltip = "Allows your raid assistants to edit your notes."
+							self:Hide()
+						</OnLoad>
+						<OnClick>
+							if DiceMaster4.IsLeader() then
+								DiceMaster4.RollTracker_ShareNoteWithParty()
+							end
+						</OnClick>
+					</Scripts>
+				</CheckButton>
+				
+				<ScrollFrame name="$parentDMNotes" parentKey="DMNotes" inherits="UIPanelScrollFrameTemplate2">
+					<KeyValues>
+						<KeyValue key="safeLength" value="4000" type="number"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-65"/>
+						<Anchor point="BOTTOMRIGHT" x="-10" y="30"/>
+					</Anchors>
+					<Scripts>
+					  <OnLoad>
+						self.ScrollBar:ClearAllPoints()
+						self.ScrollBar:SetPoint("TOPLEFT", self, "TOPRIGHT", -13, -11)
+						self.ScrollBar:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", -13, 9)
+						self.ScrollBar.ScrollDownButton:SetPoint("TOP", self.ScrollBar, "BOTTOM", 0, 4)
+						self.ScrollBar.ScrollUpButton:SetPoint("BOTTOM", self.ScrollBar, "TOP", 0, -4)
+						self.ScrollBar.ScrollUpButton:Disable()
+						self.ScrollBar.ScrollDownButton:Disable()
+					  </OnLoad>
+					  <OnMouseDown>
+						if self.EditBox then
+							self.EditBox:SetFocus()
+							self.EditBox:SetCursorPosition(#self.EditBox:GetText())
+						end
+					  </OnMouseDown>
+					</Scripts>
+					<ScrollChild>
+					  <EditBox parentKey="EditBox" multiLine="true" font="GameFontHighlightSmall2">
+						<Size x="220" y="12"/>
+						<Anchors>
+						  <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="5" y="5"/>  
+						</Anchors>
+						<Layers>
+							<Layer level="BORDER">
+								<FontString parentKey="Instructions" inherits="GameFontWhite" justifyH="LEFT" justifyV="TOP">
+									<Anchors>
+										<Anchor point="TOPLEFT"/>
+										<Anchor point="RIGHT"/>
+										<Anchor point="BOTTOM" relativeKey="$parent.$parent"/>
+									</Anchors>
+									<Color r="0.5" g="0.5" b="0.5"/>
+								</FontString>
+							</Layer>
+						</Layers>
+						<Scripts>
+						  <OnLoad>
+							self:SetAutoFocus( false )
+							self:GetParent():SetScrollChild( self )
+							self:SetMaxLetters( 4000 )
+							self:Disable()
+							self.Instructions:SetText("Record public notes here that the rest of your group can see. Only the group leader can edit these notes.|n|nEnable the option above to grant raid assistants editing privileges.")
+						  </OnLoad>
+						  <OnEditFocusGained function="DiceMasterNotesEditBox_OnEditFocusGained"/>
+						  <OnEditFocusLost function="DiceMasterNotesEditBox_OnEditFocusLost"/>
+						  <OnTextChanged function="DiceMasterNotesEditBox_OnTextChanged"/>
+						  <OnCursorChanged function="ScrollingEdit_OnCursorChanged"/>
+						  <OnUpdate function="ScrollingEdit_OnUpdate"/>
+						  <OnEscapePressed function="EditBox_ClearFocus"/>
+						</Scripts>
+					  </EditBox>
+					</ScrollChild>
+				</ScrollFrame>
+				
+				<Button name="$parentClearButton" inherits="UIPanelButtonTemplate" text="Clear">
+					<Size x="85" y="22"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="-6" y="4"/>
+					</Anchors>
+					<Scripts>
+						<OnClick>
+							self:GetParent().DMNotes.EditBox:SetText("")
+							self:GetParent().DMNotes.EditBox:ClearFocus()
+						</OnClick>
+						<OnUpdate>
+							if DiceMaster4.IsLeader() then
+								self:Enable()
+							else
+								self:Disable()
+							end
+						</OnUpdate>
+					</Scripts>
+				</Button>
+
+			</Frames>
+			<Scripts>
+				<OnLoad>
+				</OnLoad>
+			</Scripts>
+		</Frame>
+		
+		<Button name="$parentTab1" parentKey="Tab1" useParentLevel="true" inherits="CharacterFrameTabButtonTemplate" id="1" text="Roll Tracker">
+			<Anchors>
+				<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" y="2"/>
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					PanelTemplates_SetTab(DiceMasterRollFrame, 1);
+                    DiceMasterRollTracker:Show();
+                    DiceMasterDMNotes:Hide();
+				</OnClick>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentTab2" parentKey="Tab2" useParentLevel="true" inherits="CharacterFrameTabButtonTemplate" id="2" text="Notes">
+			<Anchors>
+				<Anchor point="LEFT" relativeKey="$parent.Tab1" relativePoint="RIGHT" x="-16"/>
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					PanelTemplates_SetTab(DiceMasterRollFrame, 2);
+                    DiceMasterRollTracker:Hide();
+                    DiceMasterDMNotes:Show();
+				</OnClick>
+			</Scripts>
+		</Button>
+	
 		<Frame parentKey="DetailFrame" frameLevel="100" inherits="DiceMasterRollTrackerDetailFrameTemplate" hidden="true">
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPRIGHT" x="-8" y="-76"/>

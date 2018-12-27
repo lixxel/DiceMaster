@@ -192,7 +192,7 @@ end
 --
 local BROADCAST_CHAT_TYPES = {
 	["BATTLEGROUND"] = "BATTLEGROUND";
-	["GUILD"]        = "GUILD";
+	["GUILD"]		 = "GUILD";
 	["OFFICER"]      = "OFFICER";
 	["PARTY"]        = "PARTY";
 	["RAID"]         = "RAID";
@@ -236,6 +236,7 @@ end
 
 -- separate handling for 8.0
 -- big thanks to Silvz - Moon Guard (US) for helping with this fix!! <3
+-- 
 
 local streamTypeTable = {
 	[0] = "GENERAL",

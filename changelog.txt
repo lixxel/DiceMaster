@@ -1,3 +1,18 @@
+### 5.0
+ - Patch 8.1 compatbility.
+ - DiceMaster and DiceMaster Unit Frames are now fully integrated.
+ - Revamped the Trait Editor.
+ - Changed "Command Traits" to "Chapter Traits."
+ - Fixed the scroll frame issues with the Trait Editor description field.
+ - Changed health bars from tiled heart textures to a proper bar, allowing values larger than 8. 
+ - Added "armour" options to health bars.
+ - Fixed an issue where the Progress Bar wasn't updating for all party members.
+ - Renamed the Roll Tracker frame to DM Manager. 
+ - Added a "public notes" section to DM Manager frame, allowing the DMs (group leaders and assistants) to edit a text field all group members can see.
+ - Reorganised the config menu.
+ - Unit Frame backgrounds now change to reflect the zone you're currently in. (Some exclusions)
+ - Added new 8.1 icons to the icon library.
+
 ### 4.9
  - Added new Progress Bar frame, allowing players to track a group-wide resource (controlled by the leader).
  - Added Progress Bar options to the config menu.

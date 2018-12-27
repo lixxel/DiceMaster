@@ -14,15 +14,19 @@
 		</Layer>
 	</Layers>
 	<Scripts>
+		<OnLoad>
+			tinsert(DiceMaster4.snapBars, self:GetParent())
+		</OnLoad>
 		<OnShow>
+			local StickyFrames = LibStub("LibSimpleSticky-1.0")
 			local frame = self:GetParent()
 			frame:SetClampedToScreen( true )
 			frame:SetMovable(true)
 			frame:EnableMouse(true)
 			frame:RegisterForDrag( "LeftButton" )
-			frame:SetScript( "OnDragStart", self.StartMoving )
-			frame:SetScript( "OnDragStop", self.StopMovingOrSizing )
 			frame:SetUserPlaced( true )
+			frame:SetScript( "OnDragStart", DiceMaster4.BarOnDragStart)
+			frame:SetScript( "OnDragStop", DiceMaster4.BarOnDragStop)
 			self.Title:SetText(self:GetParent().Title)
 		</OnShow>
 		<OnHide>
@@ -75,6 +79,22 @@
 				</OnClick>
 			</Scripts>
 		</CheckButton>
+		<CheckButton name="$parent.Snapping" parentKey="Snapping" inherits="OptionsCheckButtonTemplate">
+			<Anchors>
+				<Anchor point="BOTTOMLEFT" x="14" y="10"/>
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					DiceMaster4.db.global.snapping = self:GetChecked()
+				</OnClick>
+				<OnLoad>
+					_G[self:GetName().."Text"]:SetText("Bar Snapping")
+				</OnLoad>
+				<OnShow>
+					self:SetChecked(DiceMaster4.db.global.snapping )
+				</OnShow>
+			</Scripts>
+		</CheckButton>
 	</Frames>
 	<Scripts>
 		<OnLoad>
@@ -85,6 +105,8 @@
 			self:SetScript( "OnDragStart", self.StartMoving )
 			self:SetScript( "OnDragStop", self.StopMovingOrSizing )
 			self:SetUserPlaced( true )
+			
+			DiceMaster4.snapBars = { WorldFrame, UIParent }
 		</OnLoad>
 		<OnShow>
 			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)

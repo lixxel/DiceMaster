@@ -60,8 +60,8 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 	self:SetScale(0.8)
 	self:SetUserPlaced( true )
 	
-	SetPortraitToTexture( self.portrait, "Interface/Icons/Ability_Tracking" )
-	self.TitleText:SetText("Roll Tracker")
+	self.portrait:SetTexture( "Interface/AddOns/DiceMaster/Texture/logo" )
+	self.TitleText:SetText("DM Manager")
 	self.Inset:SetPoint("TOPLEFT", 4, -80);
 	
 	for i = 2, 17 do
@@ -83,12 +83,38 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 	local f = CreateFrame("Frame")
 	for i, event in ipairs(chat_events) do
 		f:RegisterEvent( "CHAT_MSG_" .. event )
+		f:RegisterEvent( "GROUP_ROSTER_UPDATE" )
 	end
 	f:SetScript( "OnEvent", function( self, event, msg, sender )
-		if event then
+		if event == chat_events["CHAT_MSG_" .. event] then
 			Me.OnChatMessage( msg, sender )
+		elseif event == "GROUP_ROSTER_UPDATE" then
+			DiceMasterDMNotesAllowAssistants:Hide()
+			DiceMasterDMNotesDMNotes.EditBox:Disable()
+			if Me.IsLeader() then
+				DiceMasterDMNotesAllowAssistants:Show()
+				DiceMasterDMNotesDMNotes.EditBox:Enable()
+				Me.RollTracker_ShareNoteWithParty()
+			end
 		end
 	end)
+	
+	if Me.IsLeader() then
+		DiceMasterDMNotesAllowAssistants:Show()
+		DiceMasterDMNotesDMNotes.EditBox:Enable()
+		Me.RollTracker_ShareNoteWithParty()
+	elseif IsInGroup(1) and not Me.IsLeader( false ) then
+		for i = 1, GetNumGroupMembers(1) do
+			local name, rank = GetRaidRosterInfo(i)
+			if rank == 2 then
+				local msg = Me:Serialize( "NOTREQ", {
+					me = true;
+				})
+				Me:SendCommMessage( "DCM4", msg, "WHISPER", name, "NORMAL" )
+				break
+			end
+		end
+	end
 end
 
 function Me.RollTargetDropDown_OnClick(self, arg1)
@@ -399,11 +425,48 @@ function Me.DiceMasterRollFrameDisplayDetail( rollIndex )
 	frame:Show()
 end 
 
-function Me.DiceMasterRollFrame_AddRoll( roll )
-	local roll, dice = message:match("You roll %|*[CcFf0]*(%d+)%|*%a*%p* %((%d*[dD]%d+[+-]?%d*)%)")
-	if IsInGroup() then
-		roll, dice = message:match(UnitName("player").." rolls %|*[CcFf0]*(%d+)%|*%a*%p* %((%d*[dD]%d+[+-]?%d*)%)")
+function DiceMasterNotesEditBox_OnEditFocusGained(self)
+	self.Instructions:Hide()
+end
+
+function DiceMasterNotesEditBox_OnEditFocusLost(self)
+	if self:GetText() == "" then
+		self.Instructions:Show()
+	else
+		self.Instructions:Hide()
 	end
+	
+	if Me.IsLeader( true ) then
+		Me.RollTracker_ShareNoteWithParty()
+	end
+end
+
+function DiceMasterNotesEditBox_OnTextChanged(self, userInput)
+	local parent = self:GetParent()
+	ScrollingEdit_OnTextChanged(self, parent)
+	local text = self:GetText()
+	if text == "" then
+		text = nil
+	end
+	if not userInput and not self:HasFocus() then
+		DiceMasterNotesEditBox_OnEditFocusLost(self)
+	end
+end
+
+-------------------------------------------------------------------------------
+-- Send a NOTES message to the party.
+--
+function Me.RollTracker_ShareNoteWithParty()
+	if not Me.IsLeader( true ) or not IsInGroup(1) then
+		return
+	end
+	
+	local msg = Me:Serialize( "NOTES", {
+		no = DiceMasterDMNotesDMNotes.EditBox:GetText() or "";
+		ra = DiceMasterDMNotesAllowAssistants:GetChecked();
+	})
+	
+	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
 end
 
 -------------------------------------------------------------------------------
@@ -559,6 +622,59 @@ function Me.OnChatMessage( message, sender )
 			tinsert(Me.SavedRolls, data)
 		end
 		Me.DiceMasterRollFrame_Update()
+	end
+end
+
+---------------------------------------------------------------------------
+-- Received a NOTES message.
+--	no = note							string
+--  ra = raid assistants allowed		boolean
+
+function Me.RollTracker_OnNoteMessage( data, dist, sender )	
+
+	if sender == UnitName("player") then
+		return
+	end
+ 
+	-- Only the party leader and raid assistants can send us these.
+	if not UnitIsGroupLeader(sender, 1) and not UnitIsGroupAssistant(sender, 1) then 
+		return 
+	end
+	
+	-- sanitize message
+	if not data.no then
+	   
+		return
+	end
+	
+	data.no = tostring(data.no)
+	DiceMasterDMNotesDMNotes.EditBox:SetText( data.no )
+	
+	if Me.IsLeader( true ) and data.ra then
+		DiceMasterDMNotesDMNotes.EditBox:Enable()
+	else
+		DiceMasterDMNotesDMNotes.EditBox:Disable()
+	end
+	
+end
+
+
+---------------------------------------------------------------------------
+-- Received NOTREQ data.
+-- 
+
+function Me.RollTracker_OnStatusRequest( data, dist, sender )
+
+	-- Ignore our own data.
+	if sender == UnitName( "player" ) then return end
+ 
+	if Me.IsLeader( false ) then
+		local msg = Me:Serialize( "NOTES", {
+			no = DiceMasterDMNotesDMNotes.EditBox:GetText() or "";
+			ra = DiceMasterDMNotesAllowAssistants:GetChecked();
+		})
+		
+		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
 	end
 end
 

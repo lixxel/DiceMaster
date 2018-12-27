@@ -6,7 +6,7 @@
 -- Main module.
 --
 
-local MAX_MAXHEALTH = 10
+local MAX_MAXHEALTH = 1000
 
 local VERSION = GetAddOnMetadata( "DiceMaster", "Version" )
 DiceMaster4 = LibStub("AceAddon-3.0"):NewAddon( "DiceMaster", 
@@ -29,6 +29,7 @@ setmetatable( Me.Profile, {
 })
 
 local Profile = Me.Profile
+local Sticky = LibStub("LibSimpleSticky-1.0")
 
 -------------------------------------------------------------------------------
 -- Constants/Options
@@ -50,9 +51,11 @@ local TRAIT_USAGE_MODES = {
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
 	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                                    -- "double or nothing"
-	{ "Reload[sing]*",             "|cFFFFFFFFReload|r" };                                                       -- "reload"
-	{ "(Reviv[esing]*)",             "|cFFFFFFFF%1|r" };                                                       -- "revive"
+	{ "Reload[edsing]*",             "|cFFFFFFFFReload|r" };                                                       -- "reload"
+	{ "(Reviv[edsing]*)",             "|cFFFFFFFF%1|r" };                                                       -- "revive"
 	{ "(%d+)%sHealth",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 health"
+	{ "(%d+)%sHP",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 hp"
+	{ "(%d+)%sArmo[u]*r",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };			-- e.g. "1 armour"
 	{ "Immunity",             "|cFFFFFFFFImmunity|r" };                                                       -- "immunity"
 	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                    -- "advantage"
 	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                                 -- "disadvantage"
@@ -64,6 +67,63 @@ local TOOLTIP_DESC_SUBS = {
 	{ "%s?[+]%d+",           "|cFF00FF00%1|r" };                                                           -- e.g. "+1"
 	{ "%s?[-]%d+",           "|cFFFF0000%1|r" };                                                           -- e.g. "-3"
 	{ "%s?%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };                                                           -- dice rolls e.g. "1d6" 
+}
+
+StaticPopupDialogs["DICEMASTER4_SETHEALTHVALUE"] = {
+  text = "Set Health value:",
+  button1 = "Accept",
+  button2 = "Cancel",
+  OnShow = function (self, data)
+    self.editBox:SetText(Profile.health)
+	self.editBox:SetNumeric()
+	self.editBox:HighlightText()
+  end,
+  OnAccept = function (self, data)
+    local text = tonumber(self.editBox:GetText() or Profile.health)
+	if Me.OutOfRange( text, 0, Profile.healthMax ) then
+		return
+	end
+	Profile.health = text
+	Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Profile.health, Profile.healthMax, Profile.armor )
+	
+	Me.BumpSerial( Me.db.char, "statusSerial" )
+	Me.Inspect_ShareStatusWithParty() 
+  end,
+  hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+StaticPopupDialogs["DICEMASTER4_SETHEALTHMAX"] = {
+  text = "Set maximum Health value:",
+  button1 = "Accept",
+  button2 = "Cancel",
+  OnShow = function (self, data)
+    self.editBox:SetText(Profile.healthMax)
+	self.editBox:SetNumeric()
+	self.editBox:HighlightText()
+  end,
+  OnAccept = function (self, data)
+    local text = tonumber(self.editBox:GetText() or Profile.healthMax)
+	if Me.OutOfRange( text, 1, 1000 ) then
+		return
+	end
+	if Profile.health > Profile.healthMax then 
+		Profile.health = Profile.healthMax 
+	end
+	Profile.healthMax = text
+	Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Profile.health, Profile.healthMax, Profile.armor )
+	
+	Me.BumpSerial( Me.db.char, "statusSerial" )
+	Me.Inspect_ShareStatusWithParty() 
+  end,
+  hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
 }
  
 -------------------------------------------------------------------------------
@@ -378,16 +438,17 @@ function Me.OnHealthClicked( button )
 		return
 	end
 	  	
-	if IsShiftKeyDown() then
-		-- shift: adjust max health
-		if Me.OutOfRange( Profile.healthMax+delta, 1, MAX_MAXHEALTH ) then
+	if IsShiftKeyDown() and button == "LeftButton" then
+		-- Open dialog for custom value.
+		StaticPopup_Show("DICEMASTER4_SETHEALTHMAX")
+	elseif IsControlKeyDown() and button == "LeftButton" then
+		-- Open dialog for custom value.
+		StaticPopup_Show("DICEMASTER4_SETHEALTHVALUE")
+	elseif IsAltKeyDown() then
+		if Me.OutOfRange( Profile.armor+delta, 0, Profile.healthMax ) then
 			return
 		end
-		
-		Profile.healthMax = Profile.healthMax + delta
-		Profile.health = Me.Clamp( Profile.health, 0, Profile.healthMax ) 
-		PlaySound(54131)
-		
+		Profile.armor = Profile.armor + delta;
 	else
 		if Me.OutOfRange( Profile.health+delta, 0, Profile.healthMax ) then
 			return
@@ -395,8 +456,7 @@ function Me.OnHealthClicked( button )
 		Profile.health = Me.Clamp( Profile.health + delta, 0, Profile.healthMax )
 	end
 	
-    DiceMasterChargesFrame.healthbar:SetMax( Profile.healthMax )
-	DiceMasterChargesFrame.healthbar:SetFilled( Profile.health )
+    Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Profile.health, Profile.healthMax, Profile.armor )
 	
 	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.Inspect_ShareStatusWithParty()  
@@ -405,9 +465,37 @@ end
 -------------------------------------------------------------------------------
 -- Update the UI for the healthbar frame.
 --
-function Me.RefreshHealthbarFrame()
-	DiceMasterChargesFrame.healthbar:SetMax( Profile.healthMax )
-	DiceMasterChargesFrame.healthbar:SetFilled( Profile.health )
+function Me.RefreshHealthbarFrame( self, healthValue, healthMax, armorValue )
+	--DiceMasterChargesFrame.healthbar:SetMinMaxValues( 0, Profile.healthMax )
+	--DiceMasterChargesFrame.healthbar:SetValue( Profile.health )
+	
+	local ratio = healthValue / healthMax;
+	local startInset = 0.12
+	local endInset = 0.05
+	local fillAmount = startInset + ratio * ((1 - endInset) - startInset);
+	self.fill:SetWidth(max(self:GetWidth() * fillAmount, 1));
+	self.fill:SetTexCoord(0, fillAmount, 0.5, 0.75);
+	
+	self.text:SetText( healthValue.."/"..healthMax )
+	
+	if armorValue and armorValue > 0 then
+		self.text:SetText( healthValue.." (+"..armorValue..")/"..healthMax )
+	
+		armorValue = healthValue + armorValue
+		ratio = armorValue / healthMax;
+		fillAmount = startInset + ratio * ((1 - endInset) - startInset);
+		self.armor:SetWidth(max(self:GetWidth() * fillAmount, 1));
+		self.armor:SetTexCoord(0, fillAmount, 0.75, 1);
+		self.armor:Show()
+	else
+		self.armor:Hide()
+	end
+	
+	if healthValue < healthMax and healthValue > 0 then
+		self.spark:Show()
+	else
+		self.spark:Hide()
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -497,6 +585,27 @@ function Me.RollButtonClicked()
 	end
 end
 
+function Me.BarOnDragStart( self )
+	if Me.db.global.snapping then
+		local offset = 0
+		Sticky:StartMoving(self, Me.snapBars, offset, offset, offset, offset)
+	else
+		self:StartMoving()
+	end
+	self.isMoving = true
+end
+
+function Me.BarOnDragStop( self )
+	if self.isMoving then
+		if Me.db.global.snapping then
+			local sticky, stickTo = Sticky:StopMoving(self)
+		else
+			self:StopMovingOrSizing()
+		end
+		self.isMoving = nil
+	end
+end
+
 function Me.UnlockFrames()
 	DiceMasterUnlockDialog:Show()
 	if Me.db.global.hideTypeTracker then
@@ -506,6 +615,9 @@ function Me.UnlockFrames()
 		DiceMasterPostTrackerFrame.Message:Show()
 		DiceMasterPostTrackerFrame.Background:Show()
 		DiceMasterPostTrackerFrameDragFrame:Show()
+	end
+	if IsAddOnLoaded("DiceMaster_UnitFrames") and not Me.db.char.unitframes.enable then
+		DiceMasterUnitsPanelDragFrame:Show()
 	end
 	DiceMasterPanelDragFrame:Show()
 	DiceMasterInspectFrame:Show()
@@ -525,6 +637,9 @@ function Me.LockFrames()
 			DiceMasterPostTrackerFrame.Background:Hide()
 		end
 	end
+	if IsAddOnLoaded("DiceMaster_UnitFrames") and not Me.db.char.unitframes.enable then
+		DiceMasterUnitsPanelDragFrame:Hide()
+	end
 	DiceMasterPanelDragFrame:Hide()
 	DiceMasterInspectFrameDragFrame:Hide()
 	DiceMaster4.Inspect_Open( UnitName("target") )
@@ -543,6 +658,11 @@ function Me.ApplyUiScale()
 	DiceMasterChargesFrame:SetScale( Me.db.char.uiScale * 1.2 )
 	DiceMasterRollFrame:SetScale( Me.db.char.trackerScale * 1.4 )
 	DiceMasterMoraleBar:SetScale( Me.db.char.uiScale * 1.2 )
+	
+	if IsAddOnLoaded("DiceMaster_UnitFrames") then
+		Me.ApplyUiScaleUF()
+		Me.ShowUnitPanel( not Me.db.char.unitframes.enable )
+	end
 end
 
 function Me.ShowPanel( show )
@@ -553,6 +673,9 @@ function Me.ShowPanel( show )
 		DiceMasterChargesFrame:Hide()
 		DiceMasterRollFrame:Hide()
 		DiceMasterMoraleBar:Hide()
+		if IsAddOnLoaded("DiceMaster_UnitFrames") then
+			DiceMasterUnitsPanel:Hide()
+		end
 	else
 		DiceMasterPanel:Show()
 		DiceMasterChargesFrame:Show()
@@ -561,6 +684,9 @@ function Me.ShowPanel( show )
 		end
 		if Profile.morale.enable then
 			DiceMasterMoraleBar:Show()
+		end
+		if IsAddOnLoaded("DiceMaster_UnitFrames") and not Me.db.char.unitframes.enable then
+			DiceMasterUnitsPanel:Show()
 		end
 	end
 	
@@ -618,7 +744,7 @@ function Me:OnEnable()
 	Me.UpdatePanelTraits()
 	 
 	Me.RefreshChargesFrame( true, true ) 
-	Me.RefreshHealthbarFrame ( true, true )
+	Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Profile.health, Profile.healthMax, Profile.armor )
 	Me.RefreshMoraleFrame( Me.db.profile.morale.count )
 	
 	Me.Inspect_ShareStatusWithParty()

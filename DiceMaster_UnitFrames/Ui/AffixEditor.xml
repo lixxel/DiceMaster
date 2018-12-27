@@ -1,0 +1,502 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  
+    <!-- Template for the icon buttons in the trait icon selector. -->
+  <PlayerModel name="DiceMasterAffixEditorButton" virtual="true">
+    <Size width="32" height="32"/>
+	<Layers>
+		<Layer level="OVERLAY">
+			<Texture parentKey="check" file="Interface/Buttons/UI-CheckBox-Check" hidden="true">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+					</Anchors>
+			</Texture>
+		</Layer>
+	</Layers>
+    <Scripts>
+      <OnMouseDown>
+        DiceMaster4.AffixEditorButton_OnClick( self, button )
+      </OnMouseDown>
+      <OnEnter>
+        DiceMaster4.AffixEditorButton_ShowTooltip( self )
+      </OnEnter>
+      <OnLeave>
+        GameTooltip:Hide()
+      </OnLeave>
+	  <OnAnimFinished>
+		self:SetAnimation(DiceMaster4.unitAnim or 0)
+	  </OnAnimFinished>
+    </Scripts>
+  </PlayerModel>
+  
+  <!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
+  <Frame name="DiceMasterAffixEditor" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="HIGH">
+    <Size x="384" y="580" />
+    <Anchors>
+      <Anchor point="CENTER" />
+    </Anchors>
+	
+	<Layers>
+		<Layer level="ARTWORK">
+			<Texture name="$parentHorizontalBarLeft" file="Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar">
+					<Size x="302" y="16"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="2" y="-352"/>
+					</Anchors>
+					<TexCoords left="0" right="1.0" top="0" bottom="0.25"/>
+			</Texture>
+			<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-HorizontalBar">
+					<Size x="75" y="16"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentHorizontalBarLeft" relativePoint="RIGHT" x="0" y="0"/>
+					</Anchors>
+					<TexCoords left="0" right="0.29296875" top="0.25" bottom="0.5"/>
+			</Texture>
+		</Layer>
+	</Layers>
+    
+    <Scripts>
+      <OnLoad>		
+		self:SetClampedToScreen( true )
+		self:SetMovable(true)
+		self:EnableMouse(true)
+        self:RegisterForDrag( "LeftButton" )
+        self:SetScript( "OnDragStart", self.StartMoving )
+        self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+		self:SetScale(0.8)
+        self:SetUserPlaced( true )
+		
+		self.NineSlice:SetFrameLevel(1)
+		self.TitleText:SetText("Unit Editor")
+		SetPortraitToTexture( self.portrait, "Interface/CHARACTERFRAME/TemporaryPortrait-Monster" )
+		-- create icon map
+        self.icons = {}
+        for y = 0,2 do
+          for x = 0,3 do
+            local btn = CreateFrame( "PlayerModel", nil, self.selectorFrame, "DiceMasterAffixEditorButton" )
+            btn.pickerIndex = index
+            btn:SetPoint( "TOPLEFT", 87*x-50, -97*y-6 )
+            btn:SetSize( 87, 97 )
+            
+            table.insert( self.icons, btn )
+            btn.pickerIndex = #self.icons
+          end
+        end
+      </OnLoad>
+	  <OnHide>
+		DiceMaster4.AffixEditor_Close()
+	  </OnHide>
+    </Scripts>
+    <Frames>
+	
+		<Button name="$parentHelpPlateButton" frameStrata="DIALOG">
+			<Size x="32" y="32"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" x="52" y="5"/> 
+			</Anchors>
+			<Layers>
+				<Layer level="BORDER">
+					<Texture parentKey="HelpI" hidden="false" alpha="1" alphaMode="BLEND" file="Interface\common\help-i"/>
+				</Layer>
+				<Layer level="ARTWORK">
+					<Texture parentKey="HelpRing" file="Interface/COMMON/RingBorder">
+						<Size x="26" y="26"/>
+						<Anchors>
+							<Anchor point="CENTER"/>
+						</Anchors>
+					</Texture>
+				</Layer>
+			</Layers>
+			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click this to toggle on/off the help system for this frame." )
+				</OnLoad>
+				<OnClick>
+					if DiceMasterAffixEditorHelpTooltip:IsShown() then
+						DiceMasterAffixEditorHelpTooltip:Hide()
+						DiceMasterAffixEditorHelpArrow:Hide()
+					else
+						DiceMasterAffixEditorHelpTooltip:Show()
+					end
+				</OnClick>
+			</Scripts>
+			<HighlightTexture alphaMode="ADD" file="Interface\Minimap\UI-Minimap-ZoomButton-Highlight">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="CENTER" x="-1" y="-1"/>
+				</Anchors>
+			</HighlightTexture>
+	  </Button>
+	  
+	  <Frame name="$parentHelpArrow" hidden="true">
+		<Size x="42" y="32"/>
+		<Anchors>
+		  <Anchor point="RIGHT" relativeTo="DiceMasterAffixEditor" relativePoint="LEFT" x="0" y="0" />
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY" setAllPoints="true">
+				<Texture file="Interface\TutorialFrame\UI-TUTORIAL-FRAME">
+					<TexCoords left="0.3066406" right="0.4785156" top="0.2246094" bottom="0.3554688"/>
+				</Texture>
+			</Layer>
+		</Layers>
+	  </Frame>
+	  
+	  <Frame name="$parentHelpTooltip" inherits="GlowBoxTemplate" frameStrata="FULLSCREEN" hidden="true">
+		<Size x="220" y="100"/>
+		<Anchors>
+          <Anchor point="LEFT" relativePoint="RIGHT" x="10" y="0"/> 
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Text" inherits="GameFontHighlightLeft">
+					<Size x="200" y="0"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="15" y="-15"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="ArrowRIGHT" inherits="HelpPlateArrowDOWN">
+					<Size x="53" y="21"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativePoint="LEFT" x="3" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button parentKey="PrevPageButton">
+					<Size x="32" y="32" />
+					<Anchors>
+						<Anchor point="BOTTOM" x="-16" y="8" />
+					</Anchors>
+					<Scripts>
+						<OnClick>
+							DiceMaster4.AffixEditor_ChangePage( self, -1 )
+						</OnClick>
+						<OnLoad>
+							self:Disable()
+						</OnLoad>
+					</Scripts>
+					<NormalTexture file="Interface\Buttons\UI-SpellbookIcon-PrevPage-Up" />
+					<PushedTexture file="Interface\Buttons\UI-SpellbookIcon-PrevPage-Down" />
+					<DisabledTexture file="Interface\Buttons\UI-SpellbookIcon-PrevPage-Disabled" />
+					<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD" />
+			</Button>
+			<Button parentKey="NextPageButton">
+						<Size x="32" y="32" />
+						<Anchors>
+							<Anchor point="BOTTOM" x="16" y="8" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								DiceMaster4.AffixEditor_ChangePage( self, 1 )
+							</OnClick>
+						</Scripts>
+						<NormalTexture file="Interface\Buttons\UI-SpellbookIcon-NextPage-Up" />
+						<PushedTexture file="Interface\Buttons\UI-SpellbookIcon-NextPage-Down" />
+						<DisabledTexture file="Interface\Buttons\UI-SpellbookIcon-NextPage-Disabled" />
+						<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD" />
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self.rulesid = 1;
+				SetClampedTextureRotation(self.ArrowRIGHT, 90);
+				self.Text:SetSpacing(4);
+			</OnLoad>
+			<OnShow>
+				DiceMaster4.AffixEditor_HelpTooltipLoad()
+			</OnShow>
+		</Scripts>
+	  </Frame>
+	
+	  	<!-- Favourites filter. -->
+      <Button name="$parentFilter" parentKey="filter" enableMouse="true" inherits="UIDropDownMenuTemplate">
+			<Size x="300" y="22"/>
+			<Anchors>
+			  <Anchor point="TOPLEFT" x="42" y="-28"/> 
+			</Anchors>
+		</Button>
+		
+		<Button name="$parentRenameButton" inherits="UIPanelButtonTemplate" text="R">
+			<Size x="24" y="24"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeTo="$parentFilter" relativePoint="TOPRIGHT" x="32" y="-2"/> 
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					StaticPopup_Show("DICEMASTER4_RENAMECOLLECTION", nil, nil, DiceMasterAffixEditorFilterText:GetText())
+				</OnClick>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to rename this collection.")
+					self:Disable()
+				</OnLoad>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentDeleteButton" inherits="UIPanelButtonTemplate" text="X">
+			<Size x="24" y="24"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeTo="$parentRenameButton" relativePoint="TOPRIGHT" x="2" y="0"/> 
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					StaticPopup_Show("DICEMASTER4_DELETECOLLECTION", nil, nil, DiceMasterAffixEditorFilterText:GetText())
+				</OnClick>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to delete this collection.")
+					self:Disable()
+				</OnLoad>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentAnimation" parentKey="animation" enableMouse="true" inherits="UIDropDownMenuTemplate">
+			<Size x="300" y="22"/>
+			<Anchors>
+			  <Anchor point="TOPRIGHT" x="-42" y="-28"/> 
+			</Anchors>
+			<Scripts>
+			  <OnLoad>
+				UIDropDownMenu_Initialize( self, DiceMaster4.AnimationPickerDropDown_OnLoad )
+				UIDropDownMenu_SetText(DiceMasterAffixEditor.animation, "Stand") 
+				UIDropDownMenu_SetWidth(self, 110, 5)
+			  </OnLoad>
+			</Scripts>
+		</Button>
+      
+      <!-- Area for icon selector. -->
+      <Frame parentKey="selectorFrame">
+        <Anchors>
+          <Anchor point="TOPLEFT" x="58" y="-58"/>
+          <Anchor point="BOTTOMRIGHT" x="-30" y="22"/>
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            self:EnableMouseWheel(true)
+          </OnLoad>
+          <OnMouseWheel>
+            DiceMaster4.AffixEditor_MouseScroll( delta )
+          </OnMouseWheel>
+        </Scripts>
+        
+        <Frames>
+        
+          <!-- Scroll bar -->
+          <Slider parentKey="scroller" inherits="UIPanelScrollBarTrimTemplate" minvalue="0" maxvalue="1" valuestep="3">
+            
+            <Anchors>
+              <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="5" y="-18" />
+              <Anchor point="BOTTOMLEFT" relativeTo="$parentHorizontalBarLeft" relativePoint="TOPRIGHT" x="3" y="10" />
+            </Anchors>
+            
+            <Layers>
+              <Layer level="BACKGROUND">
+                
+                <!-- scroller background -->
+                <Texture setAllPoints="true">
+                  <Color r="0" g="0" b="0" a="0.25"/>
+                </Texture>
+                
+              </Layer>
+            </Layers>
+            <Scripts>
+              <OnLoad>
+                self:SetValueStep(1)
+                self.scrollStep = 3
+              </OnLoad>
+              <OnValueChanged>
+                DiceMaster4.AffixEditor_ScrollChanged( value )
+              </OnValueChanged>
+            </Scripts>
+          </Slider>
+        </Frames>
+      </Frame>
+	
+	  <DiceMasterTraitButton name="$parentAffixIconButton" parentKey="affixIcon" >
+        <Size x="42" y="42"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="$parentHorizontalBarLeft" relativePoint="BOTTOMLEFT" x="14" y="-4"/> 
+		</Anchors>
+        <Scripts>
+          <OnLoad>
+            
+            self:SetCustomTooltip( "|cFFFFD100Click to select an icon for this affix." )
+            
+          </OnLoad>
+          <OnClick>
+            PlaySound(54132)
+            DiceMaster4.UFIconPicker_Open()
+          </OnClick>
+        </Scripts>
+      </DiceMasterTraitButton>
+      
+	  <EditBox name="$parentAffixName" parentKey="affixName" font="GameFontNormalMed2" inherits="InputBoxTemplate">
+		<Size x="280" y="12"/> 
+		<Anchors>
+		  <Anchor point="TOPLEFT" relativeKey="$parent.affixIcon" relativePoint="RIGHT" x="16" y="0"/> 
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+		  <FontString name="$parentAffixNameTitle" inherits="GameFontNormalLeft" justifyH="left" text="Affix Name">
+				<Size x="150" y="12"/>
+				<Anchors>
+				  <Anchor point="TOPLEFT" x="0" y="20"/> 
+				</Anchors>
+			</FontString>
+		  </Layer>
+		</Layers>
+		<Scripts> 
+		  <OnLoad>
+			self:SetAutoFocus( false )
+			self:SetTextColor( 1, 1, 1 )
+			self:SetMaxLetters( 40 )
+		  </OnLoad>
+		  <OnEditFocusLost>
+			DiceMaster4.AffixEditor_SaveName()
+		  </OnEditFocusLost>
+		  <OnEscapePressed function="EditBox_ClearFocus"/>
+		  <OnEnterPressed function="EditBox_ClearFocus"/>
+		  <OnTabPressed>
+			DiceMasterAffixEditorAffixDesc.EditBox:SetFocus()
+		  </OnTabPressed>
+		</Scripts>
+	  </EditBox>
+	  
+	  <ScrollFrame parentKey="affixDesc" name="$parentAffixDesc" inherits="InputScrollFrameTemplate">
+		<Size x="330" y="64"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeKey="$parent.affixIcon" relativePoint="BOTTOMLEFT" x="4" y="-24"/>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+		  <FontString name="$parentAffixDescTitle" inherits="GameFontNormalLeft" justifyH="left" text="Description">
+				<Size x="150" y="12"/>
+				<Anchors>
+				  <Anchor point="TOPLEFT" x="0" y="20"/> 
+				</Anchors>
+			</FontString>
+		  </Layer>
+		</Layers>
+		<KeyValues>
+			<KeyValue key="maxLetters" value="600" type="number"/>
+			<KeyValue key="instructions" value="A short description of this affix."/>
+			<KeyValue key="hideCharCount" value="false" type="boolean"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad>
+				InputScrollFrame_OnLoad(self);
+				self.EditBox:SetScript("OnEditFocusLost", DiceMaster4.AffixEditor_SaveDescription)
+			</OnLoad>
+		</Scripts>
+		</ScrollFrame>
+		  
+		<Button name="$parentAffixEffect" parentKey="affixEffect" inherits="UIPanelButtonTemplate" text="Choose Effect...">
+			<Size x="170" y="22"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeKey="$parent.affixDesc" relativePoint="BOTTOMLEFT" x="-4" y="-16"/> 
+			</Anchors>
+			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to choose a spell effect for this affix.")
+				</OnLoad>
+				<OnClick>
+					DiceMaster4.UnitPicker_Open( DiceMaster4.UnitEditing )
+				</OnClick>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentAffixToggle" parentKey="affixToggle" inherits="UIPanelButtonTemplate" text="Show Affix">
+			<Size x="170" y="22"/>
+			<Anchors>
+				<Anchor point="LEFT" relativeKey="$parent.affixEffect" relativePoint="RIGHT" x="4" y="0"/> 
+			</Anchors>
+			<Scripts>
+				<OnShow>
+					if DiceMaster4.AffixEditing.affixIcon:IsShown() then
+						self:SetText("Hide Affix")
+					else
+						self:SetText("Show Affix")
+					end
+				</OnShow>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to make this affix visible to the rest of your group.")
+				</OnLoad>
+				<OnClick>
+					DiceMaster4.AffixEditor_ToggleAffix( self )
+				</OnClick>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentLoadButton" parentKey="LoadButton" enableMouse="true" inherits="UIPanelButtonTemplate">
+			<Size x="80" y="16"/>
+			<Anchors>
+			  <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="4" y="4"/> 
+			</Anchors>
+			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to load a saved affix.")
+				</OnLoad>
+			  <OnShow>
+				UIDropDownMenu_Initialize( self, DiceMaster4.AffixEditorLoadDropDown_OnLoad )
+				UIDropDownMenu_SetText(self, "Load")
+				--UIDropDownMenu_SetWidth(self, 80)
+				self:SetHeight(22)
+			  </OnShow>
+			  <OnClick>
+				ToggleDropDownMenu(1, nil, self, self, 0, 0)
+				self:SetHeight(22)
+			  </OnClick>
+			</Scripts>
+		</Button>
+		
+		<Button parentKey="SaveButton" inherits="UIPanelButtonTemplate" text="Save">
+			<Size x="80" y="22"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeKey="$parent.LoadButton" relativePoint="TOPRIGHT" x="0" y="0"/>
+			</Anchors>
+			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to save this affix.")
+				</OnLoad>
+				<OnClick>
+					local name = DiceMasterAffixEditorAffixName:GetText()
+					if DiceMaster4UF_Saved.FavouriteAffixes[name] then
+					StaticPopup_Show("DICEMASTER4_OVERWRITEAFFIX")
+					else
+					DiceMaster4.AffixEditor_SaveAffix()
+					end
+				</OnClick>
+			</Scripts>
+		</Button>
+		
+		<Button parentKey="DeleteButton" inherits="UIPanelButtonTemplate" text="Delete">
+			<Size x="80" y="22"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeKey="$parent.SaveButton" relativePoint="TOPRIGHT" x="0" y="0"/>
+			</Anchors>
+			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to delete this affix.")
+				</OnLoad>
+				<OnClick>
+					StaticPopup_Show("DICEMASTER4_DELETEAFFIX", nil, nil, DiceMasterAffixEditorAffixName:GetText() or "")
+				</OnClick>
+			</Scripts>
+		</Button>
+		
+		<Button parentKey="OkayButton" inherits="UIPanelButtonTemplate" text="Close">
+			<Size x="80" y="22"/>
+			<Anchors>
+				<Anchor point="BOTTOMRIGHT" x="-8" y="4"/>
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					DiceMaster4.AffixEditor_Close()
+				</OnClick>
+			</Scripts>
+		</Button>
+    </Frames>
+  </Frame>
+</Ui>

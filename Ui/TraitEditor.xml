@@ -3,7 +3,7 @@
   <!-- Trait editor frame. -->
   
   <Frame name="DiceMasterTraitEditor" enableMouse="true" movable="true" resizable="false" frameStrata="DIALOG" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate">
-    <Size x="262" y="327"/>
+    <Size x="265" y="384"/>
     <Anchors>
       <Anchor point="TOP" x="0" y="-90" />
     </Anchors>
@@ -78,7 +78,7 @@
 	  <Frame name="$parentHelpTooltip" inherits="GlowBoxTemplate" hidden="true">
 		<Size x="220" y="100"/>
 		<Anchors>
-          <Anchor point="LEFT" x="270" y="0"/> 
+          <Anchor point="LEFT" relativePoint="RIGHT" x="10" y="0"/> 
 		</Anchors>
 		<Layers>
 			<Layer level="OVERLAY">
@@ -138,6 +138,7 @@
 				self.rulesid = 1;
 				SetClampedTextureRotation(self.ArrowRIGHT, 90);
 				self.Text:SetSpacing(4);
+				self:SetFrameLevel(4)
 			</OnLoad>
 			<OnShow>
 				DiceMaster4.TraitEditor_HelpTooltipLoad()
@@ -161,209 +162,225 @@
 				</Layers>
       </Frame>
       
-      <!-- Icon select button, to the left of the trait description. -->
-      <DiceMasterTraitButton name="$parentTraitIconButton" parentKey="traitIcon" >
-        <Size x="42" y="42"/>
-		<Anchors>
-			<Anchor point="TOPLEFT" x="24" y="-80"/> 
-		</Anchors>
-        <Scripts>
-          <OnLoad>
-            
-            self:SetCustomTooltip( "|cFFFFD100Click to select an icon for this trait." )
-            
-          </OnLoad>
-          <OnClick>
-            PlaySound(54132)
-            DiceMaster4.IconPicker_Open( self:GetParent() )
-          </OnClick>
-        </Scripts>
-      </DiceMasterTraitButton>
-      
-      <!-- Trait name editbox. -->
-	  <EditBox name="$parentTraitName" parentKey="traitName" font="GameFontNormalMed2">
-		<Size x="175" y="12"/> 
-		<Anchors>
-		  <Anchor point="TOPLEFT" x="75" y="-88"/> 
-		</Anchors>
-		<Scripts> 
-		  <OnLoad>
-			self:SetAutoFocus( false )
-			self:SetTextColor( 1, 1, 1 )
-			self:SetMaxLetters( 40 )
-		  </OnLoad>
-		  <OnEditFocusLost>
-			DiceMaster4.TraitEditor_SaveName()
-		  </OnEditFocusLost>
-		  <OnEscapePressed function="EditBox_ClearFocus"/>
-		  <OnEnterPressed function="EditBox_ClearFocus"/>
-		</Scripts>
-	  </EditBox>
-      
-      <Button name="$parentTraitUsage" parentKey="traitUsage" enableMouse="true">
-        <Size x="175" y="12"/>
-        <Anchors>
-          <Anchor point="TOPLEFT" x="75" y="-100"/> 
-        </Anchors>
-        <Layers>
-          <Layer>
-            <FontString parentKey="text" inherits="GameFontHighlightSmall2" justifyH="left" setallpoints="true">
-            </FontString>
-          </Layer>
-        </Layers>
-        <Scripts>
-          <OnLoad> 
-            DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click to toggle the number of uses this trait has." )
-            self:RegisterForClicks( "LeftButtonDown", "RightButtonDown" )
-          </OnLoad>
-          <OnClick>
-            DiceMaster4.TraitEditor_ChangeUsage( button )
-          </OnClick>
-        </Scripts>
-      </Button>
-      
       <!-- Scroll frame for the trait description editing. -->
-      <ScrollFrame parentKey="scrollFrame">
-				<Anchors>
-          <Anchor point="TOPLEFT" x="24" y="-140"/> 
-          <Anchor point="BOTTOMRIGHT" relativePoint="TOPLEFT" x="245" y="-299"/> 
-				</Anchors>
+      <ScrollFrame parentKey="scrollFrame" inherits="UIPanelScrollFrameTemplate">
+		<Anchors>
+			<Anchor point="TOPLEFT" x="10" y="-65"/>
+			<Anchor point="BOTTOMRIGHT" x="-32" y="30"/>
+		</Anchors>
         
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentTop" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+					<Size x="31" y="102"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-2" y="5"/>
+					</Anchors>
+					<TexCoords left="0" right="0.484375" top="0" bottom="0.4"/>
+				</Texture>
+				<Texture name="$parentBottom" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+					<Size x="31" y="106"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="-2" y="-6"/>
+					</Anchors>
+					<TexCoords left="0.515625" right="1.0" top="0" bottom="0.4140625"/>
+				</Texture>
+				<Texture name="$parentMiddle" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+					<Size x="31" y="1"/>
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parentTop" relativePoint="BOTTOM"/>
+						<Anchor point="BOTTOM" relativeTo="$parentBottom" relativePoint="TOP"/>
+					</Anchors>
+					<TexCoords left="0" right="0.484375" top=".75" bottom="1.0"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		
         <Scripts>
           <OnLoad>
-            self:EnableMouseWheel(true)
-            self:SetScript( "OnMouseWheel", function( self, delta )
-                local min, max = self.scrollbar:GetMinMaxValues()
-                local speed = 10
-                local a = self:GetVerticalScroll() - delta * speed
-                a = math.max( a, min )
-                a = math.min( a, max )
-                self:SetVerticalScroll( a )
-				self:UpdateScrollChildRect()
-                self.scrollbar:SetValue( a ) 
-              end)
+            self.ScrollBar:ClearAllPoints()
+			self.ScrollBar:SetPoint("TOPLEFT", self, "TOPRIGHT", 6, -11)
+			self.ScrollBar:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 6, 9)
+			self.ScrollBar.ScrollDownButton:SetPoint("TOP", self.ScrollBar, "BOTTOM", 0, 4)
+			self.ScrollBar.ScrollUpButton:SetPoint("BOTTOM", self.ScrollBar, "TOP", 0, -4)
+			self.ScrollBar.ScrollUpButton:Disable()
+			self.ScrollBar.ScrollDownButton:Disable()
           </OnLoad>
+		  <OnMouseDown>
+			if self.Container.descEditor then
+				self.Container.descEditor:SetFocus()
+				self.Container.descEditor:SetCursorPosition(#self.Container.descEditor:GetText())
+			end
+		  </OnMouseDown>
         </Scripts>
         
-        <Frames>
-        
-          <!-- Scrollbar. -->
-          <Slider parentKey="scrollbar" inherits="UIPanelScrollBarTrimTemplate" >
-            <Anchors>
-              <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-10" y="62"/> 
-              <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="10" y="14"/> 
-            </Anchors>
-            <Layers>
-              <Layer layer="BACKGROUND">
-                <Texture setallpoints="true">
-                  <Color r="0" g="0" b="0" a="0.25"/>
-                </Texture>
-              </Layer>
-            </Layers>
-            <Scripts>
-              <OnLoad>
-                self:SetMinMaxValues(1, 2) 
-                self:SetValueStep(1) 
-                self.scrollStep = 1
-                self:SetValue(1) 
-                self:SetScale(1)
-                self:SetWidth(20) 
-                self:SetScript("OnValueChanged", 
-                  function( self, scrollvalue )
-                    scrollvalue = floor(scrollvalue)
-                    self:GetParent():SetVerticalScroll(scrollvalue) 
-                  end) 
-                self:Hide()
-              </OnLoad>
-            </Scripts>
-          </Slider>  
-
-          <!-- The multiline editbox. -->
-          <EditBox parentKey="descEditor" multiLine="true" font="GameFontHighlightSmall2">
-            
-            <Size x="208" y="12"/>
-            <Anchors>
-              <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="52" y="-100"/>  
-            </Anchors>
-            <Scripts>
-              <OnLoad>
-                self:SetAutoFocus( false )
-                self:SetTextColor( 1, 0.82, 0 )
-                self:GetParent():SetScrollChild( self )
-                self:SetMaxLetters( 1200 )
-              </OnLoad>
-              
-              <OnTextChanged>
-                local scrollbar = self:GetParent().scrollbar
-                local areaheight = self:GetParent():GetHeight()
-                if self:GetHeight() > areaheight then 
-                  scrollbar:SetMinMaxValues( 1, areaheight )
-                  scrollbar:Show()
-                else 
-                  scrollbar:SetMinMaxValues( 1, 1 )
-                  scrollbar:Hide()
-                end
-              </OnTextChanged>
-              <OnEditFocusLost>
-                DiceMaster4.TraitEditor_SaveDescription()
-              </OnEditFocusLost>
-              
-              <OnEscapePressed function="EditBox_ClearFocus"/>
-            </Scripts>
-          </EditBox>
-        </Frames>
+        <ScrollChild> 
+			<Frame parentKey="Container">
+				<Size x="265" y="10" />
+				<Anchors>
+					<Anchor point="TOPLEFT"/>
+				</Anchors>
+				<Frames>
+				
+					 <!-- Icon select button, to the left of the trait description. -->
+				  <DiceMasterTraitButton name="$parentTraitIconButton" parentKey="traitIcon" >
+					<Size x="42" y="42"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-10"/> 
+					</Anchors>
+					<Scripts>
+					  <OnLoad>
+						
+						self:SetCustomTooltip( "|cFFFFD100Click to select an icon for this trait." )
+						
+					  </OnLoad>
+					  <OnClick>
+						PlaySound(54132)
+						DiceMaster4.IconPicker_Open( DiceMaster4.editor )
+					  </OnClick>
+					</Scripts>
+				  </DiceMasterTraitButton>
+				  
+				  <!-- Trait name editbox. -->
+				  <EditBox name="$parentTraitName" parentKey="traitName" multiLine="true" font="GameFontNormalMed2">
+					<Size x="170" y="12"/> 
+					<Anchors>
+					  <Anchor point="TOPLEFT" relativeTo="$parentTraitIconButton" relativePoint="TOPRIGHT" x="5" y="-2"/> 
+					</Anchors>
+					<Scripts> 
+					  <OnLoad>
+						self:SetAutoFocus( false )
+						self:SetTextColor( 1, 1, 1 )
+						self:SetMaxLetters( 40 )
+					  </OnLoad>
+					  <OnEditFocusLost>
+						DiceMaster4.TraitEditor_SaveName()
+					  </OnEditFocusLost>
+					  <OnEscapePressed function="EditBox_ClearFocus"/>
+					  <OnEnterPressed function="EditBox_ClearFocus"/>
+					</Scripts>
+				  </EditBox>
+				  
+				  <Button name="$parentTraitUsage" parentKey="traitUsage" enableMouse="true">
+					<Size x="100" y="12"/>
+					<Anchors>
+					  <Anchor point="TOPLEFT" relativeTo="$parentTraitName" relativePoint="BOTTOMLEFT" x="0" y="0"/> 
+					</Anchors>
+					<Layers>
+					  <Layer>
+						<FontString parentKey="text" inherits="GameFontHighlightSmall2" justifyH="left" setallpoints="true">
+						</FontString>
+					  </Layer>
+					</Layers>
+					<Scripts>
+					  <OnLoad> 
+						DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click to toggle the number of uses this trait has." )
+						self:RegisterForClicks( "LeftButtonDown", "RightButtonDown" )
+					  </OnLoad>
+					  <OnClick>
+						DiceMaster4.TraitEditor_ChangeUsage( button )
+						self:SetWidth(self.text:GetStringWidth())
+					  </OnClick>
+					</Scripts>
+				  </Button>
+	  
+				  <!-- The multiline editbox. -->
+				  <EditBox name="$parentDescEditor" parentKey="descEditor" multiLine="true" font="GameFontHighlightSmall2">
+					
+					<Size x="208" y="12"/>
+					<Anchors>
+					  <Anchor point="TOPLEFT" relativeTo="$parentTraitIconButton" relativePoint="BOTTOMLEFT" x="0" y="-16"/> 
+					</Anchors>
+					<Scripts>
+					  <OnLoad>
+						self:SetAutoFocus( false )
+						self:SetTextColor( 1, 0.82, 0 )
+						self:SetMaxLetters( 1200 )
+					  </OnLoad>
+					  <OnEditFocusLost>
+						DiceMaster4.TraitEditor_SaveDescription()
+					  </OnEditFocusLost>
+					  <OnEscapePressed function="EditBox_ClearFocus"/>
+					  <OnCursorChanged>
+						if not self:HasFocus() then return end
+						ScrollingEdit_SetCursorOffsets(self:GetParent(), y-65, h);
+						self:GetParent().handleCursorChange = true;
+					  </OnCursorChanged>
+					</Scripts>
+				  </EditBox>
+				  
+				  <Button name="$parentApplyBuff" parentKey="applyBuff" inherits="LargeItemButtonTemplate" hidden="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="$parentDescEditor" relativePoint="BOTTOMLEFT" x="0" y="-30"/> 
+					</Anchors>
+					<Layers>
+						<Layer level="ARTWORK">
+							<FontString parentKey="text" inherits="GameFontNormalSmall" text="Applies:">
+								<Anchors>
+									<Anchor point="TOPLEFT" x="0" y="16"/>
+								</Anchors>
+							</FontString>
+						</Layer>
+					</Layers>
+					<Scripts>
+						<OnLoad>
+							self.Icon:SetTexture("Interface/Icons/Spell_Holy_WordFortitude")
+							self.Name:SetText("Apply Buff")
+							self.text:SetTextColor( 1, 1, 1 )
+						</OnLoad>
+					</Scripts>
+				  </Button>
+				  
+				  <Button name="$parentRemoveBuff" parentKey="removeBuff" inherits="LargeItemButtonTemplate" hidden="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="$parentDescEditor" relativePoint="BOTTOMLEFT" x="0" y="-30"/> 
+					</Anchors>
+					<Layers>
+						<Layer level="ARTWORK">
+							<FontString parentKey="text" inherits="GameFontNormalSmall" text="Removes:">
+								<Anchors>
+									<Anchor point="TOPLEFT" x="0" y="16"/>
+								</Anchors>
+							</FontString>
+						</Layer>
+					</Layers>
+					<Scripts>
+						<OnLoad>
+							self.Icon:SetTexture("Interface/Icons/Spell_Shadow_SacrificialShield")
+							self.Name:SetText("Remove Buff")
+							self.text:SetTextColor( 1, 1, 1 )
+						</OnLoad>
+					</Scripts>
+				  </Button>
+	  
+				</Frames>
+				<Scripts>
+					<OnUpdate function="ScrollingEdit_OnUpdate"/>
+				</Scripts>
+			</Frame>
+        </ScrollChild>
         
       </ScrollFrame>
 	  
-	  <Button name="$parentEditBuff" parentKey="editBuff">
-		<Size x="22" y="22"/>
+	  <Button name="$parentEffectButton" inherits="UIPanelButtonTemplate" text="Effects...">
+		<Size x="100" y="22"/>
 		<Anchors>
-			<Anchor point="BOTTOMRIGHT" x="-8" y="4"/>
+			<Anchor point="BOTTOMRIGHT" x="-6" y="4"/>
 		</Anchors>
-		<NormalTexture file="Interface/Icons/Spell_Holy_WordFortitude"/>
-		<Layers>
-			<Layer level="HIGHLIGHT">
-				<Texture parentKey="highlight" file="Interface/Buttons/ButtonHilight-Square" alphaMode="ADD">
-					<Size x="22" y="22"/>	
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
 		<Scripts>
 			<OnLoad>
-				 DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Apply Buff" )
+				DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click to edit this trait's effects." )
 			</OnLoad>
 			<OnClick>
-				DiceMaster4.BuffEditor_Open()
+				UIDropDownMenu_Initialize( self, DiceMaster4.TraitEditor_EffectsOnLoad )
+				ToggleDropDownMenu(1, nil, self, self, 0, 0)
+				self:SetHeight(22)
 			</OnClick>
-		</Scripts>
-	  </Button>
-	  
-	  <Button name="$parentRemoveBuff" parentKey="removeBuff">
-		<Size x="22" y="22"/>
-		<Anchors>
-			<Anchor point="RIGHT" relativeKey="$parent.editBuff" relativePoint="LEFT" x="0" y="0"/>
-		</Anchors>
-		<NormalTexture file="Interface/Icons/Spell_Shadow_SacrificialShield"/>
-		<Layers>
-			<Layer level="HIGHLIGHT">
-				<Texture parentKey="highlight" file="Interface/Buttons/ButtonHilight-Square" alphaMode="ADD">
-					<Size x="22" y="22"/>	
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
-		<Scripts>
-			<OnLoad>
-				 DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Remove Buff" )
-			</OnLoad>
-			<OnClick>
-				DiceMaster4.RemoveBuffEditor_Open()
-			</OnClick>
+			<OnShow>
+				UIDropDownMenu_Initialize( self, DiceMaster4.TraitEditor_EffectsOnLoad )
+				UIDropDownMenu_SetWidth(self, 100, 5)
+				self:SetHeight(22)
+			</OnShow>
 		</Scripts>
 	  </Button>
       

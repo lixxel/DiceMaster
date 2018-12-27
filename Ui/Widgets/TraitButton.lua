@@ -5,17 +5,19 @@
 local Me = DiceMaster4
 
 local DICEMASTER_TERMS = {
-	["Advantage"] = "Allows the character to roll the same dice twice, and take the greater of the two resulting numbers.",
-	["Disadvantage"] = "Allows the character to roll the same dice twice, and take the lesser of the two resulting numbers.",
-	["Double or Nothing"] = "An unmodified D40 roll. If the roll succeeds, the character is rewarded with a critical success; however, if the roll fails, the character suffers critically failure.",
-	["Reload"] = "Grants the character's active trait another use.",
-	["Revive"] = "Allows a character with |cFFFFFFFF0|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t remaining to return to battle with diminished health.",
-	["Poison"] = "Causes additional damage to a target each round.",
-	["Control"] = "Allows the character to take command of a target until the effect expires.",
-	["Stun"] = "Incapacitates a target, preventing them from performing any action next round.",
-	["NAT1"] = "A roll of 1 that is achieved before dice modifiers are applied that results in critical failure.",
-	["NAT20"] = "A roll of 20 that is achieved before dice modifiers are applied that results in critical success.",
-	["Immunity"] = "Prevents a character from suffering the effects of a failure this round.",
+	{ "Advantage", "Advantage", "Allows the character to roll the same dice twice, and take the greater of the two resulting numbers." },
+	{ "Disadvantage", "Disadvantage", "Allows the character to roll the same dice twice, and take the lesser of the two resulting numbers." },
+	{ "Double or Nothing", "Double or Nothing", "An unmodified D40 roll. If the roll succeeds, the character is rewarded with a critical success; however, if the roll fails, the character suffers critically failure." },
+	{ "Reload[edsing]*", "Reload", "Grants the character's active trait another use." },
+	{ "Reviv[desing]*", "Revive", "Allows a character with |cFFFFFFFF0|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t|cFFffd100 remaining to return to battle with diminished health." },
+	{ "Poison[seding]*", "Poison", "Causes additional damage to a target each round." },
+	{ "Control[sleding]*", "Control", "Allows the character to take command of a target until the effect expires." },
+	{ "Stun[snedig]*", "Stun", "Incapacitates a target, preventing them from performing any action next round." },
+	{ "NAT1", "Natural 1", "A roll of 1 that is achieved before dice modifiers are applied that results in critical failure." },
+	{ "NAT20", "Natural 20", "A roll of 20 that is achieved before dice modifiers are applied that results in critical success." },
+	{ "Immunity", "Immunity", "Prevents a character from suffering the effects of a failure this round." },
+	{ "Armo[u]*r", "Armour (|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t)", "Extends a character's Health beyond the maximum amount by a certain value. Damage taken will always be deducted from Armour before Health." },
+	{ "Health", "Health (|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t)", "A measure of a character's health or an object's integrity. Damage taken decreases Health, and healing restores Health." },
 }
 
 -------------------------------------------------------------------------------
@@ -27,12 +29,12 @@ Me.playerTraitTooltipIndex = nil
 
 function Me.CheckTooltipForTerms( text )
 	local termsString = ""
-	for k,v in pairs( DICEMASTER_TERMS ) do
-		if string.match( text, k ) then
+	for i=1,#DICEMASTER_TERMS do
+		if string.match( text, DICEMASTER_TERMS[i][1] ) then
 			if termsString~="" then 
 				termsString = termsString .. "|n|n"
 			end
-			termsString = termsString .. "|cFFFFFFFF" .. k .. "|r|n|cFFffd100" .. DICEMASTER_TERMS[k] .. "|r"
+			termsString = termsString .. "|cFFFFFFFF" .. DICEMASTER_TERMS[i][2] .. "|r|n|cFFffd100" .. DICEMASTER_TERMS[i][3] .. "|r"
 		end
 	end
 	if termsString~="" then
@@ -97,10 +99,10 @@ function Me.OpenTraitTooltip( owner, trait, index )
     GameTooltip:AddLine( nil, 1, 1, 1, true )
 	
 	if trait.desc then
-		local desc = Me.FormatDescTooltip( trait.desc )
 		if Me.db.global.hideTips then
-			Me.CheckTooltipForTerms( desc )
+			Me.CheckTooltipForTerms( trait.desc )
 		end
+		local desc = Me.FormatDescTooltip( trait.desc )
 		GameTooltip:AddLine( desc, 1, 0.81, 0, true )
 	end
 	
@@ -137,7 +139,7 @@ function Me.OpenTraitTooltip( owner, trait, index )
 		end
 		usable = usable .. "<Left Click to Edit>|n"
 	end
-	GameTooltip:AddLine( usable .. "<Shift-Click to Link to Chat>", 0.44, 0.44, 0.44, true )
+	GameTooltip:AddLine( usable .. "<Shift+Click to Link to Chat>", 0.44, 0.44, 0.44, true )
 	
     GameTooltip:Show()
 end

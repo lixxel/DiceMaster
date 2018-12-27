@@ -43,6 +43,41 @@ local CHANGE_PROFILE_RULES = {
 	[1] = "|TInterface/Icons/RaceChange:16:16:0:-6|t |cFFFFd100Change Profile|r enables this trait to switch your DiceMaster profile to an alternate, existing profile when it is right-clicked on the Dice Panel.",
 }
 
+function Me.RemoveBuffEditor_OnClick(self, arg1, arg2, checked)
+	UIDropDownMenu_SetText(Me.removebuffeditor.buffName, "")
+	if self:GetText() ~= "" then
+		UIDropDownMenu_SetText(Me.removebuffeditor.buffName, self:GetText())
+	end
+	Me.RemoveBuffEditor_Save()
+end
+
+function Me.RemoveBuffEditor_OnLoad(frame, level, menuList)
+	local info = UIDropDownMenu_CreateInfo()
+	local found = false;
+
+	  for i=1,5 do
+		if Profile.buffs[i] and not Profile.buffs[i].blank then		
+		   info.text = Profile.buffs[i].name
+		   info.icon = Profile.buffs[i].icon
+		   info.arg1 = Profile.buffs[i]
+		   info.checked = Profile.removebuffs[Me.editing_trait].name == Profile.buffs[i].name;
+		   info.notCheckable = false;
+		   info.func = Me.RemoveBuffEditor_OnClick;
+		   UIDropDownMenu_AddButton(info, level)
+		end
+		if Profile.buffs[i] and Profile.buffs[i].name == Profile.removebuffs[Me.editing_trait].name then
+			found = true;
+		end
+	  end
+	UIDropDownMenu_SetText(frame, "")
+	if not found then
+		Profile.removebuffs[Me.editing_trait] = nil
+	end
+	if Profile.removebuffs[Me.editing_trait] and Profile.removebuffs[Me.editing_trait].name then
+		UIDropDownMenu_SetText(frame, Profile.removebuffs[Me.editing_trait].name)
+	end
+end
+
 -------------------------------------------------------------------------------
 -- Convert seconds to minutes.
 --
@@ -110,6 +145,7 @@ function Me.BuffEditor_DeleteBuff()
 	PlaySound(840); 
 	Me.IconPicker_Close()
 	Me.buffeditor:Hide()
+	Me.TraitEditor_Refresh()
 end
 
 function Me.RemoveBuffEditor_DeleteBuff()
@@ -117,13 +153,18 @@ function Me.RemoveBuffEditor_DeleteBuff()
 	
 	PlaySound(840); 
 	Me.removebuffeditor:Hide()
+	Me.TraitEditor_Refresh()
 end
 
 function Me.BuffEditor_Save()
+	if Me.buffeditor.buffName:GetText() == "" then
+		UIErrorsFrame:AddMessage( "Invalid name: too short.", 1.0, 0.0, 0.0, 53, 5 );
+		return
+	end
 	local buff = Profile.buffs[Me.editing_trait]
 	buff.name = Me.buffeditor.buffName:GetText()
 	buff.desc = Me.buffeditor.buffDesc.EditBox:GetText()
-	buff.cancelable = Me.buffeditor.buffCancelable:GetChecked()
+	buff.cancelable = Me.buffeditor.buffCancelable:GetChecked()	
 	if not buff.cancelable then
 		buff.duration = Me.buffeditor.buffDuration:GetValue()
 	else
@@ -142,8 +183,12 @@ function Me.BuffEditor_Save()
 end
 
 function Me.RemoveBuffEditor_Save()
+	if not UIDropDownMenu_GetText(Me.removebuffeditor.buffName) then
+		UIErrorsFrame:AddMessage( "You must select a buff from the dropdown.", 1.0, 0.0, 0.0, 53, 5 );
+		return
+	end
 	local removebuff = Profile.removebuffs[Me.editing_trait]
-	removebuff.name = Me.removebuffeditor.buffName:GetText()
+	removebuff.name = UIDropDownMenu_GetText(Me.removebuffeditor.buffName)
 	removebuff.count = Me.removebuffeditor.buffCount:GetText()
 	removebuff.blank = false
 	Profile.removebuffs[Me.editing_trait] = removebuff
@@ -175,12 +220,14 @@ function Me.BuffEditor_OnCloseClicked()
 	PlaySound(840); 
 	Me.IconPicker_Close()
 	Me.buffeditor:Hide()
+	Me.TraitEditor_Refresh()
 end
 
 function Me.RemoveBuffEditor_OnCloseClicked()
 	Me.RemoveBuffEditor_Save()
 	PlaySound(840); 
 	Me.removebuffeditor:Hide()
+	Me.TraitEditor_Refresh()
 end
 
 -------------------------------------------------------------------------------

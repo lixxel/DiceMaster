@@ -82,6 +82,31 @@ local Profile = Me.Profile
 Me.editing_trait = 1
 
 -------------------------------------------------------------------------------
+-- Effects dropdown list.
+--
+--
+function Me.TraitEditor_EffectsOnClick(self, arg1)
+	if arg1 then arg1() end
+end
+
+function Me.TraitEditor_EffectsOnLoad(frame, level, menuList)
+	local info = UIDropDownMenu_CreateInfo()
+	info.isNotRadio = true;
+	info.notCheckable = false;
+	info.func = Me.TraitEditor_EffectsOnClick;
+	info.icon = "Interface/Icons/Spell_Holy_WordFortitude"
+	info.text = "Apply Buff"
+	info.checked = Profile.buffs[Me.editing_trait] and Profile.buffs[Me.editing_trait].blank == false;
+	info.arg1 = Me.BuffEditor_Open;
+	UIDropDownMenu_AddButton(info, level)
+	info.icon = "Interface/Icons/Spell_Shadow_SacrificialShield"
+	info.text = "Remove Buff"
+	info.checked = Profile.removebuffs[Me.editing_trait] and Profile.removebuffs[Me.editing_trait].name and not Profile.removebuffs[Me.editing_trait].blank;
+	info.arg1 = Me.RemoveBuffEditor_Open;
+	UIDropDownMenu_AddButton(info, level)
+end
+
+-------------------------------------------------------------------------------
 -- OnLoad handler
 --
 -- Be careful in here because it's run before the addon is loaded.
@@ -104,6 +129,7 @@ function Me.TraitEditor_OnLoad( self )
 		-- if i == 5 then x = 206 end
 
 		self.trait_buttons[i]:SetPoint( "TOPLEFT", x, -26 ) 
+		self.trait_buttons[i]:SetFrameLevel(4)
 		self.trait_buttons[i].editable_trait = true
 	  
 		self.trait_buttons[i]:SetScript( "OnMouseDown", function( self, button )
@@ -128,8 +154,8 @@ end
 -- Change current trait being edited.
 --
 function Me.TraitEditor_StartEditing( index )
-	EditBox_ClearFocus( Me.editor.scrollFrame.descEditor )
-	EditBox_ClearFocus( Me.editor.traitName )
+	EditBox_ClearFocus( Me.editor.scrollFrame.Container.descEditor )
+	EditBox_ClearFocus( Me.editor.scrollFrame.Container.traitName )
 	Me.editing_trait = index
 	
 --	DiceMasterIconSelect_Hide() todo
@@ -203,10 +229,42 @@ end
 --
 function Me.TraitEditor_Refresh()
 	local trait = Profile.traits[Me.editing_trait]
-	Me.editor.traitIcon:SetTexture( trait.icon )
-	Me.editor.traitName:SetText( trait.name )
-	Me.editor.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
-	Me.editor.scrollFrame.descEditor:SetText( trait.desc )
+	Me.editor.scrollFrame.Container.traitIcon:SetTexture( trait.icon )
+	Me.editor.scrollFrame.Container.traitName:SetText( trait.name )
+	Me.editor.scrollFrame.Container.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
+	Me.editor.scrollFrame.Container.descEditor:SetText( trait.desc )
+	
+	local buff = Me.Profile.buffs[Me.editing_trait] or nil
+	if buff and buff.blank == false then
+		Me.editor.scrollFrame.Container.applyBuff:Show()
+		Me.editor.scrollFrame.Container.applyBuff.Icon:SetTexture(buff.icon)
+		Me.editor.scrollFrame.Container.applyBuff.Name:SetText(buff.name)
+		Me.editor.scrollFrame.Container.removeBuff:SetPoint("TOPLEFT", Me.editor.scrollFrame.Container.applyBuff, "BOTTOMLEFT", 0, -20)
+		Me.SetupTooltip( Me.editor.scrollFrame.Container.applyBuff, nil, "|cFFffd100"..buff.name, nil, nil, Me.FormatDescTooltip( buff.desc or "" ) )
+	else
+		Me.editor.scrollFrame.Container.applyBuff:Hide()
+		Me.editor.scrollFrame.Container.removeBuff:SetPoint("TOPLEFT", Me.editor.scrollFrame.Container.descEditor, "BOTTOMLEFT", 0, -30)
+	end
+	
+	local debuff = Me.Profile.removebuffs[Me.editing_trait] or nil
+	if debuff and debuff.blank == false then
+		Me.editor.scrollFrame.Container.removeBuff:Hide()
+		Me.editor.scrollFrame.Container.removeBuff.Name:SetText(debuff.name)
+		Me.editor.scrollFrame.Container.removeBuff.Icon:SetTexture("Interface/Icons/Spell_Shadow_SacrificialShield")
+		
+		if not Me.Profile.buffs then return end
+		
+		for i = 1,5 do
+			if Me.Profile.buffs[i] and Me.Profile.buffs[i].name == debuff.name then
+				Me.editor.scrollFrame.Container.removeBuff.Icon:SetTexture(Me.Profile.buffs[i].icon)
+				Me.editor.scrollFrame.Container.removeBuff:Show()
+				Me.SetupTooltip( Me.editor.scrollFrame.Container.removeBuff, nil, "|cFFffd100"..Me.Profile.buffs[i].name, nil, nil, Me.FormatDescTooltip( Me.Profile.buffs[i].desc or "" ) )
+				break
+			end
+		end
+	else
+		Me.editor.scrollFrame.Container.removeBuff:Hide()
+	end
 	
 	for i = 1, 5 do
 		Me.editor.trait_buttons[i]:Refresh()
@@ -286,7 +344,7 @@ function Me.TraitEditor_ChangeUsage( button )
 	trait.usage = Me.TRAIT_USAGE_MODES[usage_index]
 	
 	-- update text
-	Me.editor.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
+	Me.editor.scrollFrame.Container.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
 	TraitUpdated()
 end
 
@@ -299,7 +357,7 @@ function Me.TraitEditor_SelectIcon( texture )
 	local trait = Profile.traits[Me.editing_trait]
 	trait.icon = texture or "Interface/Icons/inv_misc_questionmark"
 	Me.editor.trait_buttons[Me.editing_trait]:Refresh()
-	Me.editor.traitIcon:SetTexture( texture )
+	Me.editor.scrollFrame.Container.traitIcon:SetTexture( texture )
 	
 	TraitUpdated()
 end
@@ -309,7 +367,7 @@ end
 --
 function Me.TraitEditor_SaveName()
 	local trait = Profile.traits[Me.editing_trait]
-	trait.name = Me.editor.traitName:GetText()
+	trait.name = Me.editor.scrollFrame.Container.traitName:GetText()
 	TraitUpdated()
 end
 
@@ -318,7 +376,7 @@ end
 --
 function Me.TraitEditor_SaveDescription()
 	local trait = Profile.traits[Me.editing_trait]
-	trait.desc = Me.editor.scrollFrame.descEditor:GetText()
+	trait.desc = Me.editor.scrollFrame.Container.descEditor:GetText()
 	trait.approved = 0;
 	trait.officers = nil;
 	TraitUpdated()

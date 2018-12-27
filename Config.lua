@@ -20,6 +20,9 @@ local DB_DEFAULTS = {
 		hideTracker = false; -- hide the roll tracker.
 		hideTypeTracker = false;
 		enableRoundBanners = true;
+		talkingHeads = true;
+		miniFrames = false;
+		snapping = false;
 	};
 	
 	char = { 
@@ -27,12 +30,16 @@ local DB_DEFAULTS = {
 			hide = false;
 		};
 		hidepanel     = false;
-		uiScale       = 1;
-		trackerScale  = 1;
+		uiScale       = 0.75;
+		trackerScale  = 0.6;
 		showRaidRolls = false;
 		dm3Imported   = false;
 		statusSerial  = 1;
 		traitSerials  = {};
+		unitframes = {
+			enable  = true;
+			scale   = 0.5;
+		};
 	};
 	
 	profile = {
@@ -56,6 +63,7 @@ local DB_DEFAULTS = {
 		};
 		health       = 5;
 		healthMax    = 5;
+		armor        = 0;
 		traits       = {};
 		buffs		 = {};
 		removebuffs  = {};
@@ -91,10 +99,16 @@ Me.configOptions = {
 	order = 1;
 	args = { 
 		-----------------------------------------------------------------------
+		header = {
+			order = 0;
+			name  = "Configure the core settings for DiceMaster.";
+			type  = "description";
+		};
+		
 		mmicon = {
 			order = 1;
-			name  = "Minimap Icon";
-			desc  = "Hide/Show the minimap icon.";
+			name  = "Enable Minimap Icon";
+			desc  = "Enable the DiceMaster minimap icon.";
 			type  = "toggle";
 			set   = function( info, val ) Me.MinimapButton:Show( val ) end;
 			get   = function( info ) return not Me.db.char.minimapicon.hide end;
@@ -103,7 +117,7 @@ Me.configOptions = {
 		uiScale = {
 			order     = 5;
 			name      = "UI Scale";
-			desc      = "The size of the Dice Panel, Trait Editor, Charges, Inspect, and Progress Bar frames.";
+			desc      = "Change the size of the Dice Panel, Trait Editor, Charges, Inspect, and Progress Bar frames.";
 			type      = "range";
 			min       = 0.25;
 			max       = 10;
@@ -119,7 +133,7 @@ Me.configOptions = {
 		hideInspect = {
 			order = 6;
 			name  = "Hide Inspect Frame When Hidden";
-			desc  = "Hide the trait inspect frame when the Dice Panel is hidden.";
+			desc  = "Hide the Inspect Frame when the Dice Panel is hidden.";
 			type  = "toggle";
 			width = "double";
 			set = function( info, val )
@@ -144,8 +158,8 @@ Me.configOptions = {
 		
 		hideTracker = {
 			order = 8;
-			name  = "Enable Roll Tracker";
-			desc  = "Enable the Roll Tracker frame to keep track of your group's rolls.";
+			name  = "Enable DM Manager";
+			desc  = "Enable the DM Manager frame to keep track of your group's rolls and view group-wide notes.";
 			type  = "toggle";
 			width = "double";
 			set = function( info, val )
@@ -162,8 +176,8 @@ Me.configOptions = {
 		
 		trackerScale = {
 			order     = 9;
-			name      = "Roll Tracker Scale";
-			desc      = "The size of the Roll Tracker frame.";
+			name      = "DM Manager Scale";
+			desc      = "The size of the DM Manager frame.";
 			type      = "range";
 			min       = 0.25;
 			max       = 10;
@@ -191,7 +205,7 @@ Me.configOptions = {
 		
 		enableRoundBanners = {
 			order = 11;
-			name  = "Enable Roll Prompt Banners";
+			name  = "Allow Roll Prompt Banners";
 			desc  = "Allow the group leader to send you visual prompts when it's your turn to roll.";
 			type  = "toggle";
 			width = "double";
@@ -200,132 +214,9 @@ Me.configOptions = {
 			end;
 			get = function( info ) return Me.db.global.enableRoundBanners end;
 		};
-	
-		enableCharges = {
-			order = 12;
-			name  = "Enable Charges";
-			desc  = "Enable usage of the charges system for this character.";
-			width = "full";
-			type  = "toggle";
-			set = function( info, val ) 
-				Me.db.profile.charges.enable = val 
-				Me.configOptions.args.chargesGroup.hidden = not val
-				Me.OnChargesChanged() 
-			end;
-			get = function( info ) return Me.db.profile.charges.enable end;
-		};
-		
-		chargesGroup = {
-			name     = "Charges";
-			inline   = true;
-			order    = 13;
-			type     = "group";
-			hidden   = true;
-			args = {
-				chargesName = {
-					order = 20;
-					name  = "Charges Name";
-					desc  = "Name of this character's charges. Examples: Holy Power, Rage, Adrenaline.";
-					type  = "input";
-					set = function( info, val ) 
-						Me.db.profile.charges.name = val
-						Me.OnChargesChanged()
-					end;
-					get = function( info ) return Me.db.profile.charges.name end;
-				};
-				
-				chargesColor = {
-					order = 30;
-					name  = "Charges Color";
-					desc  = "Color of this character's charges bar.";
-					type  = "color";
-					set = function( info, r, g, b ) 
-						Me.db.profile.charges.color = {r,g,b}
-						Me.OnChargesChanged()
-					end;
-					get = function( info ) 
-						return Me.db.profile.charges.color[1],
-							   Me.db.profile.charges.color[2],
-							   Me.db.profile.charges.color[3]
-					end;
-				};
-			  
-				chargesMax = {
-					order = 40;
-					name  = "Maximum Charges";
-					desc  = "The maximum amount of charges that this character can accumulate.";
-					type  = "range"; 
-					min   = 1;
-					max   = 8;
-					step  = 1;
-					set   = function( info, val ) 
-						Me.db.profile.charges.max = val
-						Me.OnChargesChanged()
-					end;
-					get   = function( info ) return Me.db.profile.charges.max end;
-				}; 
-				
-				chargesTooltip = {
-					order = 50;
-					name  = "Charges Description";
-					desc  = "A description for the charges bar tooltip.";
-					type  = "input";
-					multiline = 3;
-					set = function( info, val ) 
-						Me.db.profile.charges.tooltip = val
-						Me.OnChargesChanged()
-					end;
-					get = function( info ) return Me.db.profile.charges.tooltip end;
-				};
-				
-				chargesSymbol = {
-					order = 60;
-					name  = "Charges Skin";
-					desc  = "Custom skin for this character's charges bar.";
-					type  = "select"; 
-					style = "dropdown";
-					values = {
-						["charge-orb"] = "Charge Orbs",
-						["charge-fire"] = "Burning Embers",
-						["charge-rune"] = "Death Knight Runes",
-						["charge-shadow"] = "Shadow Orbs",
-						["charge-soulshards"] = "Soul Shards",
-						["charge-hourglass"] = "Hourglasses",
-						["Air"] = "Air",
-						["Ice"] = "Ice",
-						["Fire"] = "Fire",
-						["Rock"] = "Rock",
-						["Water"] = "Water",
-						["Meat"] = "Meat",
-						["UndeadMeat"] = "Undead Meat",
-						["WowUI"] = "Generic",
-						["WoodPlank"] = "Wood Plank",
-						["WoodwithMetal"] = "Wood with Metal",
-						["Darkmoon"] = "Darkmoon",
-						["MoltenRock"] = "Molten Rock",
-						["Alliance"] = "Alliance",
-						["Horde"] = "Horde",
-						["Amber"] = "Amber",
-						["Druid"] = "Druid",
-						["FancyPanda"] = "Pandaren",
-						["Mechanical"] = "Mechanical",
-						["Map"] = "Map",
-						["InquisitionTorment"] = "Inquisitor",
-						["Bamboo"] = "Bamboo",
-						["Onyxia"] = "Onyxia",
-						["StoneDesign"] = "Stone Design",
-					};
-					set   = function( info, val ) 
-						Me.db.profile.charges.symbol = val
-						Me.OnChargesChanged()
-					end;
-					get   = function( info ) return Me.db.profile.charges.symbol end;
-				}; 
-			};
-		};
 		
 		enableMorale = {
-			order = 14;
+			order = 15;
 			name  = "Enable Progress Bar";
 			desc  = "Enable usage of a group-wide progress bar when you are leader.";
 			width = "full";
@@ -341,7 +232,7 @@ Me.configOptions = {
 		moraleGroup = {
 			name     = "Progress Bar";
 			inline   = true;
-			order    = 15;
+			order    = 16;
 			type     = "group";
 			hidden   = true;
 			args = {
@@ -470,7 +361,7 @@ Me.configOptions = {
 		};
 		
 		unlockFrames = {
-			order = 16;
+			order = 17;
 			name  = "Unlock Frames";
 			desc  = "Unlock all frames, allowing you to click and drag them around your UI.";
 			type  = "execute";
@@ -482,7 +373,7 @@ Me.configOptions = {
 		};
 		
 		lockFrames = {
-			order = 17;
+			order = 18;
 			name  = "Lock Frames";
 			desc  = "Lock all frames so they can no longer be dragged.";
 			type  = "execute";
@@ -494,7 +385,7 @@ Me.configOptions = {
 		};
 		
 		resetFrames = {
-			order = 18;
+			order = 19;
 			name  = "Reset Frame Positions";
 			desc  = "Resets all frames to their default positions.";
 			type  = "execute";
@@ -507,7 +398,281 @@ Me.configOptions = {
 				DiceMasterInspectBuffFrame:SetPoint("BOTTOM", DiceMasterInspectFrame, "TOP", 0, 0)
 				DiceMasterChargesFrame:SetPoint("CENTER", 0, 0)
 				DiceMasterMoraleBar:SetPoint("TOP", DiceMasterPanel, "BOTTOM", 0, -20)
+				if IsAddOnLoaded("DiceMaster_UnitFrames") then
+					DiceMasterUnitsPanel:SetPoint("TOP", 0, -200)
+				end
 			end;
+		};
+		
+		curseLink = {
+			order = 20;
+			name  = "Curse Forge";
+			type  = "input";
+			width = "double";
+			get   = function( info ) return "https://www.curseforge.com/wow/addons/dicemaster" end;
+		};
+		
+		discordLink = {
+			order = 21;
+			name  = "Discord";
+			type  = "input";
+			width = "double";
+			get   = function( info ) return "https://discord.gg/zCRJVQj" end;
+		};
+	};
+}
+
+Me.configOptionsCharges = {
+	type  = "group";
+	order = 1;
+	args = { 
+		-----------------------------------------------------------------------
+		header = {
+			order = 0;
+			name  = "Configure the Health and Charges bar.";
+			type  = "description";
+		};
+		
+		healthGroup = {
+			name     = "Health";
+			inline   = true;
+			order    = 12;
+			type     = "group";
+			args = {
+				healthCurrent = {
+					order = 10;
+					name  = "Current Health";
+					desc  = "The current amount of Health that this character has.";
+					type  = "range"; 
+					min   = 0;
+					max   = 1000;
+					step  = 1;
+					set   = function( info, val ) 
+						Me.db.profile.health = val
+						Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Me.db.profile.health, Me.db.profile.healthMax, Me.db.profile.armor )
+	
+						Me.BumpSerial( Me.db.char, "statusSerial" )
+						Me.Inspect_ShareStatusWithParty() 
+					end;
+					get   = function( info ) return Me.db.profile.health end;
+				}; 
+			  
+				healthMax = {
+					order = 20;
+					name  = "Maximum Health";
+					desc  = "The maximum amount of Health that this character can have.";
+					type  = "range"; 
+					min   = 1;
+					max   = 1000;
+					step  = 1;
+					set   = function( info, val ) 
+						Me.db.profile.healthMax = val
+						Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = val
+						if Me.db.profile.health > Me.db.profile.healthMax then
+							Me.db.profile.health = Me.db.profile.healthMax
+						end
+						Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Me.db.profile.health, Me.db.profile.healthMax, Me.db.profile.armor )
+	
+						Me.BumpSerial( Me.db.char, "statusSerial" )
+						Me.Inspect_ShareStatusWithParty() 
+					end;
+					get   = function( info ) return Me.db.profile.healthMax end;
+				}; 
+			};
+		};
+	
+		enableCharges = {
+			order = 13;
+			name  = "Enable Charges";
+			desc  = "Enable usage of the charges system for this character.";
+			width = "full";
+			type  = "toggle";
+			set = function( info, val ) 
+				Me.db.profile.charges.enable = val 
+				Me.configOptionsCharges.args.chargesGroup.hidden = not val
+				Me.OnChargesChanged() 
+			end;
+			get = function( info ) return Me.db.profile.charges.enable end;
+		};
+
+		chargesGroup = {
+			name     = "Charges";
+			inline   = true;
+			order    = 14;
+			type     = "group";
+			hidden   = true;
+			args = {
+				chargesName = {
+					order = 20;
+					name  = "Charges Name";
+					desc  = "Name of this character's charges. Examples: Holy Power, Rage, Adrenaline.";
+					type  = "input";
+					set = function( info, val ) 
+						Me.db.profile.charges.name = val
+						Me.OnChargesChanged()
+					end;
+					get = function( info ) return Me.db.profile.charges.name end;
+				};
+				
+				chargesColor = {
+					order = 30;
+					name  = "Charges Color";
+					desc  = "Color of this character's charges bar.";
+					type  = "color";
+					set = function( info, r, g, b ) 
+						Me.db.profile.charges.color = {r,g,b}
+						Me.OnChargesChanged()
+					end;
+					get = function( info ) 
+						return Me.db.profile.charges.color[1],
+							   Me.db.profile.charges.color[2],
+							   Me.db.profile.charges.color[3]
+					end;
+				};
+			  
+				chargesMax = {
+					order = 40;
+					name  = "Maximum Charges";
+					desc  = "The maximum amount of charges that this character can accumulate.";
+					type  = "range"; 
+					min   = 1;
+					max   = 8;
+					step  = 1;
+					set   = function( info, val ) 
+						Me.db.profile.charges.max = val
+						Me.OnChargesChanged()
+					end;
+					get   = function( info ) return Me.db.profile.charges.max end;
+				}; 
+				
+				chargesTooltip = {
+					order = 50;
+					name  = "Charges Description";
+					desc  = "A description for the charges bar tooltip.";
+					type  = "input";
+					multiline = 3;
+					set = function( info, val ) 
+						Me.db.profile.charges.tooltip = val
+						Me.OnChargesChanged()
+					end;
+					get = function( info ) return Me.db.profile.charges.tooltip end;
+				};
+				
+				chargesSymbol = {
+					order = 60;
+					name  = "Charges Skin";
+					desc  = "Custom skin for this character's charges bar.";
+					type  = "select"; 
+					style = "dropdown";
+					values = {
+						["charge-orb"] = "Charge Orbs",
+						["charge-fire"] = "Burning Embers",
+						["charge-rune"] = "Death Knight Runes",
+						["charge-shadow"] = "Shadow Orbs",
+						["charge-soulshards"] = "Soul Shards",
+						["charge-hourglass"] = "Hourglasses",
+						["Air"] = "Air",
+						["Ice"] = "Ice",
+						["Fire"] = "Fire",
+						["Rock"] = "Rock",
+						["Water"] = "Water",
+						["Meat"] = "Meat",
+						["UndeadMeat"] = "Undead Meat",
+						["WowUI"] = "Generic",
+						["WoodPlank"] = "Wood Plank",
+						["WoodwithMetal"] = "Wood with Metal",
+						["Darkmoon"] = "Darkmoon",
+						["MoltenRock"] = "Molten Rock",
+						["Alliance"] = "Alliance",
+						["Horde"] = "Horde",
+						["Amber"] = "Amber",
+						["Druid"] = "Druid",
+						["FancyPanda"] = "Pandaren",
+						["Mechanical"] = "Mechanical",
+						["Map"] = "Map",
+						["InquisitionTorment"] = "Inquisitor",
+						["Bamboo"] = "Bamboo",
+						["Onyxia"] = "Onyxia",
+						["StoneDesign"] = "Stone Design",
+					};
+					set   = function( info, val ) 
+						Me.db.profile.charges.symbol = val
+						Me.OnChargesChanged()
+					end;
+					get   = function( info ) return Me.db.profile.charges.symbol end;
+				}; 
+			};
+		};
+	};
+}
+
+Me.configOptionsUF = {
+	type  = "group";
+	order = 1;
+	args = { 
+		-----------------------------------------------------------------------
+		header = {
+			order = 0;
+			name  = "Configure the Unit Frames settings.";
+			type  = "description";
+		};
+		
+		enable = {
+			order = 1;
+			name  = "Enable Unit Frames";
+			desc  = "Toggle display of the unit frames.";
+			type  = "toggle";
+			set   = function( info, val ) 
+				if IsAddOnLoaded("DiceMaster_UnitFrames") then
+					Me.ShowUnitPanel( val )
+				end
+			end;
+			get   = function( info ) return not Me.db.char.unitframes.enable end;
+		};
+ 
+		uiScale = {
+			order     = 5;
+			name      = "UI Scale";
+			desc      = "The size of the Unit Frames panel.";
+			type      = "range";
+			min       = 0.25;
+			max       = 10;
+			softMax   = 4;
+			isPercent = true;
+			set = function( info, val ) 
+				Me.db.char.unitframes.scale = val;
+				if IsAddOnLoaded("DiceMaster_UnitFrames") then
+					Me.ApplyUiScaleUF()
+				end
+			end;
+			get = function( info ) return Me.db.char.unitframes.scale end;
+		};
+		
+		miniFrames = {
+			order = 10;
+			name  = "Use Smaller Frames by Default";
+			desc  = "Unit Frames appear smaller by default unless manually expanded.";
+			type  = "toggle";
+			width = "full";
+			set = function( info, val )
+				Me.db.global.miniFrames = val
+				if IsAddOnLoaded("DiceMaster_UnitFrames") then
+					Me.ApplyUiScaleUF()
+				end
+			end;
+			get = function( info ) return Me.db.global.miniFrames end;
+		};
+		
+		talkingHeads = {
+			order = 15;
+			name  = "Enable Talking Heads";
+			desc  = "Allow the party leader to send dynamic Talking Head messages to you.";
+			type  = "toggle";
+			width = "full";
+			set = function( info, val )
+				Me.db.global.talkingHeads = val
+			end;
+			get = function( info ) return Me.db.global.talkingHeads end;
 		};
 	};
 }
@@ -524,13 +689,19 @@ function Me.SetupDB()
 	Me.db.RegisterCallback( Me, "OnProfileReset",   "ApplyConfig" )
 	 
 	local options = Me.configOptions
+	local charges = Me.configOptionsCharges
+	local unitframes = Me.configOptionsUF
 	local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable( Me.db )
 	profiles.order = 500
 	 
 	AceConfig:RegisterOptionsTable( "DiceMaster", options )	
-	AceConfig:RegisterOptionsTable( "DiceMaster Profiles", profiles )	
+	AceConfig:RegisterOptionsTable( "Charges", charges )	
+	AceConfig:RegisterOptionsTable( "Unit Frames", unitframes )	
+	AceConfig:RegisterOptionsTable( "DiceMaster Profiles", profiles )
 	
 	Me.config = AceConfigDialog:AddToBlizOptions( "DiceMaster", "DiceMaster" )
+	Me.configCharges = AceConfigDialog:AddToBlizOptions( "Charges", "Charges", "DiceMaster" )
+	Me.configUnitFrames = AceConfigDialog:AddToBlizOptions( "Unit Frames", "Unit Frames", "DiceMaster" )
 	Me.configProfiles = AceConfigDialog:AddToBlizOptions( "DiceMaster Profiles", "Profiles", "DiceMaster" )
 	
 	local logo = CreateFrame('Frame', nil, Me.config)
@@ -539,6 +710,18 @@ function Me.SetupDB()
 	logo:SetPoint('TOPRIGHT', 8, 24)
 	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
 	Me.config.logo = logo
+	local logo = CreateFrame('Frame', nil, Me.configCharges)
+	logo:SetFrameLevel(4)
+	logo:SetSize(64, 64)
+	logo:SetPoint('TOPRIGHT', 8, 24)
+	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
+	Me.configCharges.logo = logo
+	local logo = CreateFrame('Frame', nil, Me.configUnitFrames)
+	logo:SetFrameLevel(4)
+	logo:SetSize(64, 64)
+	logo:SetPoint('TOPRIGHT', 8, 24)
+	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
+	Me.configUnitFrames.logo = logo
 	local logo = CreateFrame('Frame', nil, Me.configProfiles)
 	logo:SetFrameLevel(4)
 	logo:SetSize(64, 64)
@@ -552,8 +735,13 @@ local interfaceOptionsNeedsInit = true
 -- Open the configuration panel.
 --
 function Me.OpenConfig() 
-	Me.configOptions.args.chargesGroup.hidden = not Me.db.profile.charges.enable
+	Me.configOptionsCharges.args.chargesGroup.hidden = not Me.db.profile.charges.enable
 	Me.configOptions.args.moraleGroup.hidden = not Me.db.profile.morale.enable
+	Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = Me.db.profile.healthMax
+	
+	if Me.db.profile.health > Me.db.profile.healthMax then
+		Me.db.profile.health = Me.db.profile.healthMax
+	end
 	
 	-- the first time we open the options frame, it wont go to the right page
 	if interfaceOptionsNeedsInit then
@@ -566,8 +754,9 @@ end
 
 -------------------------------------------------------------------------------
 function Me.ApplyConfig( onload )
-	Me.configOptions.args.chargesGroup.hidden = not Me.db.profile.charges.enable
+	Me.configOptionsCharges.args.chargesGroup.hidden = not Me.db.profile.charges.enable
 	Me.configOptions.args.moraleGroup.hidden = not Me.db.profile.morale.enable
+	Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = Me.db.profile.healthMax
 	
 	-- bump all serials, everything is considered dirty
 	Me.BumpSerial( Me.db.char, "statusSerial" )

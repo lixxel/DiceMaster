@@ -4,3 +4,5 @@ manual-changelog:
   markup-type: markdown
 ignore:
   - protocol.txt
+move-folders:
+  DiceMaster/DiceMaster_UnitFrames: DiceMaster_UnitFrames

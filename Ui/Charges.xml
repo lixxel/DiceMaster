@@ -74,23 +74,70 @@
           </OnMouseDown>
 		</Scripts>
 	  </StatusBar>
-	  <DiceMasterStatusBar parentkey="healthbar">
-        <Size x="160" y="16"/>
+	  <Frame parentkey="healthbar">
+        <Size x="160" y="20"/>
         <Anchors>
           <Anchor point="CENTER" x="0" y="10"/> 
         </Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="background" setAllPoints="true">
+				</Texture>
+		    </Layer>
+			<Layer level="BORDER" textureSubLevel="-1">
+				<Texture parentKey="armor" setAllPoints="true">
+				</Texture>
+			</Layer>
+			<Layer level="BORDER">
+				<Texture parentKey="fill" setAllPoints="true">
+				</Texture>
+		    </Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="frame" setAllPoints="true" >
+				</Texture>
+				<Texture parentKey="spark" alphaMode="ADD"/>
+		    </Layer>
+			<Layer level="HIGHLIGHT">
+				<FontString parentKey="text" inherits="TextStatusBarText" setallpoints="true">
+				</FontString>
+			</Layer>
+		</Layers>
         <Scripts>
           <OnLoad>
-            self:SetTexture( "Interface/AddOns/DiceMaster/Texture/health-heart" )
-            self:SetMax( 10 )
+            self.fill:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
+			self.fill:SetTexCoord( 0, 1, 0.5, 0.75 )
+			self.fill:ClearAllPoints();
+			self.fill:SetPoint("TOPLEFT");
+			self.fill:SetPoint("BOTTOMLEFT");
+			self.fill:SetWidth(self:GetWidth());
+			
+			self.armor:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
+			self.armor:SetTexCoord( 0, 1, 0.75, 1 )
+			self.armor:ClearAllPoints();
+			self.armor:SetPoint("TOPLEFT");
+			self.armor:SetPoint("BOTTOMLEFT");
+			self.armor:SetWidth(self:GetWidth());
+			
+			self.spark:SetTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Spark")
+			self.spark:ClearAllPoints();
+			self.spark:SetHeight(self:GetHeight());
+			self.spark:SetWidth(self:GetHeight()/4);
+			self.spark:SetPoint("LEFT", self.fill, "RIGHT", -2, 0);
+			
+			self.frame:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
+			self.frame:SetTexCoord( 0, 1, 0, 0.25 )
+			self.background:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
+			self.background:SetTexCoord( 0, 1, 0.25, 0.5 )
+			
+            --self:SetMax( 10 )
             DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, 
-              "Represents your health.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left/Right Click to Change Max>" )
+              "Represents your health.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left Click to Set Max>|n&lt;Ctrl+Left Click to Set Value>" )
           </OnLoad>
           <OnMouseDown>
             DiceMaster4.OnHealthClicked( button )
           </OnMouseDown>
         </Scripts>
-      </DiceMasterStatusBar>
+      </Frame>
     </Frames>
   </Button>
     

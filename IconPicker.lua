@@ -131,7 +131,7 @@ end
 function Me.IconPicker_Close()
 
 	-- unhighlight the traitIcon button.
-	Me.editor.traitIcon:Select( false )
+	Me.editor.scrollFrame.Container.traitIcon:Select( false )
 	DiceMasterBuffEditor.buffIcon:Select( false )
 	DiceMasterIconPicker:Hide()
 end
@@ -143,7 +143,7 @@ function Me.IconPicker_Open( parent )
 	DiceMasterIconPicker:SetParent( parent )
 	DiceMasterIconPicker:SetPoint("TOPRIGHT", parent, "TOPLEFT", -48, -60)
 	if parent == Me.editor then
-		parent.traitIcon:Select( true )
+		parent.scrollFrame.Container.traitIcon:Select( true )
 	else
 		parent.buffIcon:Select( true )
 	end

@@ -67,6 +67,7 @@ local function PrimeInspectData( name )
 		};
 		health        = 5;
 		healthMax     = 5;
+		armor         = 0;
 		hasDM4        = false;
 	}
 	
@@ -257,11 +258,11 @@ function Me.Inspect_Refresh( status, trait )
 				DiceMasterInspectFrame.charges2.text:SetText( store.charges.count.."/"..store.charges.max )
 				DiceMasterInspectFrame.charges:Hide()
 				DiceMasterInspectFrame.charges2:Show()
-				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 33 )
+				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 35 )
 			else
 				DiceMasterInspectFrame.charges:Show()
 				DiceMasterInspectFrame.charges2:Hide()
-				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 25 )
+				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 30 )
 			end
 				
 			local chargesPlural = store.charges.name:gsub( "/.*", "" )
@@ -274,10 +275,9 @@ function Me.Inspect_Refresh( status, trait )
 		else
 			DiceMasterInspectFrame.charges:Hide()
 			DiceMasterInspectFrame.charges2:Hide()
-			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 10 )
+			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 18 )
 		end
-		DiceMasterInspectFrame.health:SetMax( store.healthMax )
-		DiceMasterInspectFrame.health:SetFilled( store.health )
+		Me.RefreshHealthbarFrame( DiceMasterInspectFrame.health, store.health, store.healthMax, store.armor )
 		
 		
 	end
@@ -539,6 +539,7 @@ local function DoSendStatus()
 			s  = Me.db.char.statusSerial;
 			h  = Profile.health;
 			hm = Profile.healthMax;
+			ar = Profile.armor;
 			c  = Profile.charges.count;
 			cm = Profile.charges.max;
 			cn = Profile.charges.name;
@@ -624,7 +625,10 @@ end
 -- Received APPROVE data.
 --
 function Me.Inspect_OnTraitApprove( data, dist, sender )
-
+	
+	-- you can't approve your own traits...
+	if sender == UnitName( "player" ) then return end
+	
 	-- sanitize message
 	if not data.i or not Me.PermittedUse() then
 		-- we require index in message
@@ -730,6 +734,7 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	data.s  = tonumber(data.s)
 	data.h  = tonumber(data.h)
 	data.hm = tonumber(data.hm)
+	data.ar = tonumber(data.ar)
 	data.c  = tonumber(data.c)
 	data.cm = tonumber(data.cm)
 	data.cn = tostring(data.cn)
@@ -762,6 +767,7 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	if data.cs then store.charges.symbol = data.cs end
 	store.health         = data.h
 	store.healthMax      = data.hm
+	store.armor          = data.ar
 	store.hasDM4         = true
 	
 	Me.Inspect_OnStatusUpdated( sender )

@@ -25,11 +25,17 @@ local MessageHandlers = {
 	
 	BANNER  = "RollTracker_OnBanner";
 	TARGET  = "RollTracker_OnTargetMessage";
+	NOTES   = "RollTracker_OnNoteMessage";
+	NOTREQ  = "RollTracker_OnStatusRequest";
 	
 	BUFF    = "BuffFrame_OnBuffMessage";
 	REMOVE  = "BuffFrame_OnRemoveBuffMessage";
 	
 	MORALE  = "MoraleBar_OnStatusMessage";
+	MORREQ  = "MoraleBar_OnStatusRequest";
+	
+	UFSTAT = "UnitFrame_OnStatusMessage";
+	UFREQ  = "UnitFrame_OnStatusRequest";
 }
 
 -------------------------------------------------------------------------------
@@ -68,7 +74,7 @@ function Me.UnitFrame_OnDMSAY( data, dist, sender )
 		return
 	end
 	
-	if UnitIsGroupLeader( sender ) and not DiceMasterTalkingHeadFrame then
+	if ( UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) ) and not DiceMasterTalkingHeadFrame then
 		print("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms)
 	end
 end

@@ -112,7 +112,7 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		else
 			Me.db.char.showRaidRolls = false
 		end
-	elseif command == "tracker" then
+	elseif command == "manager" then
 	
 		if rest:lower() == "show" then
 			Me.db.global.hideTracker = true
@@ -122,9 +122,17 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 			Me.db.global.hideTracker = false
 			DiceMasterRollFrame:Hide()
 			Me.configOptions.args.trackerScale.hidden = true
+		elseif DiceMasterRollFrame:IsShown() then
+			Me.db.global.hideTracker = false
+			DiceMasterRollFrame:Hide()
+			Me.configOptions.args.trackerScale.hidden = true
+		else
+			Me.db.global.hideTracker = true
+			DiceMasterRollFrame:Show()
+			Me.configOptions.args.trackerScale.hidden = false
 		end
 		Me.ApplyUiScale() 
-	elseif command == "trackerscale" then
+	elseif command == "managerscale" then
 	
 		rest = tonumber(rest)
 		if rest then
@@ -151,8 +159,8 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		print("|cFFFFFF00- /dicemaster maxcharges (number)");
 		print("|cFFFFFF00- /dicemaster chargescolor (r g b)");
 		print("|cFFFFFF00- /dicemaster showraidrolls (true || false)");
-		print("|cFFFFFF00- /dicemaster tracker (show || hide)");
-		print("|cFFFFFF00- /dicemaster trackerscale (number)");
+		print("|cFFFFFF00- /dicemaster manager (show || hide)");
+		print("|cFFFFFF00- /dicemaster managerscale (number)");
 		print("|cFFFFFF00- /dicemaster progressbar (show || hide)");
 		print("|cFFFFFF00- /dicemaster (lock || unlock)");
 	end
