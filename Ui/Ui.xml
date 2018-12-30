@@ -28,10 +28,23 @@
 			frame:SetScript( "OnDragStart", DiceMaster4.BarOnDragStart)
 			frame:SetScript( "OnDragStop", DiceMaster4.BarOnDragStop)
 			self.Title:SetText(self:GetParent().Title)
+			
+			local kids = { frame:GetChildren() }
+			for _, child in pairs(kids) do
+				if child:IsMouseEnabled() then
+					child:EnableMouse(false)
+				end
+			end
 		</OnShow>
 		<OnHide>
 			local frame = self:GetParent()
 			frame:RegisterForDrag( false )
+			local kids = { frame:GetChildren() }
+			for _, child in pairs(kids) do
+				if not child:IsMouseEnabled() then
+					child:EnableMouse(true)
+				end
+			end
 		</OnHide>
 	</Scripts>
   </Frame>

@@ -23,7 +23,9 @@
     
     <Scripts>
       <OnLoad>
-        self.NineSlice:SetFrameLevel(1)
+		if self.NineSlice then
+			self.NineSlice:SetFrameLevel(1)
+		end
         self:SetScale(0.8)
 		SetPortraitToTexture( self.portrait, "Interface/AddOns/DiceMaster/Icons/WH_RuneDice" )
         DiceMaster4.TraitEditor_OnLoad( self )

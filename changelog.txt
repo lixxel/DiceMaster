@@ -1,3 +1,15 @@
+### 5.0.1
+ - Minor bug fixes.
+ - Fixed errors resulting from NineSlice element.
+ - Buff Frame no longer overlaps default buff frame.
+ - Fixed issues with disappearing Progress Bar.
+ - Allow independent scaling of the Progress Bar.
+ - Fixed issues with drag frames.
+ - Fixed Roll Tracker not recording modifiers on logged rolls.
+ - Fixed Roll Tracker not detecting raid markers in chat.
+ - Allow health bar to anchor below traits on the Inspect Frame (config menu option).
+ - Fixed an issue with the <color> tag in trait descriptions.
+
 ### 5.0
  - Patch 8.1 compatbility.
  - DiceMaster and DiceMaster Unit Frames are now fully integrated.

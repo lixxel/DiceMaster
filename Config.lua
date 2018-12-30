@@ -60,9 +60,11 @@ local DB_DEFAULTS = {
 			tooltip = "Measures the overall mental and emotional condition of the group while facing a challenge. Low morale can result in negative consequences.";
 			color   = {1,1,0};
 			symbol  = "WoWUI";
+			scale   = 0.75;
 		};
 		health       = 5;
 		healthMax    = 5;
+		healthPos    = false;
 		armor        = 0;
 		traits       = {};
 		buffs		 = {};
@@ -215,149 +217,10 @@ Me.configOptions = {
 			get = function( info ) return Me.db.global.enableRoundBanners end;
 		};
 		
-		enableMorale = {
-			order = 15;
-			name  = "Enable Progress Bar";
-			desc  = "Enable usage of a group-wide progress bar when you are leader.";
-			width = "full";
-			type  = "toggle";
-			set = function( info, val ) 
-				Me.db.profile.morale.enable = val 
-				Me.configOptions.args.moraleGroup.hidden = not val
-				Me.RefreshMoraleFrame() 
-			end;
-			get = function( info ) return Me.db.profile.morale.enable end;
-		};
-		
-		moraleGroup = {
-			name     = "Progress Bar";
-			inline   = true;
-			order    = 16;
-			type     = "group";
-			hidden   = true;
-			args = {
-				moraleName = {
-					order = 20;
-					name  = "Progress Bar Name";
-					desc  = "Name of the progress bar. Examples: Morale, Sanity, Shield Integrity.";
-					type  = "input";
-					set = function( info, val ) 
-						Me.db.profile.morale.name = val
-						Me.RefreshMoraleFrame()
-					end;
-					get = function( info ) return Me.db.profile.morale.name end;
-				};
-				
-				moraleColor = {
-					order = 30;
-					name  = "Progress Bar Color";
-					desc  = "Color of the progress bar.";
-					type  = "color";
-					set = function( info, r, g, b ) 
-						Me.db.profile.morale.color = {r,g,b}
-						Me.RefreshMoraleFrame()
-					end;
-					get = function( info ) 
-						return Me.db.profile.morale.color[1],
-							   Me.db.profile.morale.color[2],
-							   Me.db.profile.morale.color[3]
-					end;
-				};
-			  
-				moraleCount = {
-					order = 40;
-					name  = "Start Value";
-					desc  = "The starting value of the progress bar (either full, half, or empty).";
-					type  = "range"; 
-					min   = 0;
-					max   = 100;
-					step  = 50;
-					set   = function( info, val ) 
-						Me.db.profile.morale.count = val
-						Me.RefreshMoraleFrame( val )
-					end;
-					get   = function( info ) return Me.db.profile.morale.count end;
-				}; 
-				
-				moraleTooltip = {
-					order = 50;
-					name  = "Progress Bar Description";
-					desc  = "A description for the progress bar tooltip.";
-					type  = "input";
-					multiline = 3;
-					set = function( info, val ) 
-						Me.db.profile.morale.tooltip = val
-						Me.RefreshMoraleFrame()
-					end;
-					get = function( info ) return Me.db.profile.morale.tooltip end;
-				};
-				
-				moraleStep = {
-					order = 55;
-					name  = "Increase/Decrease Value";
-					desc  = "The amount that is added/removed when the progress bar is clicked.";
-					type  = "range"; 
-					min   = 1;
-					max   = 10;
-					step  = 1;
-					set   = function( info, val ) 
-						Me.db.profile.morale.step = val
-						Me.RefreshMoraleFrame()
-					end;
-					get   = function( info ) return Me.db.profile.morale.step end;
-				}; 
-				
-				moraleSymbol = {
-					order = 60;
-					name  = "Progress Bar Skin";
-					desc  = "Custom skin for the progress bar.";
-					type  = "select"; 
-					style = "dropdown";
-					values = {
-						["morale-bar"] = "League of Lordaeron",
-						["Air"] = "Air",
-						["Ice"] = "Ice",
-						["Fire"] = "Fire",
-						["Rock"] = "Rock",
-						["Water"] = "Water",
-						["Meat"] = "Meat",
-						["UndeadMeat"] = "Undead Meat",
-						["WoWUI"] = "Generic",
-						["WoodPlank"] = "Wood Plank",
-						["WoodWithMetal"] = "Wood with Metal",
-						["Darkmoon"] = "Darkmoon",
-						["MoltenRock"] = "Molten Rock",
-						["Alliance"] = "Alliance",
-						["Horde"] = "Horde",
-						["Amber"] = "Amber",
-						["Druid"] = "Druid",
-						["FancyPanda"] = "Fancy Pandaren",
-						["Mechanical"] = "Mechanical",
-						["Map"] = "Map",
-						["InquisitionTorment"] = "Inquisitor",
-						["Bamboo"] = "Bamboo",
-						["Onyxia"] = "Onyxia",
-						["StoneDesign"] = "Stone Design",
-						["NaaruCharge"] = "Naaru",
-						["ShadowPaladinBar"] = "Shadow Paladin",
-						["Xavius"] = "Xavius Nightmare",
-						["BulletBar"] = "Bullets",
-						["Azerite"] = "Azerite",
-						["Chogall"] = "Cho'gall",
-						["FuelGauge"] = "Fuel Gauge",
-						["FelCorruption"] = "Fel Corruption",
-						["Murozond"] = "Murozond Hourglass",
-						["Pride"] = "Pride",
-						["Meditation"] = "Meditation",
-						["Jaina"] = "Jaina",
-					};
-					set   = function( info, val ) 
-						Me.db.profile.morale.symbol = val
-						Me.RefreshMoraleFrame()
-					end;
-					get   = function( info ) return Me.db.profile.morale.symbol end;
-				}; 
-			};
+		headerFrames = {
+			order = 12;
+			name  = " ";
+			type  = "description";
 		};
 		
 		unlockFrames = {
@@ -478,6 +341,19 @@ Me.configOptionsCharges = {
 					end;
 					get   = function( info ) return Me.db.profile.healthMax end;
 				}; 
+				
+				healthPos = {
+					order = 30;
+					name  = "Anchor Health Bar Below Traits on Inspect Frame";
+					desc  = "Move the health bar on the Inspect Frame so that it's positioned beneath the traits bar.";
+					width = "full";
+					type  = "toggle";
+					set = function( info, val ) 
+						Me.db.profile.healthPos = val
+						Me.Inspect_Open( UnitName( "target" ))
+					end;
+					get = function( info ) return Me.db.profile.healthPos end;
+				};
 			};
 		};
 	
@@ -606,6 +482,181 @@ Me.configOptionsCharges = {
 	};
 }
 
+Me.configOptionsProgressBar = {
+	type  = "group";
+	order = 1;
+	args = { 
+		-----------------------------------------------------------------------
+		header = {
+			order = 0;
+			name  = "Configure the Progress Bar frame.";
+			type  = "description";
+		};
+		
+		enableMorale = {
+			order = 15;
+			name  = "Enable Progress Bar";
+			desc  = "Enable usage of a group-wide progress bar when you are leader.";
+			width = "full";
+			type  = "toggle";
+			set = function( info, val ) 
+				Me.db.profile.morale.enable = val 
+				Me.configOptionsProgressBar.args.moraleGroup.hidden = not val
+				Me.RefreshMoraleFrame() 
+			end;
+			get = function( info ) return Me.db.profile.morale.enable end;
+		};
+		
+		moraleGroup = {
+			name     = "Progress Bar";
+			inline   = true;
+			order    = 16;
+			type     = "group";
+			hidden   = true;
+			args = {
+				moraleName = {
+					order = 20;
+					name  = "Progress Bar Name";
+					desc  = "Name of the progress bar. Examples: Morale, Sanity, Shield Integrity.";
+					type  = "input";
+					set = function( info, val ) 
+						Me.db.profile.morale.name = val
+						Me.RefreshMoraleFrame()
+					end;
+					get = function( info ) return Me.db.profile.morale.name end;
+				};
+				
+				moraleColor = {
+					order = 30;
+					name  = "Progress Bar Color";
+					desc  = "Color of the progress bar.";
+					type  = "color";
+					set = function( info, r, g, b ) 
+						Me.db.profile.morale.color = {r,g,b}
+						Me.RefreshMoraleFrame()
+					end;
+					get = function( info ) 
+						return Me.db.profile.morale.color[1],
+							   Me.db.profile.morale.color[2],
+							   Me.db.profile.morale.color[3]
+					end;
+				};
+				
+				moraleSymbol = {
+					order = 40;
+					name  = "Progress Bar Skin";
+					desc  = "Custom skin for the progress bar.";
+					type  = "select"; 
+					style = "dropdown";
+					values = {
+						["morale-bar"] = "League of Lordaeron",
+						["Air"] = "Air",
+						["Ice"] = "Ice",
+						["Fire"] = "Fire",
+						["Rock"] = "Rock",
+						["Water"] = "Water",
+						["Meat"] = "Meat",
+						["UndeadMeat"] = "Undead Meat",
+						["WoWUI"] = "Generic",
+						["WoodPlank"] = "Wood Plank",
+						["WoodWithMetal"] = "Wood with Metal",
+						["Darkmoon"] = "Darkmoon",
+						["MoltenRock"] = "Molten Rock",
+						["Alliance"] = "Alliance",
+						["Horde"] = "Horde",
+						["Amber"] = "Amber",
+						["Druid"] = "Druid",
+						["FancyPanda"] = "Fancy Pandaren",
+						["Mechanical"] = "Mechanical",
+						["Map"] = "Map",
+						["InquisitionTorment"] = "Inquisitor",
+						["Bamboo"] = "Bamboo",
+						["Onyxia"] = "Onyxia",
+						["StoneDesign"] = "Stone Design",
+						["NaaruCharge"] = "Naaru",
+						["ShadowPaladinBar"] = "Shadow Paladin",
+						["Xavius"] = "Xavius Nightmare",
+						["BulletBar"] = "Bullets",
+						["Azerite"] = "Azerite",
+						["Chogall"] = "Cho'gall",
+						["FuelGauge"] = "Fuel Gauge",
+						["FelCorruption"] = "Fel Corruption",
+						["Murozond"] = "Murozond Hourglass",
+						["Pride"] = "Pride",
+						["Meditation"] = "Meditation",
+						["Jaina"] = "Jaina",
+					};
+					set   = function( info, val ) 
+						Me.db.profile.morale.symbol = val
+						Me.RefreshMoraleFrame()
+					end;
+					get   = function( info ) return Me.db.profile.morale.symbol end;
+				}; 
+				
+				moraleTooltip = {
+					order = 50;
+					name  = "Progress Bar Description";
+					desc  = "A description for the progress bar tooltip.";
+					type  = "input";
+					multiline = 3;
+					width = "full";
+					set = function( info, val ) 
+						Me.db.profile.morale.tooltip = val
+						Me.RefreshMoraleFrame()
+					end;
+					get = function( info ) return Me.db.profile.morale.tooltip end;
+				};
+				
+				moraleCount = {
+					order = 60;
+					name  = "Start Value";
+					desc  = "The starting value of the progress bar (either full, half, or empty).";
+					type  = "range"; 
+					min   = 0;
+					max   = 100;
+					step  = 1;
+					set   = function( info, val ) 
+						Me.db.profile.morale.count = val
+						Me.RefreshMoraleFrame( val )
+					end;
+					get   = function( info ) return Me.db.profile.morale.count end;
+				}; 
+				
+				moraleStep = {
+					order = 70;
+					name  = "Increase/Decrease Value";
+					desc  = "The amount that is added/removed when the progress bar is clicked.";
+					type  = "range"; 
+					min   = 1;
+					max   = 100;
+					step  = 1;
+					set   = function( info, val ) 
+						Me.db.profile.morale.step = val
+						Me.RefreshMoraleFrame()
+					end;
+					get   = function( info ) return Me.db.profile.morale.step end;
+				}; 
+				
+				moraleScale = {
+					order     = 80;
+					name      = "Progress Bar Scale";
+					desc      = "Change the size of the Progress Bar frame.";
+					type      = "range";
+					min       = 0.25;
+					max       = 10;
+					softMax   = 4;
+					isPercent = true;
+					set = function( info, val ) 
+						Me.db.profile.morale.scale = val;
+						Me.ApplyUiScale()
+					end;
+					get = function( info ) return Me.db.profile.morale.scale end;
+				}; 
+			};
+		};
+	};
+}
+
 Me.configOptionsUF = {
 	type  = "group";
 	order = 1;
@@ -625,6 +676,8 @@ Me.configOptionsUF = {
 			set   = function( info, val ) 
 				if IsAddOnLoaded("DiceMaster_UnitFrames") then
 					Me.ShowUnitPanel( val )
+				else
+					print("|cFFFFFF00DiceMaster Unit Frames module not found. Enable the module from your AddOns list.")
 				end
 			end;
 			get   = function( info ) return not Me.db.char.unitframes.enable end;
@@ -690,17 +743,20 @@ function Me.SetupDB()
 	 
 	local options = Me.configOptions
 	local charges = Me.configOptionsCharges
+	local progressbar = Me.configOptionsProgressBar
 	local unitframes = Me.configOptionsUF
 	local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable( Me.db )
 	profiles.order = 500
 	 
 	AceConfig:RegisterOptionsTable( "DiceMaster", options )	
 	AceConfig:RegisterOptionsTable( "Charges", charges )	
+	AceConfig:RegisterOptionsTable( "Progress Bar", progressbar )	
 	AceConfig:RegisterOptionsTable( "Unit Frames", unitframes )	
 	AceConfig:RegisterOptionsTable( "DiceMaster Profiles", profiles )
 	
 	Me.config = AceConfigDialog:AddToBlizOptions( "DiceMaster", "DiceMaster" )
 	Me.configCharges = AceConfigDialog:AddToBlizOptions( "Charges", "Charges", "DiceMaster" )
+	Me.configProgressBar = AceConfigDialog:AddToBlizOptions( "Progress Bar", "Progress Bar", "DiceMaster" )
 	Me.configUnitFrames = AceConfigDialog:AddToBlizOptions( "Unit Frames", "Unit Frames", "DiceMaster" )
 	Me.configProfiles = AceConfigDialog:AddToBlizOptions( "DiceMaster Profiles", "Profiles", "DiceMaster" )
 	
@@ -716,6 +772,12 @@ function Me.SetupDB()
 	logo:SetPoint('TOPRIGHT', 8, 24)
 	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
 	Me.configCharges.logo = logo
+	local logo = CreateFrame('Frame', nil, Me.configProgressBar)
+	logo:SetFrameLevel(4)
+	logo:SetSize(64, 64)
+	logo:SetPoint('TOPRIGHT', 8, 24)
+	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
+	Me.configProgressBar.logo = logo
 	local logo = CreateFrame('Frame', nil, Me.configUnitFrames)
 	logo:SetFrameLevel(4)
 	logo:SetSize(64, 64)
@@ -736,7 +798,7 @@ local interfaceOptionsNeedsInit = true
 --
 function Me.OpenConfig() 
 	Me.configOptionsCharges.args.chargesGroup.hidden = not Me.db.profile.charges.enable
-	Me.configOptions.args.moraleGroup.hidden = not Me.db.profile.morale.enable
+	Me.configOptionsProgressBar.args.moraleGroup.hidden = not Me.db.profile.morale.enable
 	Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = Me.db.profile.healthMax
 	
 	if Me.db.profile.health > Me.db.profile.healthMax then
@@ -755,7 +817,7 @@ end
 -------------------------------------------------------------------------------
 function Me.ApplyConfig( onload )
 	Me.configOptionsCharges.args.chargesGroup.hidden = not Me.db.profile.charges.enable
-	Me.configOptions.args.moraleGroup.hidden = not Me.db.profile.morale.enable
+	Me.configOptionsProgressBar.args.moraleGroup.hidden = not Me.db.profile.morale.enable
 	Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = Me.db.profile.healthMax
 	
 	-- bump all serials, everything is considered dirty

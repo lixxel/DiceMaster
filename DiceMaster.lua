@@ -338,9 +338,9 @@ end
 --
 
 local function RGBPercToHex(r, g, b)
-	r = tonumber(r)
-	g = tonumber(g)
-	b = tonumber(b)
+	r = tonumber(r) or 0
+	g = tonumber(g) or 0
+	b = tonumber(b) or 0
 	r = r <= 1 and r >= 0 and r or 0
 	g = g <= 1 and g >= 0 and g or 0
 	b = b <= 1 and b >= 0 and b or 0
@@ -657,7 +657,7 @@ function Me.ApplyUiScale()
 	DiceMasterRemoveBuffEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterChargesFrame:SetScale( Me.db.char.uiScale * 1.2 )
 	DiceMasterRollFrame:SetScale( Me.db.char.trackerScale * 1.4 )
-	DiceMasterMoraleBar:SetScale( Me.db.char.uiScale * 1.2 )
+	DiceMasterMoraleBar:SetScale( Me.db.profile.morale.scale * 1.2 )
 	
 	if IsAddOnLoaded("DiceMaster_UnitFrames") then
 		Me.ApplyUiScaleUF()

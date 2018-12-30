@@ -655,9 +655,11 @@ function Me.MoraleBar_OnStatusMessage( data, dist, sender )
 		return 
 	end
 	
-	if not Me.db.char.hidepanel and data.me then
+	if data.me then
 		Profile.morale.enable = true
-		DiceMasterMoraleBar:Show()
+		if not Me.db.char.hidepanel then
+			DiceMasterMoraleBar:Show()
+		end
 	else
 		Profile.morale.enable = false
 		DiceMasterMoraleBar:Hide()

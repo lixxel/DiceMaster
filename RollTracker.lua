@@ -86,7 +86,7 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 		f:RegisterEvent( "GROUP_ROSTER_UPDATE" )
 	end
 	f:SetScript( "OnEvent", function( self, event, msg, sender )
-		if event == chat_events["CHAT_MSG_" .. event] then
+		if event:match("CHAT_MSG_") then
 			Me.OnChatMessage( msg, sender )
 		elseif event == "GROUP_ROSTER_UPDATE" then
 			DiceMasterDMNotesAllowAssistants:Hide()
@@ -485,6 +485,7 @@ function Me.OnRollMessage( name, you, count, sides, mod, roll )
 	local dice = Me.FormatDiceType( count, sides, mod )
 	
 	if roll then
+		roll = roll + mod
 		if not Me.HistoryRolls[name] then
 			Me.HistoryRolls[name] = {}
 		end

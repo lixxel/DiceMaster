@@ -38,7 +38,21 @@
 			</Anchor>
 		</Anchors>
 		<Frames>
-			<Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true"/>
+			<Frame name="$parentDragFrame" inherits="DiceMasterDragFrameTemplate" setAllPoints="true">
+				<Scripts>
+					<OnHide>
+						local frame = self:GetParent()
+						frame:RegisterForDrag( false )
+						frame:EnableMouse( false )
+						local kids = { frame:GetChildren() }
+						for _, child in pairs(kids) do
+							if not child:IsMouseEnabled() then
+								child:EnableMouse(true)
+							end
+						end
+					</OnHide>
+				</Scripts>
+			</Frame>
 		</Frames>
 		<Scripts>
 			<OnUpdate>
@@ -77,7 +91,9 @@
       <OnLoad>	
 		DiceMaster4.buffeditor = self
 	  
-	    self.NineSlice:SetFrameLevel(1)
+	    if self.NineSlice then
+			self.NineSlice:SetFrameLevel(1)
+		end
 		self:SetClampedToScreen( true )
 		self:SetMovable(true)
 		self:EnableMouse(true)
@@ -427,7 +443,9 @@
       <OnLoad>	
 		DiceMaster4.removebuffeditor = self
 	  
-	    self.NineSlice:SetFrameLevel(1)
+	    if self.NineSlice then
+			self.NineSlice:SetFrameLevel(1)
+		end
 		self:SetClampedToScreen( true )
 		self:SetMovable(true)
 		self:EnableMouse(true)

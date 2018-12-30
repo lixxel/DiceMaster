@@ -136,7 +136,7 @@
 					DiceMaster4.SetupTooltip( self, nil, "Hidden", nil, nil, nil, "Your group cannot see this unit." )
 				</OnLoad>
 				<OnClick>
-					if DiceMaster4.IsLeader( true ) then
+					if DiceMaster4.IsLeader( false ) then
 						if self:GetChecked() then
 							self:GetParent():SetAlpha(1)
 							DiceMaster4.SetupTooltip( self, nil, "Visible", nil, nil, nil, "Your group can see this unit." )

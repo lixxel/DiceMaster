@@ -258,11 +258,19 @@ function Me.Inspect_Refresh( status, trait )
 				DiceMasterInspectFrame.charges2.text:SetText( store.charges.count.."/"..store.charges.max )
 				DiceMasterInspectFrame.charges:Hide()
 				DiceMasterInspectFrame.charges2:Show()
-				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 35 )
+				if Profile.healthPos then
+					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, -40 )
+				else
+					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 35 )
+				end
 			else
 				DiceMasterInspectFrame.charges:Show()
 				DiceMasterInspectFrame.charges2:Hide()
-				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 30 )
+				if Profile.healthPos then
+					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, -40 )
+				else
+					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 30 )
+				end
 			end
 				
 			local chargesPlural = store.charges.name:gsub( "/.*", "" )
@@ -275,7 +283,11 @@ function Me.Inspect_Refresh( status, trait )
 		else
 			DiceMasterInspectFrame.charges:Hide()
 			DiceMasterInspectFrame.charges2:Hide()
-			DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 18 )
+			if Profile.healthPos then
+				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, -40 )
+			else
+				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 18 )
+			end
 		end
 		Me.RefreshHealthbarFrame( DiceMasterInspectFrame.health, store.health, store.healthMax, store.armor )
 		

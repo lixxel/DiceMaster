@@ -109,7 +109,7 @@ function Me.OpenTraitTooltip( owner, trait, index )
 	local usable = ""
 	local guildName, guildRankName, guildRankIndex = GetGuildInfo( "player" )
 	
-	if owner:GetParent():GetName() == "DiceMasterInspectFrame" and not UnitIsUnit("target", "player") and Me.IsOfficer() then
+	if owner and owner:GetParent():GetName() == "DiceMasterInspectFrame" and not UnitIsUnit("target", "player") and Me.IsOfficer() then
 		local found = false;
 		if trait.officers then
 			for i=1,#trait.officers do
