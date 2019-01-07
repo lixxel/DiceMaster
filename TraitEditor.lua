@@ -80,6 +80,215 @@ local Me      = DiceMaster4
 local Profile = Me.Profile
 
 Me.editing_trait = 1
+local StatsListEntries = { };
+
+StaticPopupDialogs["DICEMASTER4_CREATESTAT"] = {
+  text = "Enter a name for this statistic:",
+  button1 = "Accept",
+  button2 = "Cancel",
+  OnShow = function (self, data)
+    self.editBox:SetText("Statistic")
+	self.editBox:HighlightText()
+	self.editBox:SetFocus()
+  end,
+  OnAccept = function (self, data)
+	local name = UnitName("player")
+    local text = self.editBox:GetText()
+	if text == "" then
+		UIErrorsFrame:AddMessage( "Invalid name: too short.", 1.0, 0.0, 0.0, 53, 5 );
+	elseif strlen(text) > 20 then
+		UIErrorsFrame:AddMessage( "Invalid name: too long.", 1.0, 0.0, 0.0, 53, 5 );
+	else
+		Me.TraitEditor_StatsList_Add( data, text )
+	end
+  end,
+  hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+-------------------------------------------------------------------------------
+-- Refresh the statistics list.
+--
+--
+function Me.TraitEditor_StatsList_Update()
+	if ( not DiceMasterStatsFrame:IsShown() ) then
+		return;
+	end
+	
+	Me.editor.experienceBar.level:SetText(Profile.level or 1)
+	Me.editor.experienceBar:SetValue(Profile.experience or 0)
+
+	local addButtonIndex = 0;
+	local totalButtonHeight = 0;
+	local function AddButtonInfo(id)
+		addButtonIndex = addButtonIndex + 1;
+		if ( not StatsListEntries[addButtonIndex] ) then
+			StatsListEntries[addButtonIndex] = { };
+		end
+		StatsListEntries[addButtonIndex].id = id;
+		totalButtonHeight = totalButtonHeight + 24
+	end
+	
+	if #Profile.stats == 0 then
+		DiceMasterTraitEditor.StatsWarning:Show()
+	else
+		DiceMasterTraitEditor.StatsWarning:Hide()
+	end
+
+	-- saved statistics
+	for i = 1, #Profile.stats do
+		AddButtonInfo(i);
+	end
+
+	DiceMasterStatsFrame.totalStatsListEntriesHeight = totalButtonHeight;
+	DiceMasterStatsFrame.numStatsListEntries = addButtonIndex;
+
+	Me.TraitEditor_StatsFrame_UpdateStats();
+end
+
+-------------------------------------------------------------------------------
+-- Update the stat buttons.
+--
+--
+function Me.TraitEditor_StatsFrame_UpdateStats()
+	local scrollFrame = DiceMasterStatsFrame;
+	local offset = HybridScrollFrame_GetOffset(scrollFrame);
+	local buttons = scrollFrame.buttons;
+	local numButtons = #buttons;
+	local numStatButtons = scrollFrame.numStatsListEntries;
+
+	local usedHeight = 0;
+
+	for i = 1, numButtons do
+		local button = buttons[i];
+		local index = offset + i;
+		if ( index <= numStatButtons ) then
+			button.index = index;
+			local height = Me.TraitEditor_StatsFrame_UpdateStatButton(button)
+			button:SetHeight(height);
+			usedHeight = usedHeight + height;
+			
+			if index == 1 then
+				button.upButton:Disable()
+			elseif index == numStatButtons then
+				button.downButton:Disable()
+			else
+				button.upButton:Enable()
+				button.downButton:Enable()
+			end
+			
+			button:Show()
+		else
+			button.index = nil;
+			button:Hide();
+		end
+	end
+	HybridScrollFrame_Update(scrollFrame, scrollFrame.totalStatsListEntriesHeight, usedHeight);
+end
+
+function Me.TraitEditor_StatsFrame_UpdateStatButton(button)
+	local index = button.index;
+	button.id = StatsListEntries[index].id;
+	local stat = Profile.stats[StatsListEntries[index].id]
+	
+	-- finish setting up button if it's not a header
+	if ( stat ) then
+		button.name:SetText(stat.name .. ":");
+		button.value:SetText(stat.value);
+		button:Show();
+	else
+		button:Hide();
+	end
+	return 24;
+end
+
+function Me.TraitEditor_StatsList_GetScrollFrameTopButton(offset)
+	local usedHeight = 0;
+	for i = 1, #StatsListEntries do
+		local buttonHeight = 24
+		if ( usedHeight + buttonHeight >= offset ) then
+			return i - 1, offset - usedHeight;
+		else
+			usedHeight = usedHeight + buttonHeight;
+		end
+	end
+end
+
+-------------------------------------------------------------------------------
+-- Shift a stat button up or down.
+-- @param direction		Determines the direction to shift the stat,
+--						or deletes the stat if omitted.
+--
+function Me.TraitEditor_StatsList_Move( self, direction )
+	local button = self:GetParent()
+	local index = button.index
+	local stat = Profile.stats[index]
+	
+	tremove(Profile.stats, index)
+	if direction == "up" then
+		tinsert(Profile.stats, index - 1, stat)
+	elseif direction == "down" then
+		tinsert(Profile.stats, index + 1, stat)
+	end
+	Me.TraitEditor_StatsList_Update()
+end
+
+-------------------------------------------------------------------------------
+-- Add a new stat.
+-- 
+--
+function Me.TraitEditor_StatsList_Add( button, name )
+	local index = 0
+	if button then 
+		index = button.index
+	end
+	local stat = {
+		name = name;
+		value = 0;
+	}
+	
+	tinsert(Profile.stats, index + 1, stat)
+	
+	Me.TraitEditor_StatsList_Update()
+end
+
+-------------------------------------------------------------------------------
+-- Create default "base stats."
+-- 
+--
+function Me.TraitEditor_StatsList_CreateDefaults()
+	local defaults = { "Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma", }
+	
+	for i = 1,#defaults do
+		local stat = {
+			name = defaults[i];
+			value = 0;
+		}
+		tinsert(Profile.stats, stat)
+	end
+	
+	Me.TraitEditor_StatsList_Update()
+end
+
+-------------------------------------------------------------------------------
+-- Handler for when the value editor loses focus.
+--
+--
+function Me.TraitEditor_StatsList_SaveStat( self )
+	local button = self:GetParent()
+	local index = button.index
+	local stat = Profile.stats[index] or nil
+	
+	if not stat then
+		return
+	end
+	
+	stat.value = self:GetText()
+	--TraitUpdated()
+end
 
 -------------------------------------------------------------------------------
 -- Effects dropdown list.

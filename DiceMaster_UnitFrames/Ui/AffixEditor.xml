@@ -66,9 +66,7 @@
 		self:SetScale(0.8)
         self:SetUserPlaced( true )
 		
-		if self.NineSlice then
-			self.NineSlice:SetFrameLevel(1)
-		end
+		self.NineSlice:SetFrameLevel(1)
 		self.TitleText:SetText("Unit Editor")
 		SetPortraitToTexture( self.portrait, "Interface/CHARACTERFRAME/TemporaryPortrait-Monster" )
 		-- create icon map

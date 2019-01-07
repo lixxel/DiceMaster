@@ -270,8 +270,12 @@
 		end
 	  </OnMouseDown>
 	  <OnAnimFinished>
-		self:SetAnimation(self.animation or 0)
-		self:SetSpellVisualKit(self.spellvisualkit or 0)
+		if self.dead then
+			self:SetAnimation(6)
+		elseif self:IsShown() then
+			self:SetAnimation(self.animation or 0)
+			self:SetSpellVisualKit(self.spellvisualkit or 0)
+		end
 	  </OnAnimFinished>
 	  <OnUpdate>
 		self:SetPortraitZoom(0)

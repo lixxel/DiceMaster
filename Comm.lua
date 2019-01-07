@@ -14,12 +14,12 @@ local MessageHandlers = {
 	INSP    = "Inspect_OnInspectMessage";
 	TRAIT   = "Inspect_OnTraitMessage";
 	STATUS  = "Inspect_OnStatusMessage";
+	STAT    = "Inspect_OnStatMessage";
 	APPROVE = "Inspect_OnTraitApprove";
+	EXP     = "Inspect_OnExperience";
 	
 	R       = "Dice_OnRollMessage";
 	ROLL    = "Dice_OnRollMessage";
-	
-	DMSAY   = "UnitFrame_OnDMSAY";
 	
 	TYPE    = "PostTracker_OnTyping";
 	
@@ -34,8 +34,9 @@ local MessageHandlers = {
 	MORALE  = "MoraleBar_OnStatusMessage";
 	MORREQ  = "MoraleBar_OnStatusRequest";
 	
-	UFSTAT = "UnitFrame_OnStatusMessage";
-	UFREQ  = "UnitFrame_OnStatusRequest";
+	DMSAY   = "UnitFrame_OnDMSAY";
+	UFSTAT  = "UnitFrame_OnStatusMessage";
+	UFREQ   = "UnitFrame_OnStatusRequest";
 }
 
 -------------------------------------------------------------------------------

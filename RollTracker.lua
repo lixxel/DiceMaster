@@ -7,6 +7,7 @@
 --
 
 local Me = DiceMaster4
+local Profile = Me.Profile
 
 Me.SavedRolls = {}
 Me.HistoryRolls = {}
@@ -50,6 +51,100 @@ StaticPopupDialogs["DICEMASTER4_ROLLBANNER"] = {
   preferredIndex = 3,
 }
 
+StaticPopupDialogs["DICEMASTER4_GRANTEXPERIENCE"] = {
+  text = "Experience Amount:",
+  button1 = "Accept",
+  button2 = "Cancel",
+  OnShow = function (self, data)
+    self.editBox:SetText("10")
+	self.editBox:HighlightText()
+	self.editBox:SetNumeric( true )
+  end,
+  OnAccept = function (self, data)
+    local text = self.editBox:GetText()
+	if text == "" or ( tonumber(text) > 100 )then
+		UIErrorsFrame:AddMessage( "Invalid amount.", 1.0, 0.0, 0.0, 53, 5 );
+	else
+		local msg = Me:Serialize( "EXP", {
+			v = tonumber( text );
+		})
+		for i = 1, #DiceMasterDMExp.selected do
+			local name, rank = GetRaidRosterInfo(DiceMasterDMExp.selected[i])
+			if not name then return end
+			Me:SendCommMessage( "DCM4", msg, "WHISPER", name, "ALERT" )
+		end
+	end
+  end,
+  hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+StaticPopupDialogs["DICEMASTER4_GRANTLEVEL"] = {
+  text = "Level Amount:",
+  button1 = "Accept",
+  button2 = "Cancel",
+  OnShow = function (self, data)
+    self.editBox:SetText("1")
+	self.editBox:HighlightText()
+	self.editBox:SetNumeric( true )
+  end,
+  OnAccept = function (self, data)
+    local text = self.editBox:GetText()
+	if text == "" or ( tonumber(text) > 100 )then
+		UIErrorsFrame:AddMessage( "Invalid amount.", 1.0, 0.0, 0.0, 53, 5 );
+	else
+		local msg = Me:Serialize( "EXP", {
+			l = tonumber( text );
+		})
+		for i = 1, #DiceMasterDMExp.selected do
+			local name, rank = GetRaidRosterInfo(DiceMasterDMExp.selected[i])
+			if not name then return end
+			Me:SendCommMessage( "DCM4", msg, "WHISPER", name, "ALERT" )
+		end
+	end
+  end,
+  hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+StaticPopupDialogs["DICEMASTER4_LEVELRESETATTEMPT"] = {
+  text = "Do you want to reset levels to 1? Players will lose all experience gained so far.|n|nType \"RESET\" into the field to confirm.",
+  button1 = "Yes",
+  button2 = "No",
+  OnShow = function (self, data)
+	self.button1:Disable()
+	self.button1:SetScript("OnUpdate", function(self)
+		if self:GetParent().editBox:GetText() == "RESET" then
+			self:Enable()
+		else
+			self:Disable()
+		end
+	end)
+  end,
+  OnAccept = function (self, data)
+    local msg = Me:Serialize( "EXP", {
+			r = true;
+		})
+	for i = 1, #DiceMasterDMExp.selected do
+		local name, rank = GetRaidRosterInfo(DiceMasterDMExp.selected[i])
+		if not name then return end
+		Me:SendCommMessage( "DCM4", msg, "WHISPER", name, "ALERT" )
+	end
+  end,
+  hasEditBox = true,
+  showAlert = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
 function Me.DiceMasterRollFrame_OnLoad(self)
 	self:SetClampedToScreen( true )
 	self:SetMovable(true)
@@ -62,7 +157,7 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 	
 	self.portrait:SetTexture( "Interface/AddOns/DiceMaster/Texture/logo" )
 	self.TitleText:SetText("DM Manager")
-	self.Inset:SetPoint("TOPLEFT", 4, -80);
+	--self.Inset:SetPoint("TOPLEFT", 4, -80);
 	
 	for i = 2, 17 do
 		local button = CreateFrame("Button", "DiceMasterRollTrackerButton"..i, DiceMasterRollTracker, "DiceMasterRollTrackerButtonTemplate");
@@ -70,6 +165,13 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 		button:SetPoint("TOP", _G["DiceMasterRollTrackerButton"..(i-1)], "BOTTOM");
 	end
 	
+	for i = 2, 13 do
+		local button = CreateFrame("Button", "DiceMasterDMExpButton"..i, DiceMasterDMExp, "DiceMasterDMExperienceButtonTemplate");
+		button:SetID(i)
+		button:SetPoint("TOP", _G["DiceMasterDMExpButton"..(i-1)], "BOTTOM", 0, -2);
+	end
+	
+	DiceMasterDMExp.selected = {}
 	Me.DiceMasterRollFrame_Update()
 	
 	local chat_events = { 
@@ -96,6 +198,16 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 				DiceMasterDMNotesDMNotes.EditBox:Enable()
 				Me.RollTracker_ShareNoteWithParty()
 			end
+			for i = 1, GetNumGroupMembers(1) do
+				-- Get level and experience data from players.
+				local name, rank = GetRaidRosterInfo(i)
+				Me.Inspect_UpdatePlayer( name )
+			end
+			if GetNumGroupMembers(1) == 0 then
+				DiceMasterDMExp.checkAll:SetChecked( false )
+				DiceMasterDMExp.selected = {}
+			end
+			Me.DMExperienceFrame_Update()
 		end
 	end)
 	
@@ -411,6 +523,114 @@ function Me.DiceMasterRollDetailFrame_Update()
 	FauxScrollFrame_Update(DiceMasterRollFrameDetailScrollFrame, #Me.HistoryRolls[name], 9, 16 );
 end
 
+function Me.DMExperienceFrame_OnShow()		
+	Me.DMExperienceFrame_Update()	
+end
+
+function Me.DMExperienceButton_OnClick(self, all)
+	if self:GetChecked() then
+		if all then
+			for i = 1, 40 do
+				tinsert(DiceMasterDMExp.selected, i)
+			end
+			Me.DMExperienceFrame_Update()
+		else
+			tinsert(DiceMasterDMExp.selected, self:GetParent().entryIndex)
+		end
+	else
+		if all then
+			DiceMasterDMExp.selected = {}
+			Me.DMExperienceFrame_Update()
+		else
+			for i = 1, #DiceMasterDMExp.selected do
+				if DiceMasterDMExp.selected[i] == self:GetParent().entryIndex then
+					tremove(DiceMasterDMExp.selected, i)
+					break;
+				end
+			end
+		end
+	end
+end
+
+function Me.DMExperienceFrame_Update()
+	if ( not DiceMasterDMExp:IsShown() ) then
+		return;
+	end
+	
+	DiceMasterDMExpInset.Text:Hide()
+	
+	local name;
+	local numGroupMembers = GetNumGroupMembers(1)
+	if numGroupMembers < 1 then
+		DiceMasterDMExpInset.Text:Show()
+		for i = 1, 13 do
+			local button = _G["DiceMasterDMExpButton"..i];
+			button:Hide()
+		end
+		FauxScrollFrame_Update(DiceMasterDMExpScrollFrame, numGroupMembers, 13, 16 );
+		return
+	end
+	local entryIndex;
+	
+	local entryOffset = FauxScrollFrame_GetOffset(DiceMasterDMExpScrollFrame);
+	
+	local showScrollBar = nil;
+	if ( numGroupMembers > 13 ) then
+		showScrollBar = 1;
+	end
+	
+	for i=1,13,1 do
+		entryIndex = entryOffset + i;
+		local button = _G["DiceMasterDMExpButton"..i];
+		button.entryIndex = entryIndex
+		local name, rank, subgroup, level, class, fileName, zone, online = GetRaidRosterInfo(entryIndex)
+		local buttonText = _G["DiceMasterDMExpButton"..i.."Name"];
+		buttonText:SetText(name)
+		
+		if name and Me.inspectData[name] then
+			local store = Me.inspectData[name]
+			local buttonText =  _G["DiceMasterDMExpButton"..i.."ExperienceBarText"];
+			button.level = store.level
+			buttonText:SetText("Level ".. button.level);
+			local buttonBar = _G["DiceMasterDMExpButton"..i.."ExperienceBar"];
+			buttonBar:SetValue(store.experience)
+		end
+		
+		if ( entryIndex > numGroupMembers ) then
+			button:Hide();
+		else
+			button:Show();
+		end
+		
+		local found = false;
+		for i = 1, #DiceMasterDMExp.selected do
+			if DiceMasterDMExp.selected[i] == button.entryIndex then
+				found = true;
+				break
+			end
+		end
+		local checkBox = _G["DiceMasterDMExpButton"..i.."Check"];
+		if name == UnitName("player") or not online then
+			_G["DiceMasterDMExpButton"..i.."Name"]:SetVertexColor(0.5,0.5,0.5)
+			checkBox:SetChecked( false )
+			checkBox:Disable()
+		else
+			_G["DiceMasterDMExpButton"..i.."Name"]:SetVertexColor(1,0.81,0)
+			checkBox:SetChecked( found )
+			checkBox:Enable()
+		end			
+		
+		-- If need scrollbar resize columns
+		if ( showScrollBar ) then
+			button:SetWidth(220);
+		else
+			button:SetWidth(240);
+		end
+	end
+	
+	FauxScrollFrame_Update(DiceMasterDMExpScrollFrame, numGroupMembers, 13, 16 );
+end
+
 function Me.DiceMasterRollFrameDisplayDetail( rollIndex )
 	local frame = DiceMasterRollFrame.DetailFrame
 	
@@ -721,7 +941,7 @@ end
 
 function Me.RollTracker_OnBanner( data, dist, sender )	
 	-- Only the party leader can send us these.
-	if not Me.db.global.enableRoundBanners or not UnitIsGroupLeader(sender, 1) then return end
+	if not UnitIsGroupLeader(sender, 1) then return end
  
 	-- sanitize message
 	if not data.na or not data.tp then
@@ -731,13 +951,21 @@ function Me.RollTracker_OnBanner( data, dist, sender )
 	
 	if Me.PermittedUse() and not DiceMasterRollBanner:IsShown() then
 		
+		-- if banners are off, just show the message.
+		if not Me.db.global.enableRoundBanners then
+			print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00"..data.tp)
+			return
+		end
+		
 		DiceMasterRollBanner.Title:SetText( data.tp )
 		
 		if ROLL_ROUND_TYPES[ data.tp ] then
 			DiceMasterRollBanner.Title:SetText( data.tp .. " Round!" )
 			DiceMasterRollBanner.SubTitle:SetText(ROLL_ROUND_TYPES[ data.tp ])
+			print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00"..data.tp.." Round! "..ROLL_ROUND_TYPES[ data.tp ])
 		else
 			DiceMasterRollBanner.SubTitle:SetText("")
+			print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00"..data.tp)
 		end
 		
 		DiceMasterRollBanner.AnimIn:Play()

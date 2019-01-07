@@ -57,6 +57,14 @@ function SlashCmdList.DMSOUND( msg, editBox )
 end 
 
 function DiceMasterTalkingHeadFrame_OnLoad(self)
+	self:SetClampedToScreen( true )
+	self:SetMovable(true)
+	self:EnableMouse(true)
+	self:RegisterForDrag( "LeftButton" )
+	self:SetScript( "OnDragStart", self.StartMoving )
+	self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+	self:SetScale(0.8)
+	self:SetUserPlaced( true )
 	self:RegisterForClicks("RightButtonUp");
 
 	self.NameFrame.Name:SetPoint("TOPLEFT", self.PortraitFrame.Portrait, "TOPRIGHT", 2, -19);

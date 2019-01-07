@@ -16,6 +16,7 @@ local DB_DEFAULTS = {
 	global = {
 		version     = nil;
 		hideInspect = false; -- hide inspect frame when panel is hidden
+		hideStats   = false; -- hide stats button from inspect frame.
 		hideTips	= true; -- turn enhanced tooltips on for newbies
 		hideTracker = false; -- hide the roll tracker.
 		hideTypeTracker = false;
@@ -70,6 +71,10 @@ local DB_DEFAULTS = {
 		buffs		 = {};
 		removebuffs  = {};
 		buffsActive  = {};
+		stats = {
+		};
+		level        = 1;
+		experience   = 0;
 	} 
 }
 
@@ -146,8 +151,22 @@ Me.configOptions = {
 			get = function( info ) return Me.db.global.hideInspect end;
 		};
 		
-		hideTips = {
+		hideStats = {
 			order = 7;
+			name  = "Hide Statistics Button on Inspect Frame";
+			desc  = "Hide the Statistics button from the Inspect Frame.";
+			type  = "toggle";
+			width = "double";
+			set = function( info, val )
+				Me.db.global.hideStats = val
+				Me.Inspect_Open( Me.inspectName )
+				-- refresh hidden status.
+			end;
+			get = function( info ) return Me.db.global.hideStats end;
+		};
+		
+		hideTips = {
+			order = 8;
 			name  = "Enable Enhanced Tooltips";
 			desc  = "Enable helpful DiceMaster term definitions next to trait tooltips.";
 			type  = "toggle";
@@ -159,7 +178,7 @@ Me.configOptions = {
 		};
 		
 		hideTracker = {
-			order = 8;
+			order = 9;
 			name  = "Enable DM Manager";
 			desc  = "Enable the DM Manager frame to keep track of your group's rolls and view group-wide notes.";
 			type  = "toggle";
@@ -177,7 +196,7 @@ Me.configOptions = {
 		};
 		
 		trackerScale = {
-			order     = 9;
+			order     = 10;
 			name      = "DM Manager Scale";
 			desc      = "The size of the DM Manager frame.";
 			type      = "range";
@@ -194,7 +213,7 @@ Me.configOptions = {
 		};
 		
 		hideTypeTracker = {
-			order = 10;
+			order = 11;
 			name  = "Enable Typing Tracker";
 			desc  = "Enable the Typing Tracker to alert you when group members are writing in say, emote, party, and raid.";
 			type  = "toggle";
@@ -206,7 +225,7 @@ Me.configOptions = {
 		};
 		
 		enableRoundBanners = {
-			order = 11;
+			order = 12;
 			name  = "Allow Roll Prompt Banners";
 			desc  = "Allow the group leader to send you visual prompts when it's your turn to roll.";
 			type  = "toggle";
@@ -218,7 +237,7 @@ Me.configOptions = {
 		};
 		
 		headerFrames = {
-			order = 12;
+			order = 13;
 			name  = " ";
 			type  = "description";
 		};
@@ -675,9 +694,14 @@ Me.configOptionsUF = {
 			type  = "toggle";
 			set   = function( info, val ) 
 				if IsAddOnLoaded("DiceMaster_UnitFrames") then
+					if val then
+						print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Unit Frames enabled.")
+					else
+						print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Unit Frames disabled.")
+					end
 					Me.ShowUnitPanel( val )
 				else
-					print("|cFFFFFF00DiceMaster Unit Frames module not found. Enable the module from your AddOns list.")
+					print("DiceMaster Unit Frames module not found. Enable the module from your AddOns list.")
 				end
 			end;
 			get   = function( info ) return not Me.db.char.unitframes.enable end;
@@ -797,6 +821,7 @@ local interfaceOptionsNeedsInit = true
 -- Open the configuration panel.
 --
 function Me.OpenConfig() 
+	Me.configOptions.args.trackerScale.hidden = not Me.db.global.hideTracker
 	Me.configOptionsCharges.args.chargesGroup.hidden = not Me.db.profile.charges.enable
 	Me.configOptionsProgressBar.args.moraleGroup.hidden = not Me.db.profile.morale.enable
 	Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = Me.db.profile.healthMax
@@ -816,6 +841,7 @@ end
 
 -------------------------------------------------------------------------------
 function Me.ApplyConfig( onload )
+	Me.configOptions.args.trackerScale.hidden = not Me.db.global.hideTracker
 	Me.configOptionsCharges.args.chargesGroup.hidden = not Me.db.profile.charges.enable
 	Me.configOptionsProgressBar.args.moraleGroup.hidden = not Me.db.profile.morale.enable
 	Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = Me.db.profile.healthMax

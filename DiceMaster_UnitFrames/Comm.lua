@@ -41,7 +41,7 @@ function Me.UnitFrame_SendStatus( visibleframes, id, status )
 		fx = statusAffix;
 	})
 	
-	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
+	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
 end
 
 ---------------------------------------------------------------------------
@@ -72,8 +72,8 @@ function Me.UnitFrame_OnStatusMessage( data, dist, sender )
 
 	
 	if UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) then
+		Me.ShowUnitPanel( true )
 		local unitframes = DiceMasterUnitsPanel.unitframes
-		local visibleframes = DiceMaster4UF_Saved.VisibleFrames
 		
 		unitframes[data.id]:SetData( data )
 		

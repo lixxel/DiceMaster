@@ -55,6 +55,7 @@ local function PrimeInspectData( name )
 	Me.inspectData[name] = {
 		traits = {};
 		buffsActive = {};
+		stats = {};
 		statusSerial  = 0;
 		charges = {
 			enable    = false;
@@ -68,6 +69,8 @@ local function PrimeInspectData( name )
 		health        = 5;
 		healthMax     = 5;
 		armor         = 0;
+		level         = 1;
+		experience    = 0;
 		hasDM4        = false;
 	}
 	
@@ -315,6 +318,9 @@ function Me.Inspect_Refresh( status, trait )
 	if not Me.db.char.hidepanel or not Me.db.global.hideInspect then
 		if store.hasDM4 then
 			DiceMasterInspectFrame:Show()
+			if not Me.db.global.hideStats then
+				DiceMasterStatInspectButton:Show()
+			end
 		end
 	end
 end
@@ -328,7 +334,11 @@ end
 function Me.Inspect_Open( name )
 	Me.inspectName = name
 	DiceMasterInspectFrame:Hide()
-	if Me.FramesUnlocked then DiceMasterInspectFrame:Show() end
+	DiceMasterStatInspectButton:Hide()
+	if Me.FramesUnlocked then 
+		DiceMasterInspectFrame:Show()
+		DiceMasterStatInspectButton:Show()
+	end
 	if name == nil then return end
 	
 	Me.Inspect_UpdatePlayer( name )
@@ -357,6 +367,7 @@ local function StartQueue()
 			local request_data = {
 				ts = {};
 				ss = store.statusSerial;
+				bs = {};
 			}
 			
 			for i = 1, Me.traitCount do
@@ -557,6 +568,8 @@ local function DoSendStatus()
 			cn = Profile.charges.name;
 			cs = Profile.charges.symbol;
 			cc = ToHex(Profile.charges.color);
+			le = Profile.level;
+			ex = Profile.experience;
 		}
 		if not Profile.charges.enable then
 			msg.c  = 0
@@ -599,6 +612,26 @@ function Me.Inspect_SendStatus( dist, channel )
 end
 
 -------------------------------------------------------------------------------
+-- Send data for one of your stats.
+--
+-- @param index   Index of Me.stats
+-- @param dist    Addon message distribution.
+-- @param channel Whisper target or channel name.
+--
+function Me.Inspect_SendStat( index, dist, channel )
+	local stat = Profile.stats[index]
+	
+	local msg = Me:Serialize( "STAT", {
+		i = index;
+		n = stat.name;
+		v = stat.value;
+	})
+	
+	if (channel and (not type(channel) == "number")) then channel = tostring(channel) end
+    Me:SendCommMessage( "DCM4", msg, dist, channel, "NORMAL" )
+end
+
+-------------------------------------------------------------------------------
 -- Send a STATUS message to the party.
 --
 function Me.Inspect_ShareStatusWithParty()
@@ -630,6 +663,16 @@ function Me.Inspect_OnInspectMessage( data, dist, sender )
 	if data.ss and data.ss ~= Me.db.char.statusSerial then
 		-- their status serial mismatches, so we send them our status
 		Me.Inspect_SendStatus( "WHISPER", sender )
+	end
+	
+	if data.bs then
+		-- they're requesting base stats.
+		if not Profile.stats then
+			return
+		end
+		for i = 1, #Profile.stats do
+			Me.Inspect_SendStat( i, "WHISPER", sender )
+		end
 	end
 end
 
@@ -750,13 +793,15 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	data.c  = tonumber(data.c)
 	data.cm = tonumber(data.cm)
 	data.cn = tostring(data.cn)
+	if data.le then data.le = tonumber(data.le) end
+	if data.ex then data.ex = tonumber(data.ex) end
 	if data.ct then data.ct = tostring(data.ct) end
 	if data.cs then data.cs = tostring(data.cs) end
 	if #data.cc ~= 6 then data.cc = "FFFFFF" end
 	
 	if not data.s or not data.h or not data.hm or not data.c 
 	   or not data.cm or not data.cn or data.cm < 0
-	   or data.cm > 10 or data.hm < 1 or data.hm > 10 
+	   or data.cm > 10
 	   or data.h < 0 or data.h > data.hm or data.c < 0 
 	   or data.c > data.cm then
 	   
@@ -780,9 +825,85 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	store.health         = data.h
 	store.healthMax      = data.hm
 	store.armor          = data.ar
+	if data.le then store.level = data.le end
+	if data.ex then store.experience = data.ex end
 	store.hasDM4         = true
 	
 	Me.Inspect_OnStatusUpdated( sender )
+	Me.DMExperienceFrame_Update()
+end
+
+---------------------------------------------------------------------------
+-- Received STAT data.
+--
+function Me.Inspect_OnStatMessage( data, dist, sender )
+	
+	-- Ignore our own data.
+	if sender == UnitName( "player" ) then return end
+	
+	-- sanitize message
+	if not data.i then
+		-- we require index in message
+		return
+	end
+	
+	data.i = tonumber( data.i )
+	data.n = tostring( data.n or "<Unknown name.>" )
+	data.v = tonumber( data.v )
+	
+	if not data.i or not data.n or not data.v then 
+		-- another pass after number sanitization
+		return 
+	end
+	
+	-- store in database
+	Me.inspectData[sender].stats[data.i] = {
+		name    = data.n;
+		value   = data.v;
+	}
+	
+	Me.StatInspector_Update()
+end
+
+---------------------------------------------------------------------------
+-- Received EXP data.
+--
+function Me.Inspect_OnExperience( data, dist, sender )
+	
+	-- Only the party leader can grant experience.
+	if sender == UnitName( "player" ) or not UnitIsGroupLeader( sender , 1) then return end
+	
+	-- sanitize message
+	if not data.v and not data.l and not data.r then
+		return
+	end
+	
+	if data.v then data.v = tonumber( data.v ) end
+	if data.l then data.l = tonumber( data.l ) end
+	
+	if data.v then
+		Profile.experience = Profile.experience + data.v
+		print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Experience gained: " .. ( data.v ) .. ".|r")
+		
+		if Profile.experience >= 100 then
+			Profile.experience = Profile.experience - 100
+			Profile.level = Profile.level + 1;
+			PlaySound(124)
+			print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Congratulations, you have reached level " .. ( Profile.level ) .. "!|r")
+		end
+	elseif data.l then
+		Profile.level = Profile.level + 1;
+		PlaySound(124)
+		print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Congratulations, you have reached level " .. ( Profile.level ) .. "!|r")
+	elseif data.r then	
+		Profile.level = 1;
+		Profile.experience = 0;
+		print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Your level has been reset to 1.")
+	end
+	
+	Me.Inspect_ShareStatusWithParty()
+	Me.TraitEditor_StatsList_Update()
+	Me.DMExperienceFrame_Update()
 end
 
 -------------------------------------------------------------------------------

@@ -180,7 +180,8 @@ end
 -- @returns true if the player is the leader.
 --
 function Me.IsLeader( allowAssistant )
-	if allowAssistant and UnitIsGroupAssistant("player", 1) then
+	if allowAssistant and ( UnitIsGroupAssistant("player", 1) ) then
+		-- TODO
 		return true
 	end
 	
@@ -445,9 +446,6 @@ function Me.OnHealthClicked( button )
 		-- Open dialog for custom value.
 		StaticPopup_Show("DICEMASTER4_SETHEALTHVALUE")
 	elseif IsAltKeyDown() then
-		if Me.OutOfRange( Profile.armor+delta, 0, Profile.healthMax ) then
-			return
-		end
 		Profile.armor = Profile.armor + delta;
 	else
 		if Me.OutOfRange( Profile.health+delta, 0, Profile.healthMax ) then
@@ -622,6 +620,8 @@ function Me.UnlockFrames()
 	DiceMasterPanelDragFrame:Show()
 	DiceMasterInspectFrame:Show()
 	DiceMasterInspectFrameDragFrame:Show()
+	DiceMasterStatInspectButton:Show()
+	DiceMasterStatInspectButtonDragFrame:Show()
 	DiceMasterBuffFrameDragFrame:Show()
 	DiceMasterInspectBuffFrameDragFrame:Show()
 	DiceMasterChargesFrameDragFrame:Show()
@@ -642,6 +642,7 @@ function Me.LockFrames()
 	end
 	DiceMasterPanelDragFrame:Hide()
 	DiceMasterInspectFrameDragFrame:Hide()
+	DiceMasterStatInspectButtonDragFrame:Hide()
 	DiceMaster4.Inspect_Open( UnitName("target") )
 	DiceMasterBuffFrameDragFrame:Hide()
 	DiceMasterInspectBuffFrameDragFrame:Hide()
@@ -652,7 +653,9 @@ end
 function Me.ApplyUiScale()
 	DiceMasterPanel:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterTraitEditor:SetScale( Me.db.char.uiScale * 1.4 )
+	DiceMasterStatInspector:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterInspectFrame:SetScale( Me.db.char.uiScale * 1.2 )
+	DiceMasterStatInspectButton:SetScale( Me.db.char.uiScale * 1.2 )
 	DiceMasterBuffEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterRemoveBuffEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterChargesFrame:SetScale( Me.db.char.uiScale * 1.2 )

@@ -142,7 +142,7 @@ local methods = {
 	-- Reset the unit frame data.
 	--
 	Reset = function( self )
-		self:ClearModel()
+		self:SetDisplayInfo(1)
 		self.name:SetText("Unit Name")
 		self.name:EnableMouse()
 		self.toggleIcon:SetChecked(false)
@@ -175,7 +175,11 @@ local methods = {
 	GetData = function( self )
 		local framedata = {}
 		framedata.name = self.name:GetText() or "Unit Name"
-		framedata.state = self.toggleIcon:GetChecked()
+		if Me.IsLeader( false ) then
+			framedata.state = self.toggleIcon:GetChecked()
+		else
+			framedata.state = true;
+		end
 		framedata.model = self:GetDisplayInfo() or 1
 		framedata.symbol = self.symbol.State or 9;
 		framedata.healthCurrent = self.healthCurrent or 3
@@ -195,13 +199,19 @@ local methods = {
 		self:SetAlpha(1)
 		if framedata.md then		
 			self:SetDisplayInfo(framedata.md)
+			-- wound animation
+			local wound = false;
+			if framedata.hc < self.healthCurrent and self:GetDisplayInfo() == framedata.md and self.name:GetText() == framedata.na then
+				wound = self.healthCurrent - framedata.hc;
+			end
 		else
 			self:ClearModel()
 		end
 		self:SetPortraitZoom(0)
 		self:SetPortraitZoom(0.6)
-		if Me.IsLeader( true ) then
+		if Me.IsLeader( false ) then
 			self.toggleIcon:Show()
+			self.toggleIcon:SetChecked(framedata.vs)
 		else
 			self.toggleIcon:Hide()
 		end
@@ -209,12 +219,26 @@ local methods = {
 		self.symbol.State = framedata.sy
 		self.symbol:SetNormalTexture("Interface/TARGETINGFRAME/UI-RaidTargetingIcon_" .. self.symbol.State )
 		if self.symbol.State == 9 then self.symbol:SetNormalTexture(nil) end
+		self.animation = framedata.an or 0
+		if wound then
+			self:SetAnimation(8)
+			self.damageText:SetText( "-"..wound )
+			if self.damageTextAnim:IsPlaying() then
+				self.damageTextAnim:Stop()
+			end
+			self.damageTextAnim:Play()
+		end
+		if framedata.hc == 0 then
+			self.dead = true;
+			self:SetAnimation(1)
+		else
+			self.dead = false;
+			self:SetAnimation(self.animation)
+		end
 		self.healthCurrent = framedata.hc
 		self.healthMax = framedata.hm
 		self.armor = framedata.ar or 0
 		Me.RefreshHealthbarFrame( self.health, self.healthCurrent, self.healthMax, self.armor )
-		self.animation = framedata.an or 0
-		self:SetAnimation(self.animation)
 		self.spellvisualkit = framedata.svk or 0
 		self:SetSpellVisualKit(self.spellvisualkit)
 		-- if an affix is being used
@@ -257,6 +281,7 @@ local methods = {
 			DiceMaster4.SetupTooltip( self.expand, nil, "Collapse", nil, nil, nil, "Collapse the frame to a smaller size.|n|cFF707070<Left Click to Collapse>" )
 		end
 		self.SetBackground( self )
+		self:SetAnimation(self.animation)
 	end;
 	
 	SetBackground = function( self )
@@ -354,37 +379,50 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHMAX"] = {
 --
 function Me.OnUnitBarHealthClicked( self, button )
 	if Me.IsLeader( true ) then
-	local unit = self:GetParent()
+		local unit = self:GetParent()
 
-	local delta = 0
-	if button == "LeftButton" then
-		delta = 1
-	elseif button == "RightButton" then
-		delta = -1
-	else
-		return
-	end
-	if IsShiftKeyDown() and button == "LeftButton" then
-		-- Open dialog for custom value.
-		StaticPopup_Show("DICEMASTER4_SETUNITHEALTHMAX", nil, nil, self:GetParent())
-	elseif IsControlKeyDown() and button == "LeftButton" then
-		-- Open dialog for custom value.
-		StaticPopup_Show("DICEMASTER4_SETUNITHEALTHVALUE", nil, nil, self:GetParent())
-	elseif IsAltKeyDown() then
-		if Me.OutOfRange( unit.armor+delta, 0, unit.healthMax ) then
+		local delta = 0
+		if button == "LeftButton" then
+			delta = 1
+		elseif button == "RightButton" then
+			delta = -1
+		else
 			return
 		end
-		unit.armor = unit.armor + delta;
-	else
-		if Me.OutOfRange( unit.healthCurrent+delta, 0, unit.healthMax ) then
-			return
+		if IsShiftKeyDown() and button == "LeftButton" then
+			-- Open dialog for custom value.
+			StaticPopup_Show("DICEMASTER4_SETUNITHEALTHMAX", nil, nil, self:GetParent())
+		elseif IsControlKeyDown() and button == "LeftButton" then
+			-- Open dialog for custom value.
+			StaticPopup_Show("DICEMASTER4_SETUNITHEALTHVALUE", nil, nil, self:GetParent())
+		elseif IsAltKeyDown() then
+			unit.armor = unit.armor + delta;
+		else
+			if Me.OutOfRange( unit.healthCurrent+delta, 0, unit.healthMax ) then
+				return
+			end
+			if delta == -1 then
+				unit:SetAnimation(8)
+				unit.damageText:SetText( "-1" )
+				if unit.damageTextAnim:IsPlaying() then
+					unit.damageTextAnim:Stop()
+				end
+				unit.damageTextAnim:Play()
+			end
+			unit.healthCurrent = Me.Clamp( unit.healthCurrent + delta, 0, unit.healthMax )
 		end
-		unit.healthCurrent = Me.Clamp( unit.healthCurrent + delta, 0, unit.healthMax )
-	end
-	
-    Me.RefreshHealthbarFrame( self, unit.healthCurrent, unit.healthMax, unit.armor )
-	
-	Me.UpdateUnitFrames()
+		
+		Me.RefreshHealthbarFrame( self, unit.healthCurrent, unit.healthMax, unit.armor )
+		
+		if unit.healthCurrent == 0 then
+			unit.dead = true;
+			unit:SetAnimation(1)
+		elseif unit.dead then
+			unit.dead = false;
+			unit:SetAnimation(unit.animation)
+		end
+		
+		Me.UpdateUnitFrames()
 	end
 end
 
@@ -404,46 +442,46 @@ end
 -- Add another unit frame to the panel.
 --
 function Me.CreateUnitFrame()
-	if Me.IsLeader( true ) then
-	local unitframes = DiceMasterUnitsPanel.unitframes
-	local visibleframes = DiceMaster4UF_Saved.VisibleFrames
-	
-	for i=1,#unitframes do
-		if not unitframes[i]:IsVisible() then
-			unitframes[i]:Show()
-			unitframes[i].visible = true;
-			DiceMaster4UF_Saved.VisibleFrames = DiceMaster4UF_Saved.VisibleFrames + 1
-			break;
+	if Me.IsLeader( false ) then
+		local unitframes = DiceMasterUnitsPanel.unitframes
+		local visibleframes = DiceMaster4UF_Saved.VisibleFrames
+		
+		for i=1,#unitframes do
+			if not unitframes[i]:IsVisible() then
+				unitframes[i]:Show()
+				unitframes[i].visible = true;
+				DiceMaster4UF_Saved.VisibleFrames = DiceMaster4UF_Saved.VisibleFrames + 1
+				break;
+			end
 		end
-	end
-	
-	Me.UpdateUnitFrames()
+		
+		Me.UpdateUnitFrames()
 	end
 end
 -------------------------------------------------------------------------------
 -- Remove a unit frame from the panel.
 --
 function Me.DeleteUnitFrame( frame )
-	if Me.IsLeader( true ) then
-	if DiceMaster4UF_Saved.VisibleFrames == 1 then return end;
-	local unitframes = DiceMasterUnitsPanel.unitframes
-	
-	frame:Hide()
-	for i=1,#unitframes do
-		if unitframes[i]==frame then
-			unitframes[i]:Reset()
-			tremove( unitframes, i )
-			tinsert( unitframes, frame)
-			unitframes[i].visible = false;
+	if Me.IsLeader( false ) then
+		if DiceMaster4UF_Saved.VisibleFrames == 1 then return end;
+		local unitframes = DiceMasterUnitsPanel.unitframes
+		
+		frame:Hide()
+		for i=1,#unitframes do
+			if unitframes[i]==frame then
+				unitframes[i]:Reset()
+				tremove( unitframes, i )
+				tinsert( unitframes, frame)
+				unitframes[i].visible = false;
+			end
 		end
-	end
-	DiceMaster4UF_Saved.VisibleFrames = DiceMaster4UF_Saved.VisibleFrames - 1
-	
-	if Me.UnitEditing == frame and DiceMasterAffixEditor:IsShown() then
-		Me.AffixEditor_Close()
-	end
-	
-	Me.UpdateUnitFrames()
+		DiceMaster4UF_Saved.VisibleFrames = DiceMaster4UF_Saved.VisibleFrames - 1
+		
+		if Me.UnitEditing == frame and DiceMasterAffixEditor:IsShown() then
+			Me.AffixEditor_Close()
+		end
+		
+		Me.UpdateUnitFrames()
 	end
 end
 
@@ -452,25 +490,25 @@ end
 --
 function Me.MarkUnitFrame( frame )
 	if Me.IsLeader( true ) then
-	local unitframes = DiceMasterUnitsPanel.unitframes
-	local visibleframes = DiceMaster4UF_Saved.VisibleFrames
-	
-	for i=1,#unitframes do
-		if unitframes[i] ~= frame then
-			unitframes[i].speaker = false;
-			unitframes[i].speakerIcon:Hide()
+		local unitframes = DiceMasterUnitsPanel.unitframes
+		local visibleframes = DiceMaster4UF_Saved.VisibleFrames
+		
+		for i=1,#unitframes do
+			if unitframes[i] ~= frame then
+				unitframes[i].speaker = false;
+				unitframes[i].speakerIcon:Hide()
+			end
 		end
-	end
-	
-	if not frame.speaker then
-		frame.speaker = true;
-		frame.speakerIcon:Show()
-	else
-		frame.speaker = false;
-		frame.speakerIcon:Hide()
-	end
-	
-	Me.UpdateUnitFrames()
+		
+		if not frame.speaker then
+			frame.speaker = true;
+			frame.speakerIcon:Show()
+		else
+			frame.speaker = false;
+			frame.speakerIcon:Hide()
+		end
+		
+		Me.UpdateUnitFrames()
 	end
 end
 -------------------------------------------------------------------------------
@@ -478,19 +516,22 @@ end
 --
 function Me.UpdateUnitFrames( number )
 	local unitframes = DiceMasterUnitsPanel.unitframes
-	if not DiceMaster4UF_Saved.VisibleFrames then DiceMaster4UF_Saved.VisibleFrames = 3 end
+	if not DiceMaster4UF_Saved.VisibleFrames then DiceMaster4UF_Saved.VisibleFrames = 1 end
 	if number == "reset" then
+		DiceMaster4UF_Saved.VisibleFrames = 1
 		for i=1,#unitframes do
 			unitframes[i]:Reset()
 		end
 		number = 1
 	end
-	if number then 
+	if number and not Me.IsLeader( false ) then 
 		DiceMaster4UF_Saved.VisibleFrames = number
 	end
-	if number == 0 then
+	if number == 0 and not Me.IsLeader( false ) then
 		for i=1,#unitframes do
 			unitframes[i]:Hide()
+			Me.UnitPicker_Close()
+			Me.AffixEditor_Close()
 		end
 	end
 	local visibleframes = DiceMaster4UF_Saved.VisibleFrames
@@ -505,7 +546,11 @@ function Me.UpdateUnitFrames( number )
 				tinsert(shareableframes, status)
 			end
 			
-			Me.SetupTooltip( unitframes[i], nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>|n<Ctrl+Left Click to Talk>" )
+			if Me.IsLeader( false ) then
+				Me.SetupTooltip( unitframes[i], nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Ctrl+Left Click to Talk>" )
+			else
+				Me.SetupTooltip( unitframes[i], nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>|n<Ctrl+Left Click to Talk>" )
+			end
 		else
 			Me.SetupTooltip( unitframes[i] )
 		end
@@ -514,7 +559,7 @@ function Me.UpdateUnitFrames( number )
 		unitframes[i]:SetPoint( "CENTER", (visibleframes*85-85)-170*(i-1), 0 )
 	end
 	
-	if Me.IsLeader( true ) then
+	if Me.IsLeader( true ) and not number then
 		for i=1,#shareableframes do
 			-- Share frame changes with the rest of the group.
 			if Me.IsLeader( true ) then

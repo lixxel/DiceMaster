@@ -82,7 +82,7 @@
 	</Button>
 	
 	<Frame name="DiceMasterRollTrackerDetailFrameTemplate" toplevel="true" enableMouse="true" virtual="true">
-		<Size x="212" y="270"/>
+		<Size x="212" y="280"/>
 		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background-Dark" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
 			<BackgroundInsets>
 				<AbsInset left="11" right="11" top="11" bottom="11"/>
@@ -162,7 +162,7 @@
 			<Frame parentKey="ListInset" inherits="InsetFrameTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="12" y="-72"/>
-					<Anchor point="BOTTOMRIGHT" x="-12" y="45"/>
+					<Anchor point="BOTTOMRIGHT" x="-12" y="55"/>
 				</Anchors>
 				<Layers>
 					<Layer level="ARTWORK">
@@ -207,7 +207,7 @@
 			<Button parentKey="RemoveButton" inherits="UIPanelButtonTemplate" text="Clear">
 				<Size x="96" y="22"/>
 				<Anchors>
-					<Anchor point="BOTTOMLEFT" x="10" y="12"/>
+					<Anchor point="BOTTOMLEFT" x="10" y="32"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -235,6 +235,27 @@
 				<HighlightFont style="GameFontHighlightSmall"/>
 				<DisabledFont style="GameFontDisableSmall"/>
 			</Button>
+			<Button parentKey="ExperienceButton" inherits="UIPanelButtonTemplate" text="Grant Character Experience">
+				<Size x="192" y="22"/>
+				<Anchors>
+					<Anchor point="BOTTOM" x="0" y="12"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+					</OnClick>
+					<OnUpdate>
+						if DiceMaster4.IsLeader() then
+							self:Enable()
+						else
+							self:Disable()
+						end
+					</OnUpdate>
+				</Scripts>
+				<NormalFont style="GameFontNormalSmall"/>
+				<HighlightFont style="GameFontHighlightSmall"/>
+				<DisabledFont style="GameFontDisableSmall"/>
+			</Button>
 		</Frames>
 		<Scripts>
 			<OnLoad>
@@ -254,7 +275,116 @@
 		</Scripts>
 	</Frame>
   
-  <Frame name="DiceMasterRollBanner" parent="UIParent" hidden="true" alpha="1">
+   <Button name="DiceMasterDMExperienceButtonTemplate" virtual="true">
+		<Size x="240" y="20"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentBackground" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
+					<Size x="0" y="21"/>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset x="0" y="0"/>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.0" right="0.7578125" top="0.0" bottom="0.328125"/>
+				</Texture>
+			</Layer>
+			<Layer level="BORDER">
+				<FontString name="$parentName" inherits="GameFontNormalSmall" justifyH="LEFT">
+					<Size x="78" y="10"/>
+					<Anchors>
+						<Anchor point="LEFT" x="25" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<CheckButton name="$parentCheck" parentKey="check" inherits="UICheckButtonTemplate">
+				<Size x="20" y="20"/>
+				<Anchors>
+				  <Anchor point="LEFT" x="2" y="0"/>
+				</Anchors>
+				
+				<Scripts>
+					<OnLoad>
+					</OnLoad>
+					<OnClick>
+						DiceMaster4.DMExperienceButton_OnClick(self)
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			
+			<StatusBar name="$parentExperienceBar" drawLayer="BORDER" minValue="0" maxValue="100" defaultValue="0">
+				<Size x="101" y="13"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="0" y="0"/>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture name="$parentLeftTexture" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
+							<Size x="62" y="21"/>
+							<Anchors>
+								<Anchor point="LEFT" x="0" y="0"/>
+							</Anchors>
+							<TexCoords left="0.7578125" right="1.0" top="0" bottom="0.328125"/>
+						</Texture>
+						<Texture name="$parentRightTexture" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
+							<Size x="42" y="21"/>
+							<Anchors>
+								<Anchor point="LEFT" relativeTo="$parentLeftTexture" relativePoint="RIGHT" x="0" y="0"/>
+							</Anchors>
+							<TexCoords left="0.0" right="0.1640625" top="0.34375" bottom="0.671875"/>
+						</Texture>
+						<FontString name="$parentText" inherits="GameFontHighlightSmall" text="Level 1">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture name="$parentHighlight2" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD" hidden="true">
+							<Size x="17" y="28"/>
+							<Anchors>
+								<Anchor point="RIGHT">
+									<Offset x="4" y="0"/>
+								</Anchor>
+							</Anchors>
+							<TexCoords left="0" right="0.06640625" top="0.4375" bottom="0.875"/>
+						</Texture>
+						<Texture name="$parentHighlight1" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD" hidden="true">
+							<Size x="0" y="28"/>
+							<Anchors>
+								<Anchor point="RIGHT" relativeTo="$parentHighlight2" relativePoint="LEFT"/>
+							</Anchors>
+							<TexCoords left="0" right="1" top="0" bottom="0.4375"/>
+						</Texture>
+					</Layer>
+				</Layers>
+				<BarTexture file="Interface\PaperDollInfoFrame\UI-Character-Skills-Bar"/>
+				<BarColor r=".25" g=".25" b=".75"/>
+			</StatusBar>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				_G[self:GetName().."ExperienceBarHighlight1"]:SetPoint("TOPLEFT",self,"TOPLEFT",-2, 4);
+				_G[self:GetName().."ExperienceBarHighlight1"]:SetPoint("BOTTOMRIGHT",self,"BOTTOMRIGHT",-10, -4);
+				_G[self:GetName().."Background"]:SetPoint("TOPRIGHT", self:GetName().."ExperienceBarLeftTexture", "TOPLEFT", 0, 0);
+				self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+			</OnLoad>
+			<OnEnter>
+				_G[self:GetName().."ExperienceBarText"]:SetText(_G[self:GetName().."ExperienceBar"]:GetValue().." / 100");
+				_G[self:GetName().."ExperienceBarHighlight1"]:Show();
+				_G[self:GetName().."ExperienceBarHighlight2"]:Show();
+			</OnEnter>
+			<OnLeave>
+				_G[self:GetName().."ExperienceBarText"]:SetText("Level "..self.level);
+				_G[self:GetName().."ExperienceBarHighlight1"]:Hide();
+				_G[self:GetName().."ExperienceBarHighlight2"]:Hide();
+			</OnLeave>
+		</Scripts>
+	</Button>
+	
+  <Frame name="DiceMasterRollBanner" parent="UIParent" hidden="true" framestrata="DIALOG" alpha="1">
 	<Size x="128" y="156"/>
 	<Anchors>
 		<Anchor point="TOP" x="0" y="-120"/>
@@ -460,7 +590,7 @@
 	</Scripts>
 </Frame>
   
-  <Frame name="DiceMasterRollFrame" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="LOW">
+  <Frame name="DiceMasterRollFrame" parent="UIParent" inherits="PortraitFrameTemplate" hidden="true" framestrata="HIGH">
     <Size x="265" y="384" />
     <Anchors>
       <Anchor point="LEFT" x="300" y="100" />
@@ -469,7 +599,7 @@
     <Scripts>
       <OnLoad>
 		DiceMaster4.DiceMasterRollFrame_OnLoad( self )
-		PanelTemplates_SetNumTabs(self, 2);
+		PanelTemplates_SetNumTabs(self, 3);
 	    PanelTemplates_SetTab(self, 1);
 	  </OnLoad>
 	  <OnHide>
@@ -723,27 +853,17 @@
 						<Anchor point="TOPLEFT" x="5" y="-60"/>
 						<Anchor point="BOTTOMRIGHT" x="-5" y="26"/>
 					</Anchors>
-					<Layers>
-						<Layer level="ARTWORK">
-							<FontString name="DiceMasterRollTrackerTotals" inherits="GameFontNormalSmall">
-								<Size x="298" y="16"/>
-								<Anchors>
-									<Anchor point="BOTTOM" x="0" y="5"/>
-								</Anchors>
-							</FontString>
-						</Layer>
-					</Layers>
 				</Frame>
 				
-				<CheckButton name="$parentAllowAssistants" parentKey="AllowAssistants" inherits="ChatConfigCheckButtonTemplate">
+				<CheckButton name="$parentAllowAssistants" parentKey="AllowAssistants" inherits="UICheckButtonTemplate">
+					<Size x="24" y="24"/>
 					<Anchors>
-					  <Anchor point="TOPLEFT" x="60" y="-30" />
+					  <Anchor point="TOPLEFT" x="58" y="-22"/>
 					</Anchors>
 					
 					<Scripts>
 						<OnLoad>
 							_G[self:GetName().."Text"]:SetText("|cFFFFD100Allow Raid Assistants to Edit")
-							self.tooltip = "Allows your raid assistants to edit your notes."
 							self:Hide()
 						</OnLoad>
 						<OnClick>
@@ -843,6 +963,155 @@
 			</Scripts>
 		</Frame>
 		
+		<Frame name="DiceMasterDMExp" setAllPoints="true" hidden="true">
+			<Frames>
+				<Frame name="DiceMasterDMExpInset" parentKey="inset" inherits="InsetFrameTemplate">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" y="-60"/>
+						<Anchor point="BOTTOMRIGHT" x="-5" y="26"/>
+					</Anchors>
+					<Layers>
+						<Layer level="BORDER">
+							<FontString parentKey="Text" inherits="GameFontWhite" justifyH="LEFT" justifyV="TOP">
+								<Anchors>
+									<Anchor point="TOPLEFT" x="10" y="-10"/>
+									<Anchor point="BOTTOMRIGHT" x="-10" y="10"/>
+								</Anchors>
+								<Color r="1" g="1" b="1"/>
+							</FontString>
+						</Layer>
+					</Layers>
+				</Frame>
+				
+				<CheckButton name="$parentCheckAll" parentKey="checkAll" inherits="UICheckButtonTemplate">
+					<Size x="24" y="24"/>
+					<Anchors>
+					  <Anchor point="TOPLEFT" x="58" y="-22"/>
+					</Anchors>
+					
+					<Scripts>
+						<OnUpdate>
+							if not UnitIsGroupLeader("player", 1) then
+								self:Disable()
+								_G[self:GetName().."Text"]:SetVertexColor(0.5,0.5,0.5)
+							else	
+								self:Enable()
+								_G[self:GetName().."Text"]:SetVertexColor(1,0.81,0)
+							end
+						</OnUpdate>
+						<OnLoad>
+							_G[self:GetName().."Text"]:SetText("All")
+						</OnLoad>
+						<OnClick>
+							DiceMaster4.DMExperienceButton_OnClick(self, true)
+						</OnClick>
+					</Scripts>
+				</CheckButton>
+				
+				<Button name="DiceMasterDMExpButton1" inherits="DiceMasterDMExperienceButtonTemplate" id="1">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeTo="DiceMasterDMExp" x="10" y="-68"/>
+						</Anchors>
+				</Button>
+				
+				<ScrollFrame name="$parentScrollFrame" inherits="FauxScrollFrameTemplate">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="DiceMasterDMExpInset" relativePoint="TOPLEFT" x="0" y="-6"/>
+						<Anchor point="BOTTOMRIGHT" relativeTo="DiceMasterDMExpInset" relativePoint="BOTTOMRIGHT" x="-25" y="0"/>
+					</Anchors>
+					<Scripts>
+						<OnVerticalScroll>
+							FauxScrollFrame_OnVerticalScroll(self, offset, 16, DiceMaster4.DMExperienceFrame_Update);
+						</OnVerticalScroll>
+					</Scripts>
+					<Layers>
+						<Layer level="BORDER">
+							<Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+								<Size x="31" y="256"/>
+								<Anchors>
+									<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-2" y="5"/>
+								</Anchors>
+								<TexCoords left="0" right="0.484375" top="0" bottom="1.0"/>
+							</Texture>
+							<Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+								<Size x="31" y="106"/>
+								<Anchors>
+									<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="-2" y="-2"/>
+								</Anchors>
+								<TexCoords left="0.515625" right="1.0" top="0" bottom="0.4140625"/>
+							</Texture>
+						</Layer>
+					</Layers>
+				</ScrollFrame>
+				
+				<Button name="$parentGrantExpButton" inherits="UIPanelButtonTemplate" text="Grant XP...">
+					<Size x="85" y="22"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="6" y="4"/>
+					</Anchors>
+					<Scripts>
+						<OnUpdate>
+							if #DiceMasterDMExp.selected == 0 then
+								self:Disable()
+							elseif UnitIsGroupLeader("player", 1) then		
+								self:Enable()
+							end
+						</OnUpdate>
+						<OnClick>
+							StaticPopup_Show("DICEMASTER4_GRANTEXPERIENCE")
+						</OnClick>
+					</Scripts>
+				</Button>
+				
+				<Button name="$parentGrantLevelButton" inherits="UIPanelButtonTemplate" text="Grant Level...">
+					<Size x="85" y="22"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentGrantExpButton" relativePoint="RIGHT" x="-2" y="0"/>
+					</Anchors>
+					<Scripts>
+						<OnUpdate>
+							if #DiceMasterDMExp.selected == 0 then
+								self:Disable()
+							elseif UnitIsGroupLeader("player", 1) then	
+								self:Enable()
+							end
+						</OnUpdate>
+						<OnClick>
+							StaticPopup_Show("DICEMASTER4_GRANTLEVEL")
+						</OnClick>
+					</Scripts>
+				</Button>
+				
+				<Button name="$parentResetLevelButton" inherits="UIPanelButtonTemplate" text="Reset Level">
+					<Size x="85" y="22"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentGrantLevelButton" relativePoint="RIGHT" x="-2" y="0"/>
+					</Anchors>
+					<Scripts>
+						<OnUpdate>
+							if #DiceMasterDMExp.selected == 0 then
+								self:Disable()
+							elseif UnitIsGroupLeader("player", 1) then	
+								self:Enable()
+							end
+						</OnUpdate>
+						<OnClick>
+							StaticPopup_Show("DICEMASTER4_LEVELRESETATTEMPT")
+						</OnClick>
+					</Scripts>
+				</Button>
+
+			</Frames>
+			<Scripts>
+				<OnLoad>
+					self.inset.Text:SetText("|cFFffd100While in a group, you can view the level and experience values of all group members.|r|n|n- The group leader can grant experiences and levels to the players selected from this list using the buttons below.|n|n- The group leader cannot grant themselves experience or levels.|n|n- Once a player reaches 100 experience, they advance to the next level.")
+				</OnLoad>
+				<OnShow>
+					DiceMaster4.DMExperienceFrame_OnShow()
+				</OnShow>
+			</Scripts>
+		</Frame>
+		
 		<Button name="$parentTab1" parentKey="Tab1" useParentLevel="true" inherits="CharacterFrameTabButtonTemplate" id="1" text="Roll Tracker">
 			<Anchors>
 				<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" y="2"/>
@@ -852,6 +1121,7 @@
 					PanelTemplates_SetTab(DiceMasterRollFrame, 1);
                     DiceMasterRollTracker:Show();
                     DiceMasterDMNotes:Hide();
+					DiceMasterDMExp:Hide();
 				</OnClick>
 			</Scripts>
 		</Button>
@@ -865,6 +1135,21 @@
 					PanelTemplates_SetTab(DiceMasterRollFrame, 2);
                     DiceMasterRollTracker:Hide();
                     DiceMasterDMNotes:Show();
+					DiceMasterDMExp:Hide();
+				</OnClick>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentTab3" parentKey="Tab3" useParentLevel="true" inherits="CharacterFrameTabButtonTemplate" id="3" text="Experience">
+			<Anchors>
+				<Anchor point="LEFT" relativeKey="$parent.Tab2" relativePoint="RIGHT" x="-16"/>
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					PanelTemplates_SetTab(DiceMasterRollFrame, 3);
+                    DiceMasterRollTracker:Hide();
+                    DiceMasterDMNotes:Hide();
+					DiceMasterDMExp:Show();
 				</OnClick>
 			</Scripts>
 		</Button>

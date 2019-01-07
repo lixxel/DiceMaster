@@ -37,6 +37,7 @@ frame:RegisterEvent("ZONE_CHANGED_NEW_AREA");
 function frame:OnEvent(event, arg1, ...)
 	if event == "ADDON_LOADED" and arg1 == "DiceMaster_UnitFrames" then
 		DiceMaster4UF_Saved = DiceMaster4UF_Saved or {}
+		if DiceMaster4UF_Saved.VisibleFrames == 0 then DiceMaster4UF_Saved.VisibleFrames = 1 end
 		Me.UpdateUnitFrames()
 
 		if IsInGroup(1) and not Me.IsLeader( false ) then

@@ -187,10 +187,11 @@ function Me.RemoveBuffEditor_Save()
 		UIErrorsFrame:AddMessage( "You must select a buff from the dropdown.", 1.0, 0.0, 0.0, 53, 5 );
 		return
 	end
-	local removebuff = Profile.removebuffs[Me.editing_trait]
-	removebuff.name = UIDropDownMenu_GetText(Me.removebuffeditor.buffName)
-	removebuff.count = Me.removebuffeditor.buffCount:GetText()
-	removebuff.blank = false
+	local removebuff = {
+		name = UIDropDownMenu_GetText(Me.removebuffeditor.buffName);
+		count = Me.removebuffeditor.buffCount:GetText();
+		blank = false;
+	}
 	Profile.removebuffs[Me.editing_trait] = removebuff
 end
 

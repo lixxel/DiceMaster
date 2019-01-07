@@ -131,7 +131,6 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 			DiceMasterRollFrame:Show()
 			Me.configOptions.args.trackerScale.hidden = false
 		end
-		Me.ApplyUiScale() 
 	elseif command == "managerscale" then
 	
 		rest = tonumber(rest)

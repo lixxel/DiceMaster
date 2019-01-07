@@ -105,10 +105,10 @@ end
 local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
 	local sum = 0
 	for k,v in pairs( rolls ) do 
-		Me.OnRollMessage( name, you, count, sides, mod, v ) 
 		sum = sum + v
 	end
 	
+	Me.OnRollMessage( name, you, count, sides, mod, sum ) 
 	
 	local rollstring = ""
 	if count == 1 then

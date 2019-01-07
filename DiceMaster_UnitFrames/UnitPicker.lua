@@ -220,7 +220,13 @@ function Me.UnitPickerButton_OnClick( self, button )
 		if Me.UnitEditing then
 			Me.UnitEditing:SetDisplayInfo(Me.UnitEditing:GetDisplayInfo())
 			Me.UnitEditing.spellvisualkit = value
-			Me.UnitEditing:SetAnimation(Me.UnitEditing.animation)
+			if Me.UnitEditing.healthCurrent == 0 then
+				Me.UnitEditing.dead = true;
+				Me.UnitEditing:SetAnimation(6)
+			else
+				Me.UnitEditing.dead = false;
+				Me.UnitEditing:SetAnimation(Me.UnitEditing.animation)
+			end
 			Me.UnitEditing:SetSpellVisualKit(value)
 			Me.UnitEditing:SetPortraitZoom(0)
 			Me.UnitEditing:SetPortraitZoom(0.6)
@@ -250,7 +256,13 @@ function Me.UnitPicker_ResetEffect()
 	if Me.UnitEditing then
 		Me.UnitEditing.spellvisualkit = 0
 		Me.UnitEditing:SetDisplayInfo(Me.UnitEditing:GetDisplayInfo())
-		Me.UnitEditing:SetAnimation(Me.UnitEditing.animation)
+		if Me.UnitEditing.healthCurrent == 0 then
+			Me.UnitEditing.dead = true;
+			Me.UnitEditing:SetAnimation(6)
+		else
+			Me.UnitEditing.dead = false;
+			Me.UnitEditing:SetAnimation(Me.UnitEditing.animation)
+		end
 		Me.UnitEditing:SetSpellVisualKit(0)
 		Me.UnitEditing:SetPortraitZoom(0)
 		Me.UnitEditing:SetPortraitZoom(0.6)

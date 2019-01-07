@@ -1,3 +1,17 @@
+### 5.0.2
+ - Added "Character Sheet" tab to Trait Editor.
+ - Fixed an issue displaying health values above 10.
+ - Unit Frames enable automatically when the group leader has enabled them.
+ - Changed FrameStrata of the Unit Frames Panel, DM Manager, and Roll Prompt Banners.
+ - Fixed issues causing the Unit Frame Panel to disappear when raid assistants are promoted.
+ - Fixed the DM Manager Scale option not showing when DM Manager is enabled.
+ - Added death animations to Unit Frames at 0 health.
+ - Added keybinding options for the DM Manager to the config menu.
+ - Roll Prompts now print in chat as well.
+ - Added character sheet (statistics) viewer to the Inspect Frame.
+ - Added experience bar to the statistics frame.
+ - New Experience tab on the DM Manager.
+
 ### 5.0.1
  - Minor bug fixes.
  - Fixed errors resulting from NineSlice element.
@@ -8,7 +22,6 @@
  - Fixed Roll Tracker not recording modifiers on logged rolls.
  - Fixed Roll Tracker not detecting raid markers in chat.
  - Allow health bar to anchor below traits on the Inspect Frame (config menu option).
- - Fixed an issue with the <color> tag in trait descriptions.
 
 ### 5.0
  - Patch 8.1 compatbility.

@@ -2,7 +2,7 @@
 
   <!-- Units Panel -->
   
-  <Button name="DiceMasterUnitsPanel" frameStrata="MEDIUM" parent="UIParent">
+  <Button name="DiceMasterUnitsPanel" frameStrata="LOW" parent="UIParent">
     <Size x="153" y="256"/>
     <Anchors>
       <Anchor point="TOP" x="0" y="-200"/>
