@@ -39,6 +39,9 @@
 		  </Anchors>
           
         </Texture>
+		<FontString parentKey="damageText" inherits="SystemFont_World" setallpoints="true">
+			<Color r="1" g="0" b="0"/>
+		</FontString>
 	  </Layer>
       
     </Layers>
@@ -78,10 +81,9 @@
 			  <Scripts>
 				<OnLoad>
 					self:RegisterForClicks("LeftButtonUp", "RightButtonDown");
-					DiceMaster4.SetupTooltip( self, nil, "Target Marker Icon", nil, nil, nil, "A unique icon to represent this unit.|n|cFF707070&lt;Left/Right Click to Toggle>" )
 				</OnLoad>
 				<OnClick>
-					if DiceMaster4.IsLeader( true ) then
+					if DiceMaster4.IsLeader( false ) then
 						if button == "LeftButton" then
 							self.State = self.State + 1;
 							if self.State > 9 then self.State = 1 end
@@ -119,7 +121,7 @@
 					DiceMaster4.SetupTooltip( self, "Interface/Icons/inv_misc_questionmark", "Monster Affix", nil, nil, nil, "A special effect or ability used by this unit." )
 				</OnLoad>
 				<OnClick>
-					if DiceMaster4.IsLeader( true ) then
+					if DiceMaster4.IsLeader( false ) then
 						DiceMaster4.AffixEditor_Open( self:GetParent() )
 					end
 				</OnClick>
@@ -168,9 +170,9 @@
 			  </OnEditFocusLost>
 			  <OnEscapePressed function="EditBox_ClearFocus"/>
 			  <OnEnterPressed function="EditBox_ClearFocus"/>
-			  <OnCursorChanged>
-				self:EnableMouse( DiceMaster4.IsLeader( true ) )
-			  </OnCursorChanged>
+			  <OnUpdate>
+				self:EnableMouse( DiceMaster4.IsLeader( false ) )
+			  </OnUpdate>
 			</Scripts>
 			<FontString inherits="GameFontHighlightSmall" justifyH="center" />
 		  </EditBox>
@@ -228,8 +230,6 @@
 			self.frame:SetTexCoord( 0, 1, 0, 0.25 )
 			self.background:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
 			self.background:SetTexCoord( 0, 1, 0.25, 0.5 )
-			
-            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, "Represents this unit's health.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left Click to Set Max>|n&lt;Ctrl+Left Click to Set Value>" )
           </OnLoad>
           <OnMouseDown>
             DiceMaster4.OnUnitBarHealthClicked( self, button )
@@ -240,33 +240,27 @@
     <Scripts>
       <OnLoad>
         DiceMaster4.UnitFrame_Init( self )
-		self:SetPortraitZoom(0.6)
 		self.name:SetText("Unit Name")
 		self.visible = true
 		self:Reset()
-		DiceMaster4.SetupTooltip( self, nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070&lt;Left Click to Edit>|n&lt;Shift+Left/Right Click to Add/Remove>|n&lt;Ctrl+Left Click to Talk>" )
       </OnLoad>
       <OnSizeChanged>
         
         local qw, qh = self:GetWidth()*1.3, self:GetHeight()*2.3
-        --print( qw, qh )
-		self:SetDisplayInfo(self:GetDisplayInfo())
-		self:SetPortraitZoom(0)
-		self:SetPortraitZoom(0.6)
       </OnSizeChanged>
 	  <OnMouseDown>
-		if DiceMaster4.IsLeader( true ) then
-		if IsShiftKeyDown() then
-			if button=="LeftButton" then
-				DiceMaster4.CreateUnitFrame()
-			elseif button=="RightButton" then
-				DiceMaster4.DeleteUnitFrame( self )
+		if DiceMaster4.IsLeader( false ) then
+			if IsShiftKeyDown() then
+				if button=="LeftButton" then
+					DiceMaster4.CreateUnitFrame()
+				elseif button=="RightButton" then
+					DiceMaster4.DeleteUnitFrame( self )
+				end
+			elseif IsControlKeyDown() then
+				DiceMaster4.MarkUnitFrame( self )
+			elseif button=="LeftButton" then
+				DiceMaster4.AffixEditor_Open( self )
 			end
-		elseif IsControlKeyDown() then
-			DiceMaster4.MarkUnitFrame( self )
-		elseif button=="LeftButton" then
-			DiceMaster4.AffixEditor_Open( self )
-		end
 		end
 	  </OnMouseDown>
 	  <OnAnimFinished>
@@ -278,10 +272,25 @@
 		end
 	  </OnAnimFinished>
 	  <OnUpdate>
-		self:SetPortraitZoom(0)
-		self:SetPortraitZoom(0.6)
+		if self.collapsed then
+			self:SetPortraitZoom(0)
+			self:SetPortraitZoom(0.9)
+		else
+			self:SetPortraitZoom(0)
+			self:SetPortraitZoom(0.6)
+		end
 	  </OnUpdate>
     </Scripts>
+	<Animations>
+        <AnimationGroup parentKey="damageTextAnim">
+			<Translation childKey="damageText" duration="2" order="1" offsetX="0" offsetY="50"/>
+			<Scripts>
+				<OnPlay>
+					UIFrameFadeOut(self:GetParent().damageText, 1, 1, 0)
+				</OnPlay>
+			</Scripts>
+		</AnimationGroup>
+	</Animations>
     
   </CinematicModel>
 

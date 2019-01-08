@@ -307,7 +307,7 @@ StaticPopupDialogs["DICEMASTER4_MYCOLLECTION"] = {
 	elseif text~= "" then
 		DiceMaster4UF_Saved.MyCollection[text] = {}
 		tinsert(DiceMaster4UF_Saved.MyCollection[text], data)
-		print("|cFFFFFF00\""..text.."\" created.");
+		Me.PrintMessage("\""..text.."\" created.", "SYSTEM");
 		Me.AffixEditor_RefreshGrid()
 	else
 		UIErrorsFrame:AddMessage( "Invalid name.", 1.0, 0.0, 0.0, 53, 5 );
@@ -335,7 +335,7 @@ StaticPopupDialogs["DICEMASTER4_RENAMECOLLECTION"] = {
 	elseif text~= "" then
 		DiceMaster4UF_Saved.MyCollection[text] = DiceMaster4UF_Saved.MyCollection[data]
 		DiceMaster4UF_Saved.MyCollection[data] = nil
-		print("|cFFFFFF00\""..data.."\" renamed to \""..text..".\"");
+		Me.PrintMessage("\""..data.."\" renamed to \""..text..".\"", "SYSTEM");
 		UIDropDownMenu_SetText(DiceMasterAffixEditorFilter, text)
 		Me.AffixEditor_RefreshGrid()
 	else
@@ -355,7 +355,7 @@ StaticPopupDialogs["DICEMASTER4_DELETECOLLECTION"] = {
   button2 = "No",
   OnAccept = function (self, data, data2)
 	DiceMaster4UF_Saved.MyCollection[data] = nil
-	print("|cFFFFFF00\""..data.."\" deleted.");
+	Me.PrintMessage("\""..data.."\" deleted.", "SYSTEM");
 	UIDropDownMenu_SetText(DiceMasterAffixEditorFilter, "Default")
 	Me.AffixEditor_FilterChanged( "default" )
 	Me.AffixEditor_RefreshGrid()
@@ -379,7 +379,7 @@ StaticPopupDialogs["DICEMASTER4_ADDTOCOLLECTION"] = {
     local text = tonumber(self.editBox:GetText())
 	if text~= nil and (text <= Me.unitList) then
 		tinsert(DiceMaster4UF_Saved.MyCollection[data], text)
-		print("|cFFFFFF00"..text.." added to \""..data..".\"");
+		Me.PrintMessage(text.." added to \""..data..".\"", "SYSTEM");
 		Me.AffixEditor_RefreshGrid()
 	else
 		UIErrorsFrame:AddMessage( "Invalid model.", 1.0, 0.0, 0.0, 53, 5 );
@@ -606,7 +606,7 @@ function Me.AffixEditor_SaveAffix()
 		DiceMaster4UF_Saved.FavouriteAffixes[name].name = name
 		DiceMaster4UF_Saved.FavouriteAffixes[name].desc = desc
 		DiceMaster4UF_Saved.FavouriteAffixes[name].effect = effect
-		print("|T"..icon..":16|t "..name.."|cFFFFFF00 saved.");
+		Me.PrintMessage("|T"..icon..":16|t "..name.." saved.", "SYSTEM");
 	end
 end
 
@@ -616,7 +616,7 @@ function Me.AffixEditor_DeleteAffix( affix )
 	DiceMasterAffixEditorAffixName:SetText("")
 	DiceMasterAffixEditorAffixDesc.EditBox:SetText("")
 	if DiceMaster4UF_Saved.FavouriteAffixes[affix] then
-		print("|T"..DiceMaster4UF_Saved.FavouriteAffixes[affix].icon..":16|t "..affix.."|cFFFFFF00 deleted.");
+		Me.PrintMessage("|T"..DiceMaster4UF_Saved.FavouriteAffixes[affix].icon..":16|t "..affix.." deleted.", "SYSTEM");
 		DiceMaster4UF_Saved.FavouriteAffixes[affix] = nil;
 	end
 	Me.AffixEditor_ClearTooltip()
@@ -753,6 +753,7 @@ function Me.AffixEditor_Close()
 	DiceMasterAffixEditorAffixDesc.EditBox:ClearFocus()
 	Me.AffixEditing = nil;
 	PlaySound(680)
+	DiceMasterUnitPicker:Hide()
 	DiceMasterAffixEditor:Hide()
 end
     

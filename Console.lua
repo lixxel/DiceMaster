@@ -22,10 +22,10 @@ function SlashCmdList.DICE( msg, editBox )
 	
 	if msg == "" then
 		-- show usage
-		print("|cFFFFFF00/dice XDY[+/-]Z");
-		print("|cFFFFFF00- X is how many dice to roll.");
-		print("|cFFFFFF00- Y is how many sides those dice have.");
-		print("|cFFFFFF00- Z is how much you add/subtract from the total after adding up all the dice.");
+		Me.PrintMessage("/dice XDY[+/-]Z", "SYSTEM");
+		Me.PrintMessage("- X is how many dice to roll.", "SYSTEM");
+		Me.PrintMessage("- Y is how many sides those dice have.", "SYSTEM");
+		Me.PrintMessage("- Z is how much you add/subtract from the total after adding up all the dice.", "SYSTEM");
 		return
 	end
 	
@@ -150,17 +150,17 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		end
 		Me.ApplyUiScale() 
 	else
-		print("|cFFFFFF00- /dicemaster config");
-		print("|cFFFFFF00- /dicemaster scale (number)");
-		print("|cFFFFFF00- /dicemaster (show || hide)");
-		print("|cFFFFFF00- /dicemaster charges (show || hide)");
-		print("|cFFFFFF00- /dicemaster chargesname (name)");
-		print("|cFFFFFF00- /dicemaster maxcharges (number)");
-		print("|cFFFFFF00- /dicemaster chargescolor (r g b)");
-		print("|cFFFFFF00- /dicemaster showraidrolls (true || false)");
-		print("|cFFFFFF00- /dicemaster manager (show || hide)");
-		print("|cFFFFFF00- /dicemaster managerscale (number)");
-		print("|cFFFFFF00- /dicemaster progressbar (show || hide)");
-		print("|cFFFFFF00- /dicemaster (lock || unlock)");
+		Me.PrintMessage("- /dicemaster config", "SYSTEM");
+		Me.PrintMessage("- /dicemaster scale (number)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster (show || hide)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster charges (show || hide)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster chargesname (name)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster maxcharges (number)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster chargescolor (r g b)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster showraidrolls (true || false)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster manager (show || hide)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster managerscale (number)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster progressbar (show || hide)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster (lock || unlock)", "SYSTEM");
 	end
 end 

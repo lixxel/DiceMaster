@@ -22,8 +22,8 @@ function SlashCmdList.DMSAY( msg, editBox )
 	
 	if msg == "" then
 		-- show usage
-		print("|cFFFFFF00/dmsay (message)")
-		print("|cFFFFFF00Ctrl+Left Click a unit to choose who is talking. Then use the '/dmsay' command to make them speak.")
+		Me.PrintMessage("/dmsay (message)", "SYSTEM")
+		Me.PrintMessage("Ctrl+Left Click a unit to choose who is talking. Then use the '/dmsay' command to make them speak.", "SYSTEM")
 		return
 	end
 	
@@ -39,18 +39,18 @@ function SlashCmdList.DMSOUND( msg, editBox )
 	
 	if msg == "" then
 		-- show usage
-		print("|cFFFFFF00/dmsound (soundKitID)")
-		print("|cFFFFFF00/dmsound clear")
-		print("|cFFFFFF00Assign a sound kit to play when the '/dmsay' command is used.")
+		Me.PrintMessage("/dmsound (soundKitID)", "SYSTEM")
+		Me.PrintMessage("/dmsound clear", "SYSTEM")
+		Me.PrintMessage("Assign a sound kit to play when the '/dmsay' command is used.", "SYSTEM")
 		return
 	end
 	
 	if DiceMaster4.IsLeader( false ) then
 		if msg == "clear" then
-			print("|cFFFFFF00Sound kit cleared.")
+			Me.PrintMessage("Sound kit cleared.", "SYSTEM")
 			Me.soundKitID = nil
 		else
-			print("|cFFFFFF00Sound kit loaded: |r" .. msg)
+			Me.PrintMessage("Sound kit loaded: |cFFFFFFFF" .. msg, "SYSTEM")
 			Me.soundKitID = tonumber(msg)
 		end
 	end
@@ -182,7 +182,7 @@ function DiceMasterTalkingHeadFrame_PlayCurrent(message)
 		frame.TextFrame.Text:SetText(message)
 		local stringHeight = frame.TextFrame.Text:GetStringHeight()/16
 		
-		print("|cFFE6E68E"..(frame.NameFrame.Name:GetText() or "Unknown").." says: "..message)
+		Me.PrintMessage("|cFFE6E68E"..(frame.NameFrame.Name:GetText() or "Unknown").." says: "..message, "RAID")
 		
 		if DiceMasterTalkingHeadFrame.soundKitID then
 			PlaySound(DiceMasterTalkingHeadFrame.soundKitID, "Dialog")

@@ -147,7 +147,7 @@ StaticPopupDialogs["DICEMASTER4_MYCOLLECTIONEFFECTS"] = {
 	elseif text~= "" then
 		DiceMaster4UF_Saved.MyEffects[text] = {}
 		tinsert(DiceMaster4UF_Saved.MyEffects[text], data)
-		print("|cFFFFFF00\""..text.."\" created.");
+		Me.PrintMessage("\""..text.."\" created.", "SYSTEM");
 		Me.UnitPicker_RefreshGrid()
 	else
 		UIErrorsFrame:AddMessage( "Invalid name.", 1.0, 0.0, 0.0, 53, 5 );
@@ -175,7 +175,7 @@ StaticPopupDialogs["DICEMASTER4_RENAMECOLLECTIONEFFECTS"] = {
 	elseif text~= "" then
 		DiceMaster4UF_Saved.MyEffects[text] = DiceMaster4UF_Saved.MyEffects[data]
 		DiceMaster4UF_Saved.MyEffects[data] = nil
-		print("|cFFFFFF00\""..data.."\" renamed to \""..text..".\"");
+		Me.PrintMessage("\""..data.."\" renamed to \""..text..".\"", "SYSTEM");
 		UIDropDownMenu_SetText(DiceMasterUnitPickerFilter, text)
 		Me.UnitPicker_RefreshGrid()
 	else
@@ -195,7 +195,7 @@ StaticPopupDialogs["DICEMASTER4_DELETECOLLECTIONEFFECTS"] = {
   button2 = "No",
   OnAccept = function (self, data, data2)
 	DiceMaster4UF_Saved.MyEffects[data] = nil
-	print("|cFFFFFF00\""..data.."\" deleted.");
+	Me.PrintMessage("\""..data.."\" deleted.", "SYSTEM");
 	UIDropDownMenu_SetText(DiceMasterUnitPickerFilter, "Default")
 	Me.UnitPicker_FilterChanged( "default" )
 	Me.UnitPicker_RefreshGrid()

@@ -21,6 +21,17 @@ local ROLL_ROUND_TYPES = {
 	["Stealth"] = "Roll to conceal yourself from detection.",
 }
 
+local WORLD_MARKER_NAMES = {
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:14:14|t |cffffff00Yellow|r World Marker"; -- [1]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:14:14|t |cffff7f3fOrange|r World Marker"; -- [2]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_3:14:14|t |cffa335eePurple|r World Marker"; -- [3]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4:14:14|t |cff1eff00Green|r World Marker"; -- [4]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_5:14:14|t |cffaaaaddSilver|r World Marker"; -- [5]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_6:14:14|t |cff0070ddBlue|r World Marker"; -- [6]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_7:14:14|t |cffff2020Red|r World Marker"; -- [7]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:14:14|t |cffffffffWhite|r World Marker"; -- [8]
+}
+
 StaticPopupDialogs["DICEMASTER4_ROLLBANNER"] = {
   text = "What type of round is your group rolling for?|n(Attack, Defence, Healing, etc.)",
   button1 = "Accept",
@@ -230,7 +241,11 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 end
 
 function Me.RollTargetDropDown_OnClick(self, arg1)
-	UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, self:GetText()) 
+	if arg1 > 0 then
+		UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "|TInterface/TARGETINGFRAME/UI-RaidTargetingIcon_"..arg1..":16|t")
+	else
+		UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "") 
+	end
 	local msg = Me:Serialize( "TARGET", {
 		ta = tonumber( arg1 );
 	})
@@ -243,14 +258,27 @@ end
 
 function Me.RollTargetDropDown_OnLoad(frame, level, menuList)
 	local info = UIDropDownMenu_CreateInfo()
-
+	
+	info.text = "|cFFffd100Select a Target:"
+	info.notClickable = true;
+	info.notCheckable = true;
+	UIDropDownMenu_AddButton(info, level)
+	info.notClickable = false;
+	info.disabled = false;
+	
 	for i = 1, 8 do
-	   info.text = "|TInterface/TARGETINGFRAME/UI-RaidTargetingIcon_"..i..":16|t"
-	   info.arg1 = i
+	   info.text = WORLD_MARKER_NAMES[i];
+	   info.arg1 = i;
 	   info.notCheckable = true;
 	   info.func = Me.RollTargetDropDown_OnClick;
 	   UIDropDownMenu_AddButton(info, level)
 	end
+	
+	info.text = "No World Marker";
+	info.arg1 = 0;
+	info.notCheckable = true;
+	info.func = Me.RollTargetDropDown_OnClick;
+	UIDropDownMenu_AddButton(info, level)
 end
 
 function Me.RollListDropDown_OnClick(self, arg1)
@@ -361,6 +389,8 @@ function Me.Format_TimeStamp( timestamp )
 	if hour > 12 then
 		period = "PM";
 		timestamp = string.gsub(timestamp, hour, hour-12)
+	elseif hour < 1 then
+		timestamp = string.gsub(timestamp, hour, 12)
 	end
 	
 	return (timestamp.." "..period)
@@ -953,7 +983,7 @@ function Me.RollTracker_OnBanner( data, dist, sender )
 		
 		-- if banners are off, just show the message.
 		if not Me.db.global.enableRoundBanners then
-			print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00"..data.tp)
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp, "RAID")
 			return
 		end
 		
@@ -962,10 +992,10 @@ function Me.RollTracker_OnBanner( data, dist, sender )
 		if ROLL_ROUND_TYPES[ data.tp ] then
 			DiceMasterRollBanner.Title:SetText( data.tp .. " Round!" )
 			DiceMasterRollBanner.SubTitle:SetText(ROLL_ROUND_TYPES[ data.tp ])
-			print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00"..data.tp.." Round! "..ROLL_ROUND_TYPES[ data.tp ])
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp.." Round! "..ROLL_ROUND_TYPES[ data.tp ])
 		else
 			DiceMasterRollBanner.SubTitle:SetText("")
-			print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00"..data.tp)
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp, "RAID")
 		end
 		
 		DiceMasterRollBanner.AnimIn:Play()

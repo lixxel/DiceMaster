@@ -112,6 +112,17 @@ local OTHER_ZONES_2 = {
 	"Northgarde",
 }
 
+local WORLD_MARKER_NAMES = {
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:14:14|t |cffffff00Yellow|r World Marker"; -- [1]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:14:14|t |cffff7f3fOrange|r World Marker"; -- [2]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_3:14:14|t |cffa335eePurple|r World Marker"; -- [3]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4:14:14|t |cff1eff00Green|r World Marker"; -- [4]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_5:14:14|t |cffaaaaddSilver|r World Marker"; -- [5]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_6:14:14|t |cff0070ddBlue|r World Marker"; -- [6]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_7:14:14|t |cffff2020Red|r World Marker"; -- [7]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:14:14|t |cffffffffWhite|r World Marker"; -- [8]
+}
+
 local function getContinent()
 	local mapID = C_Map.GetBestMapForUnit("player")
 	if(mapID) then
@@ -144,7 +155,6 @@ local methods = {
 	Reset = function( self )
 		self:SetDisplayInfo(1)
 		self.name:SetText("Unit Name")
-		self.name:EnableMouse()
 		self.toggleIcon:SetChecked(false)
 		self.toggleIcon:Show()
 		self:SetAlpha(0.7)
@@ -163,6 +173,15 @@ local methods = {
 		self.animation = 0
 		self.spellvisualkit = 0
 		self.scrollposition = nil
+		if Me.IsLeader( false ) then
+			DiceMaster4.SetupTooltip( self, nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>|n<Ctrl+Left Click to Set Speaker>" )
+			DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, "A unique icon to represent the location of this unit in the game world.|n|cFF707070<Left/Right Click to Toggle>" )
+			 DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, "Represents this unit's health.|n|cFF707070<Left/Right Click to Add/Remove>|n<Shift+Left Click to Set Max>|n<Ctrl+Left Click to Set Value>" )
+		else
+			DiceMaster4.SetupTooltip( self )
+			DiceMaster4.SetupTooltip( self.symbol )
+			DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, "Represents this unit's health." )
+		end
 		DiceMaster4.SetupTooltip( self.affixIcon, nil, "Monster Affix", nil, nil, nil, "A special effect or ability used by this unit.|n|cFF707070<Left Click to Edit>|n<Right Click to Toggle>" )
 		DiceMaster4.SetupTooltip( self.toggleIcon, nil, "Hidden", nil, nil, nil, "Your group cannot see this unit." )
 		self.speaker = false
@@ -180,7 +199,7 @@ local methods = {
 		else
 			framedata.state = true;
 		end
-		framedata.model = self:GetDisplayInfo() or 1
+		framedata.model = self:GetDisplayInfo()
 		framedata.symbol = self.symbol.State or 9;
 		framedata.healthCurrent = self.healthCurrent or 3
 		framedata.healthMax = self.healthMax or 3
@@ -197,29 +216,34 @@ local methods = {
 	--
 	SetData = function( self, framedata )
 		self:SetAlpha(1)
-		if framedata.md then		
+		local modelChanged = false;
+		if framedata.md and self:GetDisplayInfo() ~= framedata.md then		
 			self:SetDisplayInfo(framedata.md)
-			-- wound animation
-			local wound = false;
-			if framedata.hc < self.healthCurrent and self:GetDisplayInfo() == framedata.md and self.name:GetText() == framedata.na then
-				wound = self.healthCurrent - framedata.hc;
-			end
-		else
-			self:ClearModel()
+			modelChanged = true;
+		elseif not framedata.md then
+			self:SetDisplayInfo(1)
 		end
-		self:SetPortraitZoom(0)
-		self:SetPortraitZoom(0.6)
+		-- wound animation
+		local wound = false;
+		if framedata.hc < self.healthCurrent and self:GetDisplayInfo() == framedata.md and self.name:GetText() == framedata.na then
+			wound = self.healthCurrent - framedata.hc;
+		end
+		--self:SetPortraitZoom(0)
+		--self:SetPortraitZoom(0.6)
 		if Me.IsLeader( false ) then
 			self.toggleIcon:Show()
 			self.toggleIcon:SetChecked(framedata.vs)
 		else
 			self.toggleIcon:Hide()
+			DiceMaster4.SetupTooltip( self, nil, framedata.na )
+			if framedata.sy ~= 9 then
+				DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, "This unit is currently located at the "..WORLD_MARKER_NAMES[framedata.sy] .. "|r." )
+			end
 		end
 		self.name:SetText(framedata.na)
 		self.symbol.State = framedata.sy
 		self.symbol:SetNormalTexture("Interface/TARGETINGFRAME/UI-RaidTargetingIcon_" .. self.symbol.State )
 		if self.symbol.State == 9 then self.symbol:SetNormalTexture(nil) end
-		self.animation = framedata.an or 0
 		if wound then
 			self:SetAnimation(8)
 			self.damageText:SetText( "-"..wound )
@@ -231,8 +255,9 @@ local methods = {
 		if framedata.hc == 0 then
 			self.dead = true;
 			self:SetAnimation(1)
-		else
+		elseif modelChanged or self.animation ~= framedata.an or self.dead then
 			self.dead = false;
+			self.animation = framedata.an or 0
 			self:SetAnimation(self.animation)
 		end
 		self.healthCurrent = framedata.hc
@@ -250,7 +275,6 @@ local methods = {
 			self.affixIcon:Hide()
 			DiceMaster4.SetupTooltip( self.affixIcon, nil, "Monster Affix", nil, nil, nil, "A special effect or ability used by this unit." )
 		end
-		self.SetBackground( self )
 		if framedata.vs then self:Show() else self:Hide() end
 	end;
 	
@@ -281,7 +305,6 @@ local methods = {
 			DiceMaster4.SetupTooltip( self.expand, nil, "Collapse", nil, nil, nil, "Collapse the frame to a smaller size.|n|cFF707070<Left Click to Collapse>" )
 		end
 		self.SetBackground( self )
-		self:SetAnimation(self.animation)
 	end;
 	
 	SetBackground = function( self )
@@ -360,8 +383,8 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHMAX"] = {
 	if Me.OutOfRange( text, 1, 1000 ) then
 		return
 	end
-	if data.healthCurrent > data.healthMax then
-		data.healthCurrent = data.healthMax
+	if data.healthCurrent > text then
+		data.healthCurrent = text
 	end
 	data.healthMax = text
 	Me.RefreshHealthbarFrame( data.health, data.healthCurrent, data.healthMax, data.armor )
@@ -378,7 +401,7 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHMAX"] = {
 -- When the healthbar frame is clicked.
 --
 function Me.OnUnitBarHealthClicked( self, button )
-	if Me.IsLeader( true ) then
+	if Me.IsLeader( false ) then
 		local unit = self:GetParent()
 
 		local delta = 0
@@ -489,7 +512,7 @@ end
 -- Mark a unit frame as the talking head speaker.
 --
 function Me.MarkUnitFrame( frame )
-	if Me.IsLeader( true ) then
+	if Me.IsLeader( false ) then
 		local unitframes = DiceMasterUnitsPanel.unitframes
 		local visibleframes = DiceMaster4UF_Saved.VisibleFrames
 		
@@ -517,20 +540,14 @@ end
 function Me.UpdateUnitFrames( number )
 	local unitframes = DiceMasterUnitsPanel.unitframes
 	if not DiceMaster4UF_Saved.VisibleFrames then DiceMaster4UF_Saved.VisibleFrames = 1 end
-	if number == "reset" then
-		DiceMaster4UF_Saved.VisibleFrames = 1
-		for i=1,#unitframes do
-			unitframes[i]:Reset()
-		end
-		number = 1
-	end
-	if number and not Me.IsLeader( false ) then 
+	if number then 
 		DiceMaster4UF_Saved.VisibleFrames = number
 	end
-	if number == 0 and not Me.IsLeader( false ) then
+	if number == 0 then
 		for i=1,#unitframes do
 			unitframes[i]:Hide()
-			Me.UnitPicker_Close()
+		end
+		if DiceMasterAffixEditor:IsShown() then
 			Me.AffixEditor_Close()
 		end
 	end
@@ -540,29 +557,21 @@ function Me.UpdateUnitFrames( number )
 	for i=1,visibleframes do
 		
 		-- Calculate how many frames are shareable with the group.
-		if Me.IsLeader( true ) then
+		if Me.IsLeader( false ) then
 			local status = DiceMasterUnitsPanel.unitframes[i]:GetData()
 			if status.state then
 				tinsert(shareableframes, status)
 			end
-			
-			if Me.IsLeader( false ) then
-				Me.SetupTooltip( unitframes[i], nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Ctrl+Left Click to Talk>" )
-			else
-				Me.SetupTooltip( unitframes[i], nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>|n<Ctrl+Left Click to Talk>" )
-			end
-		else
-			Me.SetupTooltip( unitframes[i] )
 		end
 			
 		unitframes[i]:Show()
 		unitframes[i]:SetPoint( "CENTER", (visibleframes*85-85)-170*(i-1), 0 )
 	end
 	
-	if Me.IsLeader( true ) and not number then
+	if Me.IsLeader( false ) and not number then
 		for i=1,#shareableframes do
 			-- Share frame changes with the rest of the group.
-			if Me.IsLeader( true ) then
+			if Me.IsLeader( false ) then
 				local status = shareableframes[i]
 				Me.UnitFrame_SendStatus( #shareableframes, i, status )
 			end
@@ -570,8 +579,7 @@ function Me.UpdateUnitFrames( number )
 		
 		if #shareableframes == 0 then
 			-- If all our frames are in the "hidden" state, share 0.
-			local status = DiceMasterUnitsPanel.unitframes[1]:GetData()
-			Me.UnitFrame_SendStatus( 0, 1, status )
+			Me.UnitFrame_SendStatus( 0, 1 )
 		end
 	end
 end

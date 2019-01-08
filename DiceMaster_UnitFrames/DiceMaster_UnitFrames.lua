@@ -25,6 +25,7 @@ setmetatable( Me.Profile, {
 })
 
 local Profile = Me.Profile
+local wasLeader = false;
 
 ------------------------------------------------------------------------
 
@@ -38,9 +39,9 @@ function frame:OnEvent(event, arg1, ...)
 	if event == "ADDON_LOADED" and arg1 == "DiceMaster_UnitFrames" then
 		DiceMaster4UF_Saved = DiceMaster4UF_Saved or {}
 		if DiceMaster4UF_Saved.VisibleFrames == 0 then DiceMaster4UF_Saved.VisibleFrames = 1 end
-		Me.UpdateUnitFrames()
 
 		if IsInGroup(1) and not Me.IsLeader( false ) then
+			DiceMasterUnitsPanel:Hide()
 			for i=1, MAX_RAID_MEMBERS do
 				local name, rank = GetRaidRosterInfo(i)
 				if UnitIsGroupLeader( name ) then
@@ -49,15 +50,30 @@ function frame:OnEvent(event, arg1, ...)
 					break
 				end
 			end
+		else
+			Me.UpdateUnitFrames(1)
 		end
 		
 		Me.DMSAY_Init()
 	end
 	if event == "GROUP_ROSTER_UPDATE" and IsInGroup(1) and UnitIsGroupLeader("player") then
+		wasLeader = true;
 		Me.UpdateUnitFrames()
 	end
 	if event == "GROUP_LEFT" and not IsInGroup(1) and Me.IsLeader( false ) then
-		Me.UpdateUnitFrames("reset")
+		if wasLeader then
+			wasLeader = false;
+			return
+		end
+		local unitframes = DiceMasterUnitsPanel.unitframes
+		for i=1,#unitframes do
+			unitframes[i]:ClearModel()
+			unitframes[i]:Reset()
+			unitframes[i]:Hide()
+		end
+		Me.UpdateUnitFrames(1)
+		Me.enableMessageUF = true;
+		Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames disabled.", "SYSTEM")
 	end
 	if event == "ZONE_CHANGED_NEW_AREA" then
 		for i=1,#DiceMasterUnitsPanel.unitframes do
@@ -83,7 +99,14 @@ function Me.ShowUnitPanel( show )
 	
 	if not show then
 		DiceMasterUnitsPanel:Hide()
+		if Me.IsLeader( true ) then
+			Me.UnitFrame_SendStatus( 0, 1 )
+		end
 	else
 		DiceMasterUnitsPanel:Show()
+		if Me.IsLeader( true ) then
+			Me.UpdateUnitFrames()
+		end
 	end
+
 end

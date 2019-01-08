@@ -6,6 +6,8 @@
 
 local Me = DiceMaster4 
 
+Me.enableMessageUF = true;
+
 ---------------------------------------------------------------------------
 -- Send a status request.
 --
@@ -13,6 +15,16 @@ local Me = DiceMaster4
 --
 
 function Me.UnitFrame_SendStatus( visibleframes, id, status )
+	
+	if not status then
+		local msg = Me:Serialize( "UFSTAT", {
+			vf = tonumber( 0 );
+		})
+		
+		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
+		return
+	end
+	
 	local statusFrames = visibleframes
 	local statusID	   = id
 	local statusName   = status.name
@@ -64,14 +76,29 @@ function Me.UnitFrame_OnStatusMessage( data, dist, sender )
 	-- Ignore our own data.
 	if sender == UnitName( "player" )  then return end
  
+	if UnitIsGroupLeader( sender ) and data.vf and data.vf == 0 then
+		Me.ShowUnitPanel( false )
+		local unitframes = DiceMasterUnitsPanel.unitframes
+		
+		for i=data.vf+1,#unitframes do
+			unitframes[i]:ClearModel()
+			unitframes[i]:Reset()
+		end
+		if Me.enableMessageUF then
+			local sexTable = { "your group leader", "he", "she" }
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..sender.." has enabled Unit Frames, but they are all currently hidden. They will display automatically when "..sexTable[UnitSex(sender)].." makes them visible.", "SYSTEM")
+		end
+		Me.enableMessageUF = false;
+		return
+	end
+ 
 	-- sanitize message
 	if not data.vf and not data.id and not data.na and not data.md and not data.sy and not data.hc and not data.hm then
 	   
 		return
 	end
-
 	
-	if UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) then
+	if UnitIsGroupLeader( sender ) then
 		Me.ShowUnitPanel( true )
 		local unitframes = DiceMasterUnitsPanel.unitframes
 		
@@ -84,6 +111,10 @@ function Me.UnitFrame_OnStatusMessage( data, dist, sender )
 		end
 		
 		Me.UpdateUnitFrames( data.vf )
+		if Me.enableMessageUF then
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..sender.." has enabled Unit Frames.", "SYSTEM")
+		end
+		Me.enableMessageUF = false;
 	end
 end
 
@@ -92,9 +123,9 @@ end
 
 function Me.UnitFrame_OnStatusRequest( data, dist, sender )	
 	-- Ignore our own data.
-	if sender == UnitName( "player" )  then return end
+	if sender == UnitName( "player" ) then return end
 	
-	if Me.IsLeader( false ) and IsInGroup(1) then		
+	if Me.IsLeader( false ) and IsInGroup(1) and not Me.db.char.unitframes.enable then		
 		Me.UpdateUnitFrames()
 	end
 end
@@ -117,12 +148,12 @@ function Me.UnitFrame_OnDMSAY( data, dist, sender )
 	end
 
 	
-	if ( UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) ) then
+	if UnitIsGroupLeader( sender ) then
 		if Me.db.global.talkingHeads then
 			DiceMasterTalkingHeadFrame_SetUnit(data.md, data.na, data.so)
 			DiceMasterTalkingHeadFrame_PlayCurrent(data.ms)
 		else
-			print("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms)
+			Me.PrintMessage("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms, "RAID")
 		end
 	end
 end

@@ -33,6 +33,7 @@ local DB_DEFAULTS = {
 		hidepanel     = false;
 		uiScale       = 0.75;
 		trackerScale  = 0.6;
+		trackerKeybind = nil;
 		showRaidRolls = false;
 		dm3Imported   = false;
 		statusSerial  = 1;
@@ -177,43 +178,8 @@ Me.configOptions = {
 			get = function( info ) return Me.db.global.hideTips end;
 		};
 		
-		hideTracker = {
-			order = 9;
-			name  = "Enable DM Manager";
-			desc  = "Enable the DM Manager frame to keep track of your group's rolls and view group-wide notes.";
-			type  = "toggle";
-			width = "double";
-			set = function( info, val )
-				Me.db.global.hideTracker = val
-				Me.configOptions.args.trackerScale.hidden = not val
-				if val == true then
-					DiceMasterRollFrame:Show()
-				else
-					DiceMasterRollFrame:Hide()
-				end
-			end;
-			get = function( info ) return Me.db.global.hideTracker end;
-		};
-		
-		trackerScale = {
-			order     = 10;
-			name      = "DM Manager Scale";
-			desc      = "The size of the DM Manager frame.";
-			type      = "range";
-			min       = 0.25;
-			max       = 10;
-			softMax   = 4;
-			hidden   = true;
-			isPercent = true;
-			set = function( info, val ) 
-				Me.db.char.trackerScale = val;
-				Me.ApplyUiScale()
-			end;
-			get = function( info ) return Me.db.char.trackerScale end;
-		};
-		
 		hideTypeTracker = {
-			order = 11;
+			order = 12;
 			name  = "Enable Typing Tracker";
 			desc  = "Enable the Typing Tracker to alert you when group members are writing in say, emote, party, and raid.";
 			type  = "toggle";
@@ -225,7 +191,7 @@ Me.configOptions = {
 		};
 		
 		enableRoundBanners = {
-			order = 12;
+			order = 13;
 			name  = "Allow Roll Prompt Banners";
 			desc  = "Allow the group leader to send you visual prompts when it's your turn to roll.";
 			type  = "toggle";
@@ -237,7 +203,7 @@ Me.configOptions = {
 		};
 		
 		headerFrames = {
-			order = 13;
+			order = 14;
 			name  = " ";
 			type  = "description";
 		};
@@ -676,6 +642,64 @@ Me.configOptionsProgressBar = {
 	};
 }
 
+Me.configOptionsManager = {
+	type  = "group";
+	order = 1;
+	args = { 
+		-----------------------------------------------------------------------
+		header = {
+			order = 0;
+			name  = "Configure the DM Manager settings.";
+			type  = "description";
+		};
+		
+		hideTracker = {
+			order = 10;
+			name  = "Enable DM Manager";
+			desc  = "Enable the DM Manager frame to keep track of your group's rolls and view group-wide notes.";
+			type  = "toggle";
+			width = "double";
+			set = function( info, val )
+				Me.db.global.hideTracker = val
+				if val == true then
+					DiceMasterRollFrame:Show()
+				else
+					DiceMasterRollFrame:Hide()
+				end
+			end;
+			get = function( info ) return Me.db.global.hideTracker end;
+		};
+		
+		trackerScale = {
+			order     = 20;
+			name      = "DM Manager Scale";
+			desc      = "The size of the DM Manager frame.";
+			type      = "range";
+			min       = 0.25;
+			max       = 10;
+			softMax   = 4;
+			isPercent = true;
+			set = function( info, val ) 
+				Me.db.char.trackerScale = val;
+				Me.ApplyUiScale()
+			end;
+			get = function( info ) return Me.db.char.trackerScale end;
+		};
+		
+		trackerKeybind = {
+			order     = 30;
+			name	  = "Toggle Key";
+			desc      = "Set a keybinding for the DM Manager frame.";
+			type      = "keybinding";
+			set = function( info, val ) 
+				Me.db.char.trackerKeybind = val;
+				Me.ApplyKeybindings()
+			end;
+			get = function( info ) return Me.db.char.trackerKeybind end;
+		};
+	};
+}
+
 Me.configOptionsUF = {
 	type  = "group";
 	order = 1;
@@ -694,14 +718,16 @@ Me.configOptionsUF = {
 			type  = "toggle";
 			set   = function( info, val ) 
 				if IsAddOnLoaded("DiceMaster_UnitFrames") then
-					if val then
-						print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Unit Frames enabled.")
-					else
-						print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Unit Frames disabled.")
+					if Me.IsLeader( false ) then
+						if val then
+							Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames enabled.", "SYSTEM")
+						else
+							Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames disabled.", "SYSTEM")
+						end
+						Me.ShowUnitPanel( val )
 					end
-					Me.ShowUnitPanel( val )
 				else
-					print("DiceMaster Unit Frames module not found. Enable the module from your AddOns list.")
+					Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t DiceMaster Unit Frames module not found. Enable the module from your AddOns list.", "SYSTEM")
 				end
 			end;
 			get   = function( info ) return not Me.db.char.unitframes.enable end;
@@ -768,6 +794,7 @@ function Me.SetupDB()
 	local options = Me.configOptions
 	local charges = Me.configOptionsCharges
 	local progressbar = Me.configOptionsProgressBar
+	local dmmanager = Me.configOptionsManager
 	local unitframes = Me.configOptionsUF
 	local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable( Me.db )
 	profiles.order = 500
@@ -775,45 +802,32 @@ function Me.SetupDB()
 	AceConfig:RegisterOptionsTable( "DiceMaster", options )	
 	AceConfig:RegisterOptionsTable( "Charges", charges )	
 	AceConfig:RegisterOptionsTable( "Progress Bar", progressbar )	
+	AceConfig:RegisterOptionsTable( "DM Manager", dmmanager )	
 	AceConfig:RegisterOptionsTable( "Unit Frames", unitframes )	
 	AceConfig:RegisterOptionsTable( "DiceMaster Profiles", profiles )
 	
 	Me.config = AceConfigDialog:AddToBlizOptions( "DiceMaster", "DiceMaster" )
 	Me.configCharges = AceConfigDialog:AddToBlizOptions( "Charges", "Charges", "DiceMaster" )
 	Me.configProgressBar = AceConfigDialog:AddToBlizOptions( "Progress Bar", "Progress Bar", "DiceMaster" )
+	Me.configManager = AceConfigDialog:AddToBlizOptions( "DM Manager", "DM Manager", "DiceMaster" )
 	Me.configUnitFrames = AceConfigDialog:AddToBlizOptions( "Unit Frames", "Unit Frames", "DiceMaster" )
 	Me.configProfiles = AceConfigDialog:AddToBlizOptions( "DiceMaster Profiles", "Profiles", "DiceMaster" )
 	
-	local logo = CreateFrame('Frame', nil, Me.config)
-	logo:SetFrameLevel(4)
-	logo:SetSize(64, 64)
-	logo:SetPoint('TOPRIGHT', 8, 24)
-	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
-	Me.config.logo = logo
-	local logo = CreateFrame('Frame', nil, Me.configCharges)
-	logo:SetFrameLevel(4)
-	logo:SetSize(64, 64)
-	logo:SetPoint('TOPRIGHT', 8, 24)
-	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
-	Me.configCharges.logo = logo
-	local logo = CreateFrame('Frame', nil, Me.configProgressBar)
-	logo:SetFrameLevel(4)
-	logo:SetSize(64, 64)
-	logo:SetPoint('TOPRIGHT', 8, 24)
-	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
-	Me.configProgressBar.logo = logo
-	local logo = CreateFrame('Frame', nil, Me.configUnitFrames)
-	logo:SetFrameLevel(4)
-	logo:SetSize(64, 64)
-	logo:SetPoint('TOPRIGHT', 8, 24)
-	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
-	Me.configUnitFrames.logo = logo
-	local logo = CreateFrame('Frame', nil, Me.configProfiles)
-	logo:SetFrameLevel(4)
-	logo:SetSize(64, 64)
-	logo:SetPoint('TOPRIGHT', 8, 24)
-	logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
-	Me.configProfiles.logo = logo
+	local function CreateLogo( frame )
+		local logo = CreateFrame('Frame', nil, frame)
+		logo:SetFrameLevel(4)
+		logo:SetSize(64, 64)
+		logo:SetPoint('TOPRIGHT', 8, 24)
+		logo:SetBackdrop({bgFile = "Interface/AddOns/DiceMaster/Texture/logo"})
+		frame.logo = logo
+	end
+	
+	CreateLogo( Me.config )
+	CreateLogo( Me.configCharges )
+	CreateLogo( Me.configProgressBar )
+	CreateLogo( Me.configManager )
+	CreateLogo( Me.configUnitFrames )
+	CreateLogo( Me.configProfiles )
 end
 
 local interfaceOptionsNeedsInit = true
@@ -821,7 +835,6 @@ local interfaceOptionsNeedsInit = true
 -- Open the configuration panel.
 --
 function Me.OpenConfig() 
-	Me.configOptions.args.trackerScale.hidden = not Me.db.global.hideTracker
 	Me.configOptionsCharges.args.chargesGroup.hidden = not Me.db.profile.charges.enable
 	Me.configOptionsProgressBar.args.moraleGroup.hidden = not Me.db.profile.morale.enable
 	Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = Me.db.profile.healthMax
@@ -841,7 +854,6 @@ end
 
 -------------------------------------------------------------------------------
 function Me.ApplyConfig( onload )
-	Me.configOptions.args.trackerScale.hidden = not Me.db.global.hideTracker
 	Me.configOptionsCharges.args.chargesGroup.hidden = not Me.db.profile.charges.enable
 	Me.configOptionsProgressBar.args.moraleGroup.hidden = not Me.db.profile.morale.enable
 	Me.configOptionsCharges.args.healthGroup.args.healthCurrent.max = Me.db.profile.healthMax

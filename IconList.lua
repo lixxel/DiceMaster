@@ -21312,6 +21312,7 @@ DiceMaster4.iconList = {
 	"AddOns/DiceMaster/Icons/diablo3_firebomb",
 	"AddOns/DiceMaster/Icons/diablo3_fistsofthunder",
 	"AddOns/DiceMaster/Icons/diablo3_focusedmind",
+	"AddOns/DiceMaster/Icons/diablo3_focusedmind_gold",
 	"AddOns/DiceMaster/Icons/diablo3_frenzy",
 	"AddOns/DiceMaster/Icons/diablo3_frostnova",
 	"AddOns/DiceMaster/Icons/diablo3_furiouscharge",

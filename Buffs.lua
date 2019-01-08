@@ -393,12 +393,10 @@ function Me.BuffButton_Update(buttonName, index)
 		end
 
 		-- Refresh tooltip
-		if ( GameTooltip:IsOwned(buff) ) then
-			if timeLeft then
-				Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ),  Me.BuffButton_FormatTime(timeLeft).." remaining|n|cFF707070Given by "..sender )
-			else
-				Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), "|cFF707070Given by "..sender )
-			end
+		if timeLeft then
+			Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ),  Me.BuffButton_FormatTime(timeLeft).." remaining|n|cFF707070Given by "..sender )
+		else
+			Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), "|cFF707070Given by "..sender )
 		end
 	end
 	return 1;
@@ -418,6 +416,13 @@ function Me.BuffButton_OnUpdate(self)
 	-- Update our timeLeft
 	local timeLeft = self.expirationTime - GetTime();
 	self.timeLeft = max( timeLeft, 0 );
+	
+	if timeLeft < 0 then
+		tremove( Profile.buffsActive, self:GetID() )
+		Me.BuffFrame_Update()
+		Me.BumpSerial( Me.db.char, "statusSerial" )
+		Me.Inspect_ShareStatusWithParty()
+	end
 	
 	if ( SMALLER_AURA_DURATION_FONT_MIN_THRESHOLD ) then
 		local aboveMinThreshold = self.timeLeft > SMALLER_AURA_DURATION_FONT_MIN_THRESHOLD;
@@ -439,10 +444,6 @@ end
 
 
 function Me.BuffButton_UpdateDuration( button, timeLeft )
-	if timeLeft == 0 then
-		tremove( Profile.buffsActive, button:GetID() )
-		Me.BuffFrame_Update()
-	end
 	local duration = button.duration;
 	if ( SHOW_BUFF_DURATIONS == "1" and timeLeft ) then
 		duration:SetFormattedText(SecondsToTimeAbbrev(timeLeft));
@@ -660,6 +661,7 @@ function Me.BuffFrame_OnBuffMessage( data, dist, sender )
 		end
 		tinsert( Profile.buffsActive, buff )
 	end
+	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.BuffFrame_Update()
 	Me.Inspect_ShareStatusWithParty()
 end
@@ -691,6 +693,7 @@ function Me.BuffFrame_OnRemoveBuffMessage( data, dist, sender )
 			end
 		end		
 	end
+	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.BuffFrame_Update()
 	Me.Inspect_ShareStatusWithParty()
 end

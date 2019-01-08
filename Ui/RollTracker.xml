@@ -602,10 +602,14 @@
 		PanelTemplates_SetNumTabs(self, 3);
 	    PanelTemplates_SetTab(self, 1);
 	  </OnLoad>
+	  <OnShow>
+		if not DiceMaster4.db.global.hideTracker then
+			DiceMaster4.db.global.hideTracker = true
+		end
+	  </OnShow>
 	  <OnHide>
 		if DiceMaster4.db.global.hideTracker then
 			DiceMaster4.db.global.hideTracker = false
-			DiceMaster4.configOptions.args.trackerScale.hidden = true
 		end
 	  </OnHide>
     </Scripts>
@@ -1166,6 +1170,18 @@
 					</Button>
 				</Frames>
 		</Frame>
+		
+		<Button name="DiceMasterRollFrameOpen">
+			<Scripts>
+				<OnClick>
+					if DiceMasterRollFrame:IsShown() then
+						DiceMasterRollFrame:Hide()
+					else
+						DiceMasterRollFrame:Show()
+					end
+				</OnClick>
+			</Scripts>
+		</Button>
 	
 	</Frames>
 </Frame>

@@ -192,6 +192,13 @@ function Me.Inspect_BuffButton_OnUpdate(self)
 	local timeLeft = self.expirationTime - GetTime();
 	self.timeLeft = max( timeLeft, 0 );
 	
+	if timeLeft == 0 then
+		tremove(Me.inspectData[button.owner].buffsActive, self:GetID())
+		for i = 1, 5 do
+			Me.Inspect_UpdateBuffButton("DiceMasterInspectBuffButton", button.owner, i)
+		end
+	end
+	
 	if ( SMALLER_AURA_DURATION_FONT_MIN_THRESHOLD ) then
 		local aboveMinThreshold = self.timeLeft > SMALLER_AURA_DURATION_FONT_MIN_THRESHOLD;
 		local belowMaxThreshold = not SMALLER_AURA_DURATION_FONT_MAX_THRESHOLD or self.timeLeft < SMALLER_AURA_DURATION_FONT_MAX_THRESHOLD;
@@ -212,10 +219,6 @@ end
 
 
 function Me.Inspect_BuffButton_UpdateDuration( button, timeLeft )
-	if timeLeft == 0 then
-		Me.inspectData[button.owner].buffsActive[button:GetID()] = nil
-		Me.Inspect_UpdateBuffButton("DiceMasterInspectBuffButton", button.owner, button:GetID())
-	end
 	local duration = button.duration;
 	if ( SHOW_BUFF_DURATIONS == "1" and timeLeft ) then
 		duration:SetFormattedText(SecondsToTimeAbbrev(timeLeft));
@@ -635,9 +638,7 @@ end
 -- Send a STATUS message to the party.
 --
 function Me.Inspect_ShareStatusWithParty()
-	if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
-		return
-	elseif not IsInGroup() then
+	if not IsInGroup(1) then
 		return
 	end
 	
@@ -702,7 +703,7 @@ function Me.Inspect_OnTraitApprove( data, dist, sender )
 			if trait.officers[i] == sender then
 				trait.approved = trait.approved - 1
 				tremove(trait.officers, i)
-				print("|cFFFFFF00"..sender.." has revoked their approval of |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r|cFFFFFF00.")
+				Me.PrintMessage(sender.." has revoked their approval of |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r.")
 				Me.Inspect_SendTrait( data.i, "WHISPER", sender )
 				return
 			end
@@ -713,11 +714,11 @@ function Me.Inspect_OnTraitApprove( data, dist, sender )
 		trait.approved = 1
 		trait.officers = {}
 		trait.officers[1] = sender
-		print("|cFFFFFF00"..sender.." has approved |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r|cFFFFFF00! You need the approval of one more officer to use this trait during guild events.")
+		Me.PrintMessage(sender.." has approved |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r! You need the approval of one more officer to use this trait during guild events.")
 	elseif trait.approved == 1 then
 		trait.approved = 2
 		tinsert( trait.officers, sender )
-		print("|cFFFFFF00"..sender.." has approved |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r|cFFFFFF00! You may now use this trait during guild events.")
+		Me.PrintMessage(sender.." has approved |T"..trait.icon..":16|t |cff71d5ff|HDiceMaster4:"..UnitName("player")..":"..data.i.."|h["..trait.name.."]|h|r! You may now use this trait during guild events.")
 	end
 	Me.Inspect_SendTrait( data.i, "WHISPER", sender )
 end
@@ -811,6 +812,8 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	
 	if data.buffs then
 		Me.inspectData[sender].buffsActive = data.buffs
+	else
+		Me.inspectData[sender].buffsActive = {}
 	end
 
 	local store = Me.inspectData[sender]
@@ -883,22 +886,22 @@ function Me.Inspect_OnExperience( data, dist, sender )
 	
 	if data.v then
 		Profile.experience = Profile.experience + data.v
-		print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Experience gained: " .. ( data.v ) .. ".|r")
+		Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Experience gained: " .. ( data.v ) .. ".", "RAID")
 		
 		if Profile.experience >= 100 then
 			Profile.experience = Profile.experience - 100
 			Profile.level = Profile.level + 1;
 			PlaySound(124)
-			print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Congratulations, you have reached level " .. ( Profile.level ) .. "!|r")
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Congratulations, you have reached level " .. ( Profile.level ) .. "!", "RAID")
 		end
 	elseif data.l then
 		Profile.level = Profile.level + 1;
 		PlaySound(124)
-		print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Congratulations, you have reached level " .. ( Profile.level ) .. "!|r")
+		Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Congratulations, you have reached level " .. ( Profile.level ) .. "!", "RAID")
 	elseif data.r then	
 		Profile.level = 1;
 		Profile.experience = 0;
-		print("|TInterface/AddOns/DiceMaster/Texture/logo:12|t |cFFFFFF00Your level has been reset to 1.")
+		Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Your level has been reset to 1.", "RAID")
 	end
 	
 	Me.Inspect_ShareStatusWithParty()

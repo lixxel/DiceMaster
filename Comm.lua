@@ -76,7 +76,7 @@ function Me.UnitFrame_OnDMSAY( data, dist, sender )
 	end
 	
 	if ( UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) ) and not DiceMasterTalkingHeadFrame then
-		print("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms)
+		Me.PrintMessage("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms, "RAID")
 	end
 end
 

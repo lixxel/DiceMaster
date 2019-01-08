@@ -195,6 +195,34 @@ function Me.IsLeader( allowAssistant )
 end
 
 -------------------------------------------------------------------------------
+-- Print a "system" message in all chat frames with the designated channel.
+--
+-- @param msg		Message to print.
+-- @param channel	Required chat channel to check for.
+--					(nil if all chat frames should be used)
+--
+function Me.PrintMessage( msg, channel )
+
+	local info = ChatTypeInfo["SYSTEM"]
+	for i = 1, NUM_CHAT_WINDOWS do
+		local frame = _G["ChatFrame" .. i]
+		
+		if frame then
+		
+			-- well this seems fairly nasty
+			local registered = {GetChatWindowMessages(i)}
+			 
+			for _,v in ipairs(registered) do
+				if not channel or v == channel then
+				 
+					frame:AddMessage( msg, info.r, info.g, info.b )
+				end
+			end
+		end
+	end
+end
+
+-------------------------------------------------------------------------------
 -- Handler for showing tooltips for frames that have used SetupTooltip.
 --
 local function OnEnterTippedButton(self)
@@ -650,6 +678,14 @@ function Me.LockFrames()
 	DiceMasterMoraleBarDragFrame:Hide()
 end
 
+function Me.ApplyKeybindings()
+	if Me.db.char.trackerKeybind and Me.db.char.trackerKeybind~="" then
+		SetBindingClick(Me.db.char.trackerKeybind, DiceMasterRollFrameOpen:GetName())
+	elseif GetBindingKey("CLICK DiceMasterRollFrameOpen:LeftButton") then
+		SetBinding(GetBindingKey("CLICK DiceMasterRollFrameOpen:LeftButton"), nil)
+	end
+end
+
 function Me.ApplyUiScale()
 	DiceMasterPanel:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterTraitEditor:SetScale( Me.db.char.uiScale * 1.4 )
@@ -741,6 +777,7 @@ function Me:OnEnable()
 	Me.MinimapButton:OnLoad()
 	Me.ImportDM3Saved()
 	
+	Me.ApplyKeybindings()
 	Me.ApplyUiScale()
 	Me.ShowPanel( not Me.db.char.hidepanel )
 	

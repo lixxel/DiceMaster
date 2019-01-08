@@ -1,3 +1,13 @@
+### 5.0.3
+ - Fixed timestamps in the Roll Tracker displaying 0 hours for entries past midnight.
+ - Ignore update requests from group members if Unit Frames is disabled.
+ - Fixed an issue where player buff tooltips were't updating when new buffs were applied.
+ - Temporarily disabled raid assistant functions for Unit Frames until a solution can be found.
+ - Fixed an issue where the Unit Frames name field could be edited.
+ - Fixed an issue where the "damageText" FontString was missing for some users.
+ - Adjusted PortraitZoom for collapsed Unit Frames to avoid clipping off some models' heads.
+ - Fixed an issue allowing players to set Unit Frames' max health to a value below their current health.
+ 
 ### 5.0.2
  - Added "Character Sheet" tab to Trait Editor.
  - Fixed an issue displaying health values above 10.
