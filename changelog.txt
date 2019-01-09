@@ -1,3 +1,7 @@
+### 5.0.4
+ - Fixed issues communicating between users with Unit Frames.
+ - Added a loading delay to Unit Frames models and effects to prevent memory-related crashes.
+
 ### 5.0.3
  - Fixed timestamps in the Roll Tracker displaying 0 hours for entries past midnight.
  - Ignore update requests from group members if Unit Frames is disabled.

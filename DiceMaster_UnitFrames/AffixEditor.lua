@@ -10,6 +10,7 @@ local Me = DiceMaster4
 
 local startOffset = 0
 local filteredList = nil
+local refreshCounter = 0;
 
 Me.unitList = 90652
 Me.unitAnim = 0
@@ -478,7 +479,6 @@ end
 -- When the mousewheel is used on the icon map.
 --
 function Me.AffixEditor_MouseScroll( delta )
-
 	local a = DiceMasterAffixEditor.selectorFrame.scroller:GetValue() - delta
 	-- todo: do we need to clamp?
 	DiceMasterAffixEditor.selectorFrame.scroller:SetValue( a )
@@ -488,9 +488,25 @@ end
 -- When the scrollbar's value is changed.
 --
 function Me.AffixEditor_ScrollChanged( value )
-	
 	-- Our "step" is 4 icons, which is one line.
-	startOffset = math.floor(value) * 4
+	startOffset = math.floor(value) * 4	
+
+	-- Mitigate memory usage to prevent crashes.
+	refreshCounter = refreshCounter + 1
+	if refreshCounter == 20 then
+		DiceMasterAffixEditor.selectorFrame.Spinner:Show()
+		C_Timer.After( 2, function() 
+			refreshCounter = 0
+			DiceMasterAffixEditor.selectorFrame.Spinner:Hide()
+			Me.AffixEditor_RefreshGrid()
+		end )
+		return
+	end
+	
+	if refreshCounter > 20 then
+		return
+	end
+
 	Me.AffixEditor_RefreshGrid()
 end
 

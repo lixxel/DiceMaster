@@ -10,6 +10,7 @@ local Me = DiceMaster4
 
 local startOffset = 0
 local filteredList = nil
+local refreshCounter = 0;
 
 Me.effectList = 109302
 
@@ -299,9 +300,25 @@ end
 -- When the scrollbar's value is changed.
 --
 function Me.UnitPicker_ScrollChanged( value )
-	
 	-- Our "step" is 5 icons, which is one line.
 	startOffset = math.floor(value) * 4
+	
+	-- Mitigate memory usage to prevent crashes.
+	refreshCounter = refreshCounter + 1
+	if refreshCounter == 20 then
+		DiceMasterUnitPicker.selectorFrame.Spinner:Show()
+		C_Timer.After( 2, function() 
+			refreshCounter = 0
+			DiceMasterUnitPicker.selectorFrame.Spinner:Hide()
+			Me.UnitPicker_RefreshGrid()
+		end )
+		return
+	end
+	
+	if refreshCounter > 20 then
+		return
+	end
+	
 	Me.UnitPicker_RefreshGrid()
 end
 

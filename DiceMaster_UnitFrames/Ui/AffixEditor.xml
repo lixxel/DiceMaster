@@ -279,10 +279,32 @@
           <OnMouseWheel>
             DiceMaster4.AffixEditor_MouseScroll( delta )
           </OnMouseWheel>
-        </Scripts>
-        
+        </Scripts>        
         <Frames>
-        
+		
+          <!-- Loading spinner -->
+		  <Frame parentKey="Spinner" inherits="LoadingSpinnerTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="CENTER" x="-24" y="95" />
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="BG">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="DiceMasterAffixEditorInset" x="4" y="-4"/>
+								<Anchor point="BOTTOMRIGHT" relativeTo="DiceMasterAffixEditorInset" relativePoint="TOPRIGHT" x="-22" y="-296"/>
+							</Anchors>
+							<Color r="0" g="0" b="0" a="0.5"/>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						self.Anim:Play();
+					</OnLoad>
+				</Scripts>
+		  </Frame>
+		
           <!-- Scroll bar -->
           <Slider parentKey="scroller" inherits="UIPanelScrollBarTrimTemplate" minvalue="0" maxvalue="1" valuestep="3">
             

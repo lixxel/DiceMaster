@@ -212,7 +212,9 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 			for i = 1, GetNumGroupMembers(1) do
 				-- Get level and experience data from players.
 				local name, rank = GetRaidRosterInfo(i)
-				Me.Inspect_UpdatePlayer( name )
+				if name then
+					Me.Inspect_UpdatePlayer( name )
+				end
 			end
 			if GetNumGroupMembers(1) == 0 then
 				DiceMasterDMExp.checkAll:SetChecked( false )
