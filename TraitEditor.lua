@@ -198,6 +198,7 @@ function Me.TraitEditor_StatsFrame_UpdateStatButton(button)
 	if ( stat ) then
 		button.name:SetText(stat.name .. ":");
 		button.value:SetText(stat.value);
+		Me.SetupTooltip( button.rollButton, nil, "|cFFFFD100Roll a "..stat.name.." Check" )
 		button:Show();
 	else
 		button:Hide();
@@ -253,6 +254,45 @@ function Me.TraitEditor_StatsList_Add( button, name )
 	tinsert(Profile.stats, index + 1, stat)
 	
 	Me.TraitEditor_StatsList_Update()
+end
+
+-------------------------------------------------------------------------------
+-- Roll using the stat as a modifier.
+-- 
+--
+function Me.TraitEditor_StatsList_Roll( button )
+	local dice = DiceMasterPanelDice:GetText()
+	local modifier = button:GetParent().value:GetText()
+	
+	local count, sides, modtype, mod = dice:match("^%s*(%d*)[dD](%d+)([+-]?)(%d*)%s*$")
+	
+	if not count then
+		count = 1
+		sides = 20
+		modtype = "+"
+		mod = 0
+	end
+	
+	-- some sanitizing
+	if modifier == "" then modifier = 0 end
+	count   = count   == "" and 1 or tonumber(count)
+	sides   = sides   == "" and 20 or tonumber(sides)
+	modtype = modtype == "" and "+" or modtype
+	mod     = mod     == "" and 0 or tonumber(mod)
+	
+	if modtype == "+" then
+		mod = mod + modifier
+	else
+		mod = ( -1 * mod ) + modifier
+		if mod > -1 then
+			modtype = "+"
+		else
+			mod = -1 * mod
+		end
+	end
+	
+	dice = count.."D"..sides..modtype..mod
+	Me.Roll( dice )
 end
 
 -------------------------------------------------------------------------------

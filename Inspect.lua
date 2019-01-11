@@ -92,7 +92,7 @@ setmetatable( Me.inspectData, {
 })
 
 -------------------------------------------------------------------------------
--- Update the 
+-- Update the buff frame.
 --
 
 function Me.Inspect_UpdateBuffButton(buttonName, playerName, index)
@@ -193,9 +193,9 @@ function Me.Inspect_BuffButton_OnUpdate(self)
 	self.timeLeft = max( timeLeft, 0 );
 	
 	if timeLeft == 0 then
-		tremove(Me.inspectData[button.owner].buffsActive, self:GetID())
+		tremove(Me.inspectData[self.owner].buffsActive, self:GetID())
 		for i = 1, 5 do
-			Me.Inspect_UpdateBuffButton("DiceMasterInspectBuffButton", button.owner, i)
+			Me.Inspect_UpdateBuffButton("DiceMasterInspectBuffButton", self.owner, i)
 		end
 	end
 	

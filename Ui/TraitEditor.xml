@@ -54,6 +54,9 @@
 			<PushedTexture name="$parentPushedTexture" file="Interface/Buttons/UI-GroupLoot-Pass-Down"/>
 			<HighlightTexture name="$parentHighlightTexture" file="Interface/Buttons/UI-GROUPLOOT-PASS-HIGHLIGHT" alphaMode="ADD"/>
 			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Delete" )
+				</OnLoad>
 				<OnClick>
 					DiceMaster4.TraitEditor_StatsList_Move( self )
 				</OnClick>
@@ -69,8 +72,26 @@
 			<PushedTexture name="$parentPushedTexture" file="Interface/PaperDollInfoFrame/Character-Plus" alpha="0.5"/>
 			<HighlightTexture name="$parentHighlightTexture" file="Interface/PaperDollInfoFrame/Character-Plus" alphaMode="ADD"/>
 			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Add" )
+				</OnLoad>
 				<OnClick>
 					StaticPopup_Show("DICEMASTER4_CREATESTAT", nil, nil, self:GetParent())
+				</OnClick>
+			</Scripts>
+		</Button>
+		
+		<Button name="$parentRollButton" hidden="false" parentKey="rollButton">
+			<Size x="14" y="14"/>
+			<Anchors>
+				<Anchor point="RIGHT" relativeTo="$parentAddButton" relativePoint="LEFT" x="-4" y="0"/>
+			</Anchors>
+			<NormalTexture name="$parentNormalTexture" file="Interface/Buttons/UI-GroupLoot-Dice-Up"/>
+			<PushedTexture name="$parentPushedTexture" file="Interface/Buttons/UI-GroupLoot-Dice-Down" alpha="0.5"/>
+			<HighlightTexture name="$parentHighlightTexture" file="Interface/Buttons/UI-GroupLoot-Dice-Highlight" alphaMode="ADD"/>
+			<Scripts>
+				<OnClick>
+					DiceMaster4.TraitEditor_StatsList_Roll( self )
 				</OnClick>
 			</Scripts>
 		</Button>
@@ -90,6 +111,9 @@
 				<TexCoords left="0" right="1" top="0" bottom="0.5"/>
 			</DisabledTexture>
 			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Move Down" )
+				</OnLoad>
 				<OnClick>
 					DiceMaster4.TraitEditor_StatsList_Move( self, "down" )
 				</OnClick>
@@ -111,6 +135,9 @@
 				<TexCoords left="0" right="1" top="0.5" bottom="1"/>
 			</DisabledTexture>
 			<Scripts>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Move Up" )
+				</OnLoad>
 				<OnClick>
 					DiceMaster4.TraitEditor_StatsList_Move( self, "up" )
 				</OnClick>
@@ -715,6 +742,7 @@
 					PanelTemplates_SetTab(DiceMaster4.editor, 1);
                     DiceMasterTraitsFrame:Show();
 					DiceMaster4.editor.rankIcon:Show()
+					DiceMasterTraitEditor.StatsWarning:Hide()
 					DiceMasterTraitEditorExperienceBar:Hide()
 					DiceMasterTraitEditorEffectButton:Show();
 					for i = 1,5 do

@@ -3,6 +3,7 @@
 -------------------------------------------------------------------------------
 
 local Me = DiceMaster4
+Me.UnitFrameTargeted = nil;
 
 local EASTERN_KINGDOM_ZONES = {
 	"Arathi Highlands",
@@ -156,20 +157,14 @@ local methods = {
 		self:SetDisplayInfo(1)
 		self.name:SetText("Unit Name")
 		self.toggleIcon:SetChecked(false)
-		self.toggleIcon:Show()
-		self:SetAlpha(0.7)
 		self.symbol.State = 9;
 		self.symbol:SetNormalTexture(nil)
 		self.healthCurrent = 3
 		self.healthMax = 3
 		self.armor = 0
 		Me.RefreshHealthbarFrame( self.health, self.healthCurrent, self.healthMax, self.armor )
-		self.affix = {}
-		self.affix.icon = "Interface/Icons/inv_misc_questionmark"
-		self.affix.name = ""
-		self.affix.desc = ""
-		self.affix.Shown = false
-		self.affixIcon:Hide()
+		self.buffsActive = {}
+		self.buffFrame:Hide()
 		self.animation = 0
 		self.spellvisualkit = 0
 		self.scrollposition = nil
@@ -182,10 +177,9 @@ local methods = {
 			DiceMaster4.SetupTooltip( self.symbol )
 			DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, "Represents this unit's health." )
 		end
-		DiceMaster4.SetupTooltip( self.affixIcon, nil, "Monster Affix", nil, nil, nil, "A special effect or ability used by this unit.|n|cFF707070<Left Click to Edit>|n<Right Click to Toggle>" )
-		DiceMaster4.SetupTooltip( self.toggleIcon, nil, "Hidden", nil, nil, nil, "Your group cannot see this unit." )
 		self.speaker = false
 		self.speakerIcon:Hide()
+		self.highlight:Hide()
 		self.SetBackground( self )
 	end;
 	---------------------------------------------------------------------------
@@ -205,7 +199,7 @@ local methods = {
 		framedata.healthMax = self.healthMax or 3
 		framedata.armor = self.armor or 0
 		framedata.visible = self:IsVisible()
-		framedata.affix = self.affix or nil;
+		framedata.buffs = self.buffsActive or {}
 		framedata.speaker = self.speaker or false;
 		framedata.animation = self.animation or 0;
 		framedata.spellvisualkit = self.spellvisualkit or 0;
@@ -215,7 +209,6 @@ local methods = {
 	-- Set unit frame data.
 	--
 	SetData = function( self, framedata )
-		self:SetAlpha(1)
 		local modelChanged = false;
 		if framedata.md and self:GetDisplayInfo() ~= framedata.md then		
 			self:SetDisplayInfo(framedata.md)
@@ -228,16 +221,14 @@ local methods = {
 		if framedata.hc < self.healthCurrent and self:GetDisplayInfo() == framedata.md and self.name:GetText() == framedata.na then
 			wound = self.healthCurrent - framedata.hc;
 		end
-		--self:SetPortraitZoom(0)
-		--self:SetPortraitZoom(0.6)
 		if Me.IsLeader( false ) then
-			self.toggleIcon:Show()
 			self.toggleIcon:SetChecked(framedata.vs)
 		else
-			self.toggleIcon:Hide()
-			DiceMaster4.SetupTooltip( self, nil, framedata.na )
+			DiceMaster4.SetupTooltip( self, nil, framedata.na, nil, nil, nil, "|cFF707070<Left Click to Target>|r" )
 			if framedata.sy ~= 9 then
 				DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, "This unit is currently located at the "..WORLD_MARKER_NAMES[framedata.sy] .. "|r." )
+			else
+				DiceMaster4.SetupTooltip( self.symbol, nil )
 			end
 		end
 		self.name:SetText(framedata.na)
@@ -245,10 +236,11 @@ local methods = {
 		self.symbol:SetNormalTexture("Interface/TARGETINGFRAME/UI-RaidTargetingIcon_" .. self.symbol.State )
 		if self.symbol.State == 9 then self.symbol:SetNormalTexture(nil) end
 		if wound then
-			self:SetAnimation(8)
 			self.damageText:SetText( "-"..wound )
 			if self.damageTextAnim:IsPlaying() then
 				self.damageTextAnim:Stop()
+			else
+				self:SetAnimation(8)
 			end
 			self.damageTextAnim:Play()
 		end
@@ -266,16 +258,24 @@ local methods = {
 		Me.RefreshHealthbarFrame( self.health, self.healthCurrent, self.healthMax, self.armor )
 		self.spellvisualkit = framedata.svk or 0
 		self:SetSpellVisualKit(self.spellvisualkit)
-		-- if an affix is being used
-		if framedata.fx and framedata.fx.Shown then
-			self.affixIcon:Show()
-			self.affixIcon:SetNormalTexture(framedata.fx.icon)
-			DiceMaster4.SetupTooltip( self.affixIcon, framedata.fx.icon, framedata.fx.name, nil, nil, nil, framedata.fx.desc )
+		if framedata.buffs then
+			self.buffsActive = framedata.buffs
+			for i = 1, #self.buffs do
+				Me.UnitFrames_UpdateBuffButton( self, i)
+			end
+			self.buffFrame:Show()
 		else
-			self.affixIcon:Hide()
-			DiceMaster4.SetupTooltip( self.affixIcon, nil, "Monster Affix", nil, nil, nil, "A special effect or ability used by this unit." )
+			self.buffFrame:Hide()
 		end
 		if framedata.vs then self:Show() else self:Hide() end
+		if self.highlight:IsShown() then
+			local target = self.symbol.State
+			if target == 9 then target = 0 end
+			local msg = Me:Serialize( "TARGET", {
+				ta = tonumber( target );
+			})
+			Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
+		end
 	end;
 	
 	SetCustomTooltip = function( self, text )
@@ -286,9 +286,10 @@ local methods = {
 		if collapse then
 			self.collapsed = true;
 			self.border:SetTexture("Interface/AddOns/DiceMaster_UnitFrames/Texture/unitframe-small")
+			self.highlight:SetTexture("Interface/AddOns/DiceMaster_UnitFrames/Texture/unitframe-small-highlight")
 			self.bg:SetHeight(80)
 			self:SetHeight(80)
-			self.symbol:SetPoint("CENTER", 0, 50)
+			self.symbol:SetPoint("CENTER", 0, 60)
 			self.name:SetPoint("BOTTOM", 0, -13)
 			self.health:SetPoint("BOTTOM", 0, -36)
 			self.expand.Arrow:SetTexCoord(0.767, 1, 0.25, 0.327)
@@ -296,9 +297,10 @@ local methods = {
 		else
 			self.collapsed = false;
 			self.border:SetTexture("Interface/AddOns/DiceMaster_UnitFrames/Texture/unitframe")
+			self.highlight:SetTexture("Interface/AddOns/DiceMaster_UnitFrames/Texture/unitframe-highlight")
 			self.bg:SetHeight(200)
 			self:SetHeight(182)
-			self.symbol:SetPoint("CENTER", 0, 100)
+			self.symbol:SetPoint("CENTER", 0, 110)
 			self.name:SetPoint("BOTTOM", 0, -15)
 			self.health:SetPoint("BOTTOM", 0, -38)
 			self.expand.Arrow:SetTexCoord(0.767, 1, 0.327, 0.402)
@@ -354,7 +356,7 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHVALUE"] = {
 	self.editBox:HighlightText()
   end,
   OnAccept = function (self, data)
-    local text = tonumber(self.editBox:GetText() or data.healthCurrent)
+    local text = tonumber(self.editBox:GetText()) or data.healthCurrent
 	if Me.OutOfRange( text, 0, data.healthMax ) then
 		return
 	end
@@ -379,14 +381,14 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHMAX"] = {
 	self.editBox:HighlightText()
   end,
   OnAccept = function (self, data)
-    local text = tonumber(self.editBox:GetText() or data.healthMax)
+    local text = tonumber(self.editBox:GetText()) or data.healthMax
 	if Me.OutOfRange( text, 1, 1000 ) then
 		return
 	end
+	data.healthMax = text
 	if data.healthCurrent > text then
 		data.healthCurrent = text
 	end
-	data.healthMax = text
 	Me.RefreshHealthbarFrame( data.health, data.healthCurrent, data.healthMax, data.armor )
 	Me.UpdateUnitFrames()
   end,
@@ -512,7 +514,7 @@ end
 -- Mark a unit frame as the talking head speaker.
 --
 function Me.MarkUnitFrame( frame )
-	if Me.IsLeader( false ) then
+	if Me.IsLeader( true ) then
 		local unitframes = DiceMasterUnitsPanel.unitframes
 		local visibleframes = DiceMaster4UF_Saved.VisibleFrames
 		
@@ -534,6 +536,40 @@ function Me.MarkUnitFrame( frame )
 		Me.UpdateUnitFrames()
 	end
 end
+
+-------------------------------------------------------------------------------
+-- Select a unit frame as the target (for buffs, etc).
+--
+function Me.SelectUnitFrame( frame )
+	local unitframes = DiceMasterUnitsPanel.unitframes
+	local target = 0;
+	Me.UnitFrameTargeted = nil;
+	
+	if frame.highlight:IsShown() then
+		frame.highlight:Hide()
+		PlaySound(684)
+	else
+		frame.highlight:Show()
+		PlaySound(101)
+		if frame.symbol.State < 9 then
+			target = frame.symbol.State;
+		end
+	end
+	
+	for i=1,#unitframes do
+		if unitframes[i] ~= frame then
+			unitframes[i].highlight:Hide()
+		elseif frame.highlight:IsShown() then
+			Me.UnitFrameTargeted = i;
+		end
+	end
+	
+	local msg = Me:Serialize( "TARGET", {
+		ta = tonumber( target );
+	})
+	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
+end
+
 -------------------------------------------------------------------------------
 -- Update visibility/position of unit frames in use.
 --
@@ -558,6 +594,7 @@ function Me.UpdateUnitFrames( number )
 		
 		-- Calculate how many frames are shareable with the group.
 		if Me.IsLeader( false ) then
+			DiceMasterUnitsPanel.unitframes[i].toggleIcon:Show()
 			local status = DiceMasterUnitsPanel.unitframes[i]:GetData()
 			if status.state then
 				tinsert(shareableframes, status)
