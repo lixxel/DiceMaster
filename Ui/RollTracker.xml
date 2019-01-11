@@ -235,16 +235,14 @@
 				<HighlightFont style="GameFontHighlightSmall"/>
 				<DisabledFont style="GameFontDisableSmall"/>
 			</Button>
-			<Button parentKey="ExperienceButton" inherits="UIPanelButtonTemplate" text="Send Personal Banner...">
+			<Button parentKey="ExperienceButton" inherits="UIPanelButtonTemplate" text="Grant Character Experience">
 				<Size x="192" y="22"/>
 				<Anchors>
 					<Anchor point="BOTTOM" x="0" y="12"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						if DiceMaster4.IsLeader( false ) then
-							StaticPopup_Show("DICEMASTER4_ROLLBANNER", nil, nil, self:GetParent().Name:GetText())							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-						end
+						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 					</OnClick>
 					<OnUpdate>
 						if DiceMaster4.IsLeader() then
@@ -779,19 +777,19 @@
 						</OnClick>
 					</Scripts>
 				</Button>
-				<Button name="$parentBannerButton" inherits="UIPanelButtonTemplate" text="Banner...">
+				<Button name="$parentBannerButton" inherits="UIPanelButtonTemplate" text="Roll Prompt">
 					<Size x="85" y="22"/>
 					<Anchors>
 						<Anchor point="RIGHT" relativeTo="DiceMasterRollTrackerListResultsButton" relativePoint="LEFT" x="2" y="0"/>
 					</Anchors>
 					<Scripts>
 						<OnClick>
-							if DiceMaster4.IsLeader( false ) then
-								StaticPopup_Show("DICEMASTER4_ROLLBANNER", nil, nil, "RAID")
+							if UnitIsGroupLeader("player", "LE_PARTY_CATEGORY_HOME") then
+								StaticPopup_Show("DICEMASTER4_ROLLBANNER")
 							end
 						</OnClick>
 						<OnUpdate>
-							if DiceMaster4.IsLeader( false ) and DiceMaster4.PermittedUse() then
+							if UnitIsGroupLeader("player", "LE_PARTY_CATEGORY_HOME") and DiceMaster4.PermittedUse() then
 								self:Enable()
 							else
 								self:Disable()

@@ -12,8 +12,6 @@ local startOffset = 0
 local filteredList = nil
 local refreshCounter = 0;
 
-C_Timer.NewTicker( 7, function() refreshCounter = 0 end )
-
 Me.unitList = 90652
 Me.unitAnim = 0
 
@@ -83,35 +81,17 @@ local animationOptions = {
 	["Cower"] = 225,
 }
 
-local BUFF_DURATION_AMOUNTS = {
-	{name = "15 sec", time = 15},
-	{name = "30 sec", time = 30},
-	{name = "45 sec", time = 45},
-	{name = "1 min", time = 60},
-	{name = "2 min", time = 120},
-	{name = "5 min", time = 300},
-	{name = "10 min", time = 600},
-	{name = "15 min", time = 900},
-	{name = "30 min", time = 1800},
-	{name = "45 min", time = 2700},
-	{name = "1 hour", time = 3600},
-	{name = "2 hours", time = 7200},
-	{name = "3 hours", time = 10800},
-}
-
 local AFFIX_RULES = {
-	[1] = {text="The |cFFFFd100Unit Editor|r allows you to edit the visual elements of any unit frame, including the unit's model, animation, and custom |cFFFFd100Buffs|r. You can click any of the unit frames to open this menu."},
+	[1] = {text="The |cFFFFd100Unit Editor|r allows you to edit the visual elements of any unit frame, including the unit's model, animation, and custom |cFFFFd100Affixes|r. You can click any of the unit frames to open this menu."},
 	[2] = {text="Use the |cFFFFd100Collections|r dropdown to select from a variety of model collections to sort the model list, or choose |cFFFFd100Default|r to see the full list of "..Me.unitList.." options. You can also create your own model collections to save your favourite selections for later.|n|nYou can click the |cFFFFd100R|r button to rename your currently selected model collection, or the |cFFFFd100X|r button to delete it.", relativeTo="DiceMasterAffixEditorFilter", offSet="16"},
 	[3] = {text="Use the |cFFFFd100Animation|r dropdown to select from a list of animation options to preview in the list below. Some of these animations are not available to every model, specifically those listed as |cFFFFd100(PC)|r or |cFFFFd100(Humans)|r only.|n|nWhen you select a model from the list, the unit frame will use this animation.", relativeTo="DiceMasterAffixEditorAnimation", offSet="16"},
 	[4] = {text="The |cFFFFd100Models List|r displays a preview of the available model options for the unit frame. You can scroll through this list of models and left click to select one for the unit frame. You can also right click any model to add or remove it from one of your custom collections.", relativeTo="DiceMasterAffixEditor"},
-	[5] = {text="|cFFFFd100Buffs|r allow you and your group members to give a unit a custom buff (or debuff) that the rest of your group can see at the bottom of the unit frame. You can give |cFFFFd100Buffs|r a custom icon, name, description, and duration.|n|nYou can also Load, Save, and Delete |cFFFFd100Buffs|r with the buttons at the bottom of the Unit Editor.|n|nYour group members can also apply their trait buffs to a unit frame by left clicking the frame and using the trait. Each unit frame can support a maximum of 15 |cFFFFd100Buffs|r at a time.", relativeTo="DiceMasterAffixEditorLoadButton"},
-	[6] = {text="Select a |cFFFFd100Buff Icon|r from a library of icons.", relativeTo="DiceMasterAffixEditorAffixIconButton"},
-	[7] = {text="Choose a |cFFFFd100Buff Name|r to represent this Buff.", relativeTo="DiceMasterAffixEditorAffixName"},
-	[8] = {text="Choose a |cFFFFd100Description|r that describes the effects of the Buff. This description should be brief but concise.", relativeTo="DiceMasterAffixEditorAffixDesc"},
-	[9] = {text="Click the |cFFFFd100Lasts until cancelled|r check box to toggle whether or not the Buff should persist indefinitely.|n|nIf unchecked, move the |cFFFFd100Buff Duration|r slider to set the duration of the Buff.", relativeTo="DiceMasterAffixEditorAffixCancelable"},
-	[10] = {text="Click the |cFFFFd100Stackable|r check box to toggle whether or not the Buff can stack more than once.", relativeTo="DiceMasterAffixEditorAffixStackable"},
-	[11] = {text="Click the |cFFFFd100Choose Effect...|r button to open the |cFFFFd100Effects|r library, allowing you to scroll through a list of visual effects for the unit frame model. Similar to model collections, you can also create, rename, and delete custom effects collections to store for later use.", relativeTo="DiceMasterAffixEditorAffixEffect"},
-	[12] = {text="Click the |cFFFFd100Apply Buff|r button to apply the Buff to the unit, allowing you and the rest of your group to see it below the Unit Frame.|n|nRemember: Each unit frame can only have up to 15 Buffs active at a time.", relativeTo="DiceMasterAffixEditorAffixToggle"},
+	[5] = {text="|cFFFFd100Affixes|r allow you to give a unit a custom buff, debuff, or trait that the rest of your group can see in the lower left corner of the unit frame. You can give |cFFFFd100Affixes|r a custom icon, name, description, and visual effect. You can also Load, Save, and Delete |cFFFFd100Affixes|r with the buttons at the bottom of the Unit Editor.|n|n|cFFFFd100Affixes|r remain hidden from the group by default until the |cFFFFd100Show Affix|r button is toggled on.", relativeTo="DiceMasterAffixEditorLoadButton"},
+	[6] = {text="Select an |cFFFFd100Affix Icon|r from a library of icons which displays in the lower left corner of the unit frame.|n|nRemember: Affixes cannot be seen by the rest of your group if the |cFFFFd100Show Affix|r button is toggled off.", relativeTo="DiceMasterAffixEditorAffixIconButton"},
+	[7] = {text="Choose an |cFFFFd100Affix Name|r to represent this Affix.|n|nRemember: Affixes cannot be seen by the rest of your group if the \"Show Affix\" button is toggled off.", relativeTo="DiceMasterAffixEditorAffixName"},
+	[8] = {text="Choose an |cFFFFd100Affix Description|r that describes the effects of the Affix. This description should be brief but concise, as this field has a 600 character limit.|n|nRemember: Affixes cannot be seen by the rest of your group if the |cFFFFd100Show Affix|r button is toggled off.", relativeTo="DiceMasterAffixEditorAffixDesc"},
+	[9] = {text="Click the |cFFFFd100Choose Effect...|r button to open the |cFFFFd100Affix Effects|r library, allowing you to scroll through a list of visual effects for the unit frame model. Similar to model collections, you can also create, rename, and delete custom effects collections to store for later use.", relativeTo="DiceMasterAffixEditorAffixEffect"},
+	[10] = {text="Click the |cFFFFd100Show/Hide Affix|r button to toggle the Affix's visibility for your group. It can be helpful to keep Affixes hidden while editing them to avoid confusion if changes are being made.|n|nAll unit frames are hidden by default.", relativeTo="DiceMasterAffixEditorAffixToggle"},
 }
 
 function Me.AffixEditorDropDown_OnClick(self, arg1, arg2, checked)
@@ -414,7 +394,7 @@ StaticPopupDialogs["DICEMASTER4_ADDTOCOLLECTION"] = {
 }
 
 StaticPopupDialogs["DICEMASTER4_OVERWRITEAFFIX"] = {
-  text = "A buff with this name already exists. Are you sure you want to overwrite it?",
+  text = "An affix with this name already exists. Are you sure you want to overwrite it?",
   button1 = "Yes",
   button2 = "No",
   OnAccept = function (self)
@@ -427,7 +407,7 @@ StaticPopupDialogs["DICEMASTER4_OVERWRITEAFFIX"] = {
 }
 
 StaticPopupDialogs["DICEMASTER4_DELETEAFFIX"] = {
-  text = "Are you sure you want to delete this buff?",
+  text = "Are you sure you want to delete this affix?",
   button1 = "Yes",
   button2 = "No",
   OnAccept = function (self, data)
@@ -596,6 +576,23 @@ function Me.AffixEditor_RefreshScroll( reset, value )
 	
 	Me.AffixEditor_ScrollChanged( DiceMasterAffixEditor.selectorFrame.scroller:GetValue() )
 end
+   
+
+-------------------------------------------------------------------------------
+-- Handler for when the tooltip has been updated by any change.
+--
+function Me.AffixEditor_UpdateTooltip()
+	if Me.AffixEditing then
+		DiceMaster4.SetupTooltip( Me.AffixEditing.affixIcon, Me.AffixEditing.affix.icon, Me.AffixEditing.affix.name, nil, nil, nil, Me.AffixEditing.affix.desc )
+	end
+end
+
+function Me.AffixEditor_ClearTooltip()
+	if Me.AffixEditing then
+		Me.AffixEditing.affixIcon:SetNormalTexture("")
+		DiceMaster4.SetupTooltip( Me.AffixEditing.affixIcon, nil, "Monster Affix", nil, nil, nil, "A special effect or ability used by this unit.|n|cFF707070<Left Click to Edit>|n<Right Click to Toggle>" )
+	end
+end
 
 -------------------------------------------------------------------------------
 -- Set the texture of the currently edited affix.
@@ -604,100 +601,78 @@ end
 --
 function Me.AffixEditor_SelectIcon( texture )
 	if Me.AffixEditing then
+		Me.AffixEditing.affix.icon = texture or "Interface/Icons/inv_misc_questionmark"
 		DiceMasterAffixEditorAffixIconButton:SetNormalTexture( texture )
+		Me.AffixEditing.affixIcon:SetNormalTexture( texture )
+		Me.AffixEditing.affixIcon:GetParent().affix.Shown = true
 	end
+	Me.AffixEditor_UpdateTooltip()
+	Me.UpdateUnitFrames()
 end
 
 function Me.AffixEditor_SaveAffix()
-	if not DiceMasterAffixEditorAffixIconButton:GetNormalTexture() then return end
-
-	local icon = DiceMasterAffixEditorAffixIconButton:GetNormalTexture():GetTexture()
+	local icon = Me.AffixEditing.affix.icon
 	local name = DiceMasterAffixEditorAffixName:GetText()
 	local desc = DiceMasterAffixEditorAffixDesc.EditBox:GetText()
-	local duration = 0;
-	if not DiceMasterAffixEditorAffixCancelable:GetChecked() then
-		duration = DiceMasterAffixEditorAffixDuration:GetValue()
-	end
-	local stackable = DiceMasterAffixEditorAffixStackable:GetChecked()
+	local effect = Me.UnitEditing.spellvisualkit or nil
 	
 	if name~="" then
 		DiceMaster4UF_Saved.FavouriteAffixes[name] = {}
 		DiceMaster4UF_Saved.FavouriteAffixes[name].icon = icon
 		DiceMaster4UF_Saved.FavouriteAffixes[name].name = name
 		DiceMaster4UF_Saved.FavouriteAffixes[name].desc = desc
-		DiceMaster4UF_Saved.FavouriteAffixes[name].duration = duration
-		DiceMaster4UF_Saved.FavouriteAffixes[name].stackable = stackable
+		DiceMaster4UF_Saved.FavouriteAffixes[name].effect = effect
 		Me.PrintMessage("|T"..icon..":16|t "..name.." saved.", "SYSTEM");
 	end
 end
 
 function Me.AffixEditor_DeleteAffix( affix )
+	Me.AffixEditing.affixIcon:SetNormalTexture( "Interface/Icons/inv_misc_questionmark" )
 	DiceMasterAffixEditorAffixIconButton:SetNormalTexture("Interface/Icons/inv_misc_questionmark")
 	DiceMasterAffixEditorAffixName:SetText("")
 	DiceMasterAffixEditorAffixDesc.EditBox:SetText("")
-	DiceMasterAffixEditorAffixCancelable:SetChecked( false )
-	DiceMasterAffixEditorAffixDuration:SetValue( 1 )
-	DiceMasterAffixEditorAffixStackable:SetChecked( false )
 	if DiceMaster4UF_Saved.FavouriteAffixes[affix] then
 		Me.PrintMessage("|T"..DiceMaster4UF_Saved.FavouriteAffixes[affix].icon..":16|t "..affix.." deleted.", "SYSTEM");
 		DiceMaster4UF_Saved.FavouriteAffixes[affix] = nil;
 	end
+	Me.AffixEditor_ClearTooltip()
+	Me.UnitPicker_ResetEffect()
 end
 
 function Me.AffixEditor_ToggleAffix( self )
-	local unitframe = Me.UnitEditing
+	if Me.AffixEditing.affixIcon:IsShown() then
+		Me.AffixEditing.affixIcon:Hide()
+		Me.AffixEditing.affix.Shown = false
+		self:SetText("Show Affix")
+		DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to make this affix visible to the rest of your group.")
+	else
+		Me.AffixEditing.affixIcon:Show()
+		Me.AffixEditing.affix.Shown = true
+		self:SetText("Hide Affix")
+		DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to hide this affix from the rest of your group.")
+	end
+	DiceMaster4.UpdateUnitFrames()
+end
 
-	if not DiceMasterAffixEditorAffixIconButton:GetNormalTexture() then return end
-	
-	local icon = DiceMasterAffixEditorAffixIconButton:GetNormalTexture():GetTexture()
-	local name = DiceMasterAffixEditorAffixName:GetText() or nil
-	local desc = DiceMasterAffixEditorAffixDesc.EditBox:GetText() or nil
-	local duration = 0
-	if not DiceMasterAffixEditorAffixCancelable:GetChecked() then
-		duration = BUFF_DURATION_AMOUNTS[DiceMasterAffixEditorAffixDuration:GetValue()].time or 0
+-------------------------------------------------------------------------------
+-- Handler for when the name editor loses focus.
+--
+function Me.AffixEditor_SaveName()
+	if Me.AffixEditing then
+		Me.AffixEditing.affix.name = DiceMasterAffixEditorAffixName:GetText()
 	end
-	local stackable = DiceMasterAffixEditorAffixStackable:GetChecked()
-	
-	if name == "" or not icon or desc == "" or not duration then
-		return
-	end	
-	
-	-- search for duplicates
-	local found = false
-	for i = 1, #unitframe.buffsActive do
-		local buff = unitframe.buffsActive[i]
-		if buff.name == name and buff.sender == UnitName("player") then
-			if not stackable then
-				tremove( unitframe.buffsActive, i )
-			else
-				found = true
-				buff.count = buff.count + 1
-				buff.expirationTime = (GetTime() + tonumber( duration ))
-			end
-			break
-		end		
+	Me.AffixEditor_UpdateTooltip()
+	Me.UpdateUnitFrames()
+end
+
+-------------------------------------------------------------------------------
+-- Handler for when the text editor loses focus.
+--
+function Me.AffixEditor_SaveDescription()
+	if Me.AffixEditing then
+		Me.AffixEditing.affix.desc = DiceMasterAffixEditorAffixDesc.EditBox:GetText()
 	end
-	
-	-- if buff doesn't exist and we have less than 15, apply it
-	if not found and #unitframe.buffsActive < 15 then
-		local buff = {
-			name = tostring(name),
-			icon = tostring(icon),
-			description = tostring(desc),
-			count = 1,
-			duration = 0,
-			sender = UnitName("player"),
-		}
-		if duration then
-			buff.duration = tonumber(duration)
-			buff.expirationTime = (GetTime() + tonumber( duration ))
-		end
-		tinsert( unitframe.buffsActive, buff )
-	end
-	for i = 1, #unitframe.buffs do
-		Me.UnitFrames_UpdateBuffButton( unitframe, i)
-	end
-	unitframe.buffFrame:Show()
+	Me.AffixEditor_UpdateTooltip()
 	Me.UpdateUnitFrames()
 end
 
@@ -748,20 +723,23 @@ function Me.AffixEditorLoadDropDown_OnClick(self, arg1, arg2, checked)
 	local icon = arg1.icon
 	local name = arg1.name
 	local desc = arg1.desc
-	local duration = arg1.duration or 0
-	local stackable = arg1.stackable or false
+	local effect = arg1.effect or nil
 	DiceMasterAffixEditorAffixIconButton:SetNormalTexture(icon)
 	DiceMasterAffixEditorAffixName:SetText(name)
 	DiceMasterAffixEditorAffixDesc.EditBox:SetText(desc)
-	if duration > 0 then
-		DiceMasterAffixEditorAffixCancelable:SetChecked( false )
-		DiceMasterAffixEditorAffixDuration:SetValue( duration )
-		DiceMasterAffixEditorAffixDuration:Show()
-	else
-		DiceMasterAffixEditorAffixCancelable:SetChecked( true )
-		DiceMasterAffixEditorAffixDuration:Hide()
+	Me.AffixEditing.affix.icon = icon or "Interface/Icons/inv_misc_questionmark"
+	Me.AffixEditing.affixIcon:SetNormalTexture( icon )
+	Me.AffixEditing.affixIcon:GetParent().affix.Shown = true
+	if effect then
+		Me.UnitEditing:SetDisplayInfo(Me.UnitEditing:GetDisplayInfo())
+		Me.UnitEditing.spellvisualkit = effect
+		Me.UnitEditing:SetAnimation(Me.UnitEditing.animation)
+		Me.UnitEditing:SetSpellVisualKit(effect)
+		Me.UnitEditing:SetPortraitZoom(0)
+		Me.UnitEditing:SetPortraitZoom(0.6)
 	end
-	DiceMasterAffixEditorAffixStackable:SetChecked( stackable )
+	Me.AffixEditor_SaveName()
+	Me.AffixEditor_SaveDescription()
 end
 
 function Me.AffixEditorLoadDropDown_OnLoad()
@@ -784,15 +762,13 @@ end
 -------------------------------------------------------------------------------
 -- Close the affix editor window. Use this instead of a direct Hide()
 --
-function Me.AffixEditor_Close( noSound )
+function Me.AffixEditor_Close()
 	DiceMasterAffixEditor.scrollposition = DiceMasterAffixEditor.selectorFrame.scroller:GetValue()
 	Me.UnitEditing = nil;
 	DiceMasterAffixEditorAffixName:ClearFocus()
 	DiceMasterAffixEditorAffixDesc.EditBox:ClearFocus()
 	Me.AffixEditing = nil;
-	if not noSound then
-		PlaySound(680)
-	end
+	PlaySound(680)
 	DiceMasterUnitPicker:Hide()
 	DiceMasterAffixEditor:Hide()
 end
@@ -802,10 +778,10 @@ end
 --
 function Me.AffixEditor_Open( frame )
 	if DiceMasterAffixEditor:IsShown() then
-		Me.AffixEditor_Close( true )
+		Me.AffixEditor_Close()
 	end
 	if DiceMasterUnitPicker:IsShown() then
-		Me.UnitPicker_Close( true )
+		Me.UnitPicker_Close()
 	end
 	DiceMaster4UF_Saved.FavouriteUnits = DiceMaster4UF_Saved.FavouriteUnits or {}
 	
@@ -825,6 +801,11 @@ function Me.AffixEditor_Open( frame )
 		Me.AffixEditor_RefreshScroll( nil, DiceMasterAffixEditor.scrollposition )
 	else
 		Me.AffixEditor_RefreshScroll( true )
+	end 
+	if frame.affix.name then
+		DiceMasterAffixEditorAffixIconButton:SetNormalTexture(frame.affix.icon)
+		DiceMasterAffixEditorAffixName:SetText(frame.affix.name)
+		DiceMasterAffixEditorAffixDesc.EditBox:SetText(frame.affix.desc)
 	end
 	DiceMaster4UF_Saved.FavouriteAffixes = DiceMaster4UF_Saved.FavouriteAffixes or {}
 	Me.AffixEditing = frame or nil;

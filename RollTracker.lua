@@ -9,28 +9,16 @@
 local Me = DiceMaster4
 local Profile = Me.Profile
 
-if not Me.SavedRolls then
-	Me.SavedRolls = {}
-end
+Me.SavedRolls = {}
 Me.HistoryRolls = {}
 
 local ROLL_ROUND_TYPES = {
 	["Attack"] = "Roll to attempt a combat action of your choosing.",
-	["Bluff"] = "Roll to deceive, trick, or lie to someone.",
 	["Defence"] = "Roll to defend yourself from enemy damage.",
-	["Defense"] = "Roll to defend yourself from enemy damage.",
-	-- You're welcome, America.
-	["Diplomacy"] = "Roll to persuade or win favour with someone.",
-	["Fortitude"] = "Roll to resist physical punishment or pain.",
-	["Heal"] = "Roll to restore health to yourself or others.",
-	["Intimidat"] = "Roll to coerce or frighten someone.",
-	-- Matches "Intimidate" and "Intimidation"
-	["Magical Perception"] = "Roll to detect magic in the area.",
-	-- Magical Perception has to go first to satisfy the str:find function.
+	["Healing"] = "Roll to restore health to yourself or others.",
 	["Perception"] = "Roll to gain information about the area.",
-	["Reflex"] = "Roll to avoid or prevent an unexpected action.",
+	["Magical Perception"] = "Roll to detect magic in the area.",
 	["Stealth"] = "Roll to conceal yourself from detection.",
-	["Will"] = "Roll to resist mental influence.",
 }
 
 local WORLD_MARKER_NAMES = {
@@ -45,35 +33,26 @@ local WORLD_MARKER_NAMES = {
 }
 
 StaticPopupDialogs["DICEMASTER4_ROLLBANNER"] = {
-  text = "Enter a title for the banner, or use one of the default prompts below:|n|n|cFFFFD100Attack|r | |cFFFFD100Bluff|r | |cFFFFD100Defence|r | |cFFFFD100Diplomacy|r | |cFFFFD100Fortitude Save|r | |cFFFFD100Healing|r | |cFFFFD100Intimidation|r | |cFFFFD100Perception|r | |cFFFFD100Magical Perception|r | |cFFFFD100Reflex Save|r | |cFFFFD100Stealth|r | |cFFFFD100Will Save|r",
+  text = "What type of round is your group rolling for?|n(Attack, Defence, Healing, etc.)",
   button1 = "Accept",
   button2 = "Cancel",
   OnShow = function (self, data)
     self.editBox:SetText("Attack")
 	self.editBox:HighlightText()
   end,
-  OnAccept = function (self, data)
+  OnAccept = function (self, data, data2)
+	local name = UnitName("player")
     local text = self.editBox:GetText()
-	local channel = "RAID";
-	local name = nil;
-	if data and UnitIsPlayer( data ) then
-		channel = "WHISPER";
-		name = data;
-	end
-	if GetNumGroupMembers() == 0 then
-		channel = "WHISPER";
-		name = UnitName("player")
-	end
 	if text == "" then
 		UIErrorsFrame:AddMessage( "Invalid name: too short.", 1.0, 0.0, 0.0, 53, 5 );
 	elseif strlen(text) > 30 then
 		UIErrorsFrame:AddMessage( "Invalid name: too long.", 1.0, 0.0, 0.0, 53, 5 );
 	else
 		local msg = Me:Serialize( "BANNER", {
-			na = tostring( UnitName("player") );
+			na = tostring( name );
 			tp = tostring( text );
 		})
-		Me:SendCommMessage( "DCM4", msg, channel, name or nil, "ALERT" )
+		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 	end
   end,
   hasEditBox = true,
@@ -90,10 +69,11 @@ StaticPopupDialogs["DICEMASTER4_GRANTEXPERIENCE"] = {
   OnShow = function (self, data)
     self.editBox:SetText("10")
 	self.editBox:HighlightText()
+	self.editBox:SetNumeric( true )
   end,
   OnAccept = function (self, data)
-    local text = tonumber(self.editBox:GetText()) or 0
-	if text == "" or ( tonumber(text) > 100 ) or text == 0 then
+    local text = self.editBox:GetText()
+	if text == "" or ( tonumber(text) > 100 )then
 		UIErrorsFrame:AddMessage( "Invalid amount.", 1.0, 0.0, 0.0, 53, 5 );
 	else
 		local msg = Me:Serialize( "EXP", {
@@ -120,10 +100,11 @@ StaticPopupDialogs["DICEMASTER4_GRANTLEVEL"] = {
   OnShow = function (self, data)
     self.editBox:SetText("1")
 	self.editBox:HighlightText()
+	self.editBox:SetNumeric( true )
   end,
   OnAccept = function (self, data)
-    local text = tonumber(self.editBox:GetText()) or 0
-	if text == "" or ( tonumber(text) > 100 ) or text == 0 then
+    local text = self.editBox:GetText()
+	if text == "" or ( tonumber(text) > 100 )then
 		UIErrorsFrame:AddMessage( "Invalid amount.", 1.0, 0.0, 0.0, 53, 5 );
 	else
 		local msg = Me:Serialize( "EXP", {
@@ -158,7 +139,6 @@ StaticPopupDialogs["DICEMASTER4_LEVELRESETATTEMPT"] = {
 	end)
   end,
   OnAccept = function (self, data)
-	self.button1:SetScript("OnUpdate", nil)
     local msg = Me:Serialize( "EXP", {
 			r = true;
 		})
@@ -412,7 +392,7 @@ function Me.Format_TimeStamp( timestamp )
 		period = "PM";
 		timestamp = string.gsub(timestamp, hour, hour-12)
 	elseif hour < 1 then
-		timestamp = string.gsub(timestamp, "00", 12)
+		timestamp = string.gsub(timestamp, hour, 12)
 	end
 	
 	return (timestamp.." "..period)
@@ -993,7 +973,7 @@ end
 
 function Me.RollTracker_OnBanner( data, dist, sender )	
 	-- Only the party leader can send us these.
-	if not UnitIsGroupLeader(sender, 1) and not Me.IsLeader( false ) then return end
+	if not UnitIsGroupLeader(sender, 1) then return end
  
 	-- sanitize message
 	if not data.na or not data.tp then
@@ -1001,7 +981,7 @@ function Me.RollTracker_OnBanner( data, dist, sender )
 		return
 	end
 	
-	if not DiceMasterRollBanner:IsShown() then
+	if Me.PermittedUse() and not DiceMasterRollBanner:IsShown() then
 		
 		-- if banners are off, just show the message.
 		if not Me.db.global.enableRoundBanners then
@@ -1009,27 +989,13 @@ function Me.RollTracker_OnBanner( data, dist, sender )
 			return
 		end
 		
-		-- Look for punctuation at the end of the string
-		if not data.tp:match("%p$") then
-			data.tp = data.tp.."!"
-		end
-		
 		DiceMasterRollBanner.Title:SetText( data.tp )
 		
-		local found = false;
-		for k,v in pairs(ROLL_ROUND_TYPES) do
-			if data.tp:find(k) then
-				
-				Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp.." "..v)
-				
-				DiceMasterRollBanner.SubTitle:SetText(v)
-				
-				found = true;
-				break;
-			end
-		end
-		
-		if not found then
+		if ROLL_ROUND_TYPES[ data.tp ] then
+			DiceMasterRollBanner.Title:SetText( data.tp .. " Round!" )
+			DiceMasterRollBanner.SubTitle:SetText(ROLL_ROUND_TYPES[ data.tp ])
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp.." Round! "..ROLL_ROUND_TYPES[ data.tp ])
+		else
 			DiceMasterRollBanner.SubTitle:SetText("")
 			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp, "RAID")
 		end

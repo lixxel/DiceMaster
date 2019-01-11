@@ -32,7 +32,6 @@ local wasLeader = false;
 local frame = CreateFrame("FRAME");
 frame:RegisterEvent("ADDON_LOADED");
 frame:RegisterEvent("GROUP_ROSTER_UPDATE");
-frame:RegisterEvent("PARTY_LEADER_CHANGED");
 frame:RegisterEvent("GROUP_LEFT");
 frame:RegisterEvent("ZONE_CHANGED_NEW_AREA");
 
@@ -57,15 +56,7 @@ function frame:OnEvent(event, arg1, ...)
 		
 		Me.DMSAY_Init()
 	end
-	if event == "PARTY_LEADER_CHANGED" and IsInGroup(1) then
-		Me.enableMessageUF = true;
-		wasLeader = false;
-		if Me.IsLeader( false ) and not DiceMasterUnitsPanel:IsShown() and GetNumGroupMembers(1) > 1 then
-			Me.ShowUnitPanel( true )
-		end
-		Me.UpdateUnitFrames()
-	end
-	if event == "GROUP_ROSTER_UPDATE" and IsInGroup(1) and UnitIsGroupLeader("player") and not Me.db.char.unitframes.enable then
+	if event == "GROUP_ROSTER_UPDATE" and IsInGroup(1) and UnitIsGroupLeader("player") then
 		wasLeader = true;
 		Me.UpdateUnitFrames()
 	end
@@ -82,9 +73,7 @@ function frame:OnEvent(event, arg1, ...)
 		end
 		Me.UpdateUnitFrames(1)
 		Me.enableMessageUF = true;
-		if not DiceMasterUnitsPanel:IsShown() then
-			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames disabled.", "SYSTEM")
-		end
+		Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames disabled.", "SYSTEM")
 	end
 	if event == "ZONE_CHANGED_NEW_AREA" then
 		for i=1,#DiceMasterUnitsPanel.unitframes do
@@ -106,7 +95,6 @@ function Me.ApplyUiScaleUF()
 end
 
 function Me.ShowUnitPanel( show )
-	
 	Me.db.char.unitframes.enable = not show
 	
 	if not show then

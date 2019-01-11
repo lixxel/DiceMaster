@@ -1,13 +1,3 @@
-### 5.0.5
- - Added buffs to Unit Frames (replaced affixes).
- - Added option for players to apply buffs to Unit Frame units by left clicking the desired frame and then using a trait.
- - Fixed a Lua error that popped up when using the /dicemaster manager command.
- - Replaced the "Grant Character Experience" button on the Roll Tracker History frame with a "Send Personal Banner..." button (League of Lordaeron only).
- - Fixed an issue preventing players from inputting non-numerical type in some pop up dialogs.
- - Fixed Unit Frame visibility issues that resulted when group leadership was exchanged.
- - Removed misnamed texture files from the icon list.
- - Added roll options to the Statistics tab.
-
 ### 5.0.4
  - Fixed issues communicating between users with Unit Frames.
  - Added a loading delay to Unit Frames models and effects to prevent memory-related crashes.
@@ -23,7 +13,7 @@
  - Fixed an issue allowing players to set Unit Frames' max health to a value below their current health.
  
 ### 5.0.2
- - Added "Statistics" tab to Trait Editor.
+ - Added "Character Sheet" tab to Trait Editor.
  - Fixed an issue displaying health values above 10.
  - Unit Frames enable automatically when the group leader has enabled them.
  - Changed FrameStrata of the Unit Frames Panel, DM Manager, and Roll Prompt Banners.

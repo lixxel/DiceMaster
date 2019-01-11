@@ -37,7 +37,7 @@
   </CinematicModel>
   
   <!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
-  <Frame name="DiceMasterUnitPicker" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="DIALOG" toplevel="true">
+  <Frame name="DiceMasterUnitPicker" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="DIALOG">
     <Size x="384" y="384" />
     <Anchors>
       <Anchor point="CENTER" />
@@ -82,7 +82,7 @@
         end
       </OnLoad>
 	  <OnHide>
-		DiceMaster4.UnitPicker_Close( true )
+		DiceMaster4.UnitPicker_Close()
 	  </OnHide>
     </Scripts>
     <Frames>

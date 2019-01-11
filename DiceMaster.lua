@@ -75,10 +75,11 @@ StaticPopupDialogs["DICEMASTER4_SETHEALTHVALUE"] = {
   button2 = "Cancel",
   OnShow = function (self, data)
     self.editBox:SetText(Profile.health)
+	self.editBox:SetNumeric()
 	self.editBox:HighlightText()
   end,
   OnAccept = function (self, data)
-    local text = tonumber(self.editBox:GetText()) or Profile.health
+    local text = tonumber(self.editBox:GetText() or Profile.health)
 	if Me.OutOfRange( text, 0, Profile.healthMax ) then
 		return
 	end
@@ -105,14 +106,14 @@ StaticPopupDialogs["DICEMASTER4_SETHEALTHMAX"] = {
 	self.editBox:HighlightText()
   end,
   OnAccept = function (self, data)
-    local text = tonumber(self.editBox:GetText()) or Profile.healthMax
+    local text = tonumber(self.editBox:GetText() or Profile.healthMax)
 	if Me.OutOfRange( text, 1, 1000 ) then
 		return
 	end
-	Profile.healthMax = text
 	if Profile.health > Profile.healthMax then 
 		Profile.health = Profile.healthMax 
 	end
+	Profile.healthMax = text
 	Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Profile.health, Profile.healthMax, Profile.armor )
 	
 	Me.BumpSerial( Me.db.char, "statusSerial" )
@@ -215,7 +216,6 @@ function Me.PrintMessage( msg, channel )
 				if not channel or v == channel then
 				 
 					frame:AddMessage( msg, info.r, info.g, info.b )
-					break;
 				end
 			end
 		end

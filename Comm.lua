@@ -37,8 +37,6 @@ local MessageHandlers = {
 	DMSAY   = "UnitFrame_OnDMSAY";
 	UFSTAT  = "UnitFrame_OnStatusMessage";
 	UFREQ   = "UnitFrame_OnStatusRequest";
-	UFBUFF	= "UnitFrame_OnBuffMessage";
-	UFREMOVE = "UnitFrame_OnRemoveBuffMessage";
 }
 
 -------------------------------------------------------------------------------

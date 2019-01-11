@@ -30,15 +30,7 @@
         </Texture>
 	  </Layer>
 	  
-	  <Layer level="OVERLAY" textureSubLevel="3">
-		<Texture parentKey="highlight" file="Interface/AddOns/DiceMaster_UnitFrames/Texture/unitframe-highlight" alphaMode="ADD" hidden="true">
-          
-          <Size x="198" y="418"/>	
-          <Anchors>
-            <Anchor point="BOTTOM" x="-1" y="-169" />
-		  </Anchors>
-          
-        </Texture>
+	  <Layer level="OVERLAY" textureSubLevel="3"> 
         <Texture parentKey="speakerIcon" file="Interface/GossipFrame/GossipGossipIcon" hidden="true">
           
           <Size x="16" y="16"/>	
@@ -107,6 +99,34 @@
 				</OnClick>
 			  </Scripts>
 		</Button>
+		<Button parentKey="affixIcon">
+			 <Size x="24" y="24"/>	
+			  <Anchors>
+				<Anchor point="BOTTOMLEFT" x="5" y="5"/>
+			  </Anchors>
+			  <Layers>
+				  <Layer level="OVERLAY" textureSubLevel="2"> 
+					<Texture parentKey="border" file="Interface/AddOns/DiceMaster_UnitFrames/Texture/affixframe" hidden="false">
+					  <Size x="42" y="42"/>	
+					  <Anchors>
+						<Anchor point="CENTER" />
+					  </Anchors>
+					</Texture>
+				  </Layer>
+				</Layers>
+			  <Scripts>
+				<OnLoad>
+					self:SetNormalTexture("Interface/Icons/inv_misc_questionmark")
+					self:RegisterForClicks("LeftButtonUp", "RightButtonDown");
+					DiceMaster4.SetupTooltip( self, "Interface/Icons/inv_misc_questionmark", "Monster Affix", nil, nil, nil, "A special effect or ability used by this unit." )
+				</OnLoad>
+				<OnClick>
+					if DiceMaster4.IsLeader( false ) then
+						DiceMaster4.AffixEditor_Open( self:GetParent() )
+					end
+				</OnClick>
+			  </Scripts>
+		</Button>
 		<CheckButton parentKey="toggleIcon" inherits="UICheckButtonTemplate">
 			 <Size x="24" y="24"/>	
 			  <Anchors>
@@ -120,8 +140,10 @@
 				<OnClick>
 					if DiceMaster4.IsLeader( false ) then
 						if self:GetChecked() then
+							self:GetParent():SetAlpha(1)
 							DiceMaster4.SetupTooltip( self, nil, "Visible", nil, nil, nil, "Your group can see this unit." )
 						else
+							self:GetParent():SetAlpha(0.7)
 							DiceMaster4.SetupTooltip( self, nil, "Hidden", nil, nil, nil, "Your group cannot see this unit." )
 						end
 						PlaySound(905)
@@ -129,19 +151,6 @@
 						DiceMaster4.UpdateUnitFrames()
 					end
 				</OnClick>
-				<OnUpdate>
-					if DiceMaster4.IsLeader( false ) then
-						self:Show()
-					else
-						self:Hide()
-					end
-				</OnUpdate>
-				<OnShow>
-					if self:GetParent().highlight:IsShown() then
-						self:GetParent().highlight:Hide()
-						DiceMaster4.UnitFrameTargeted = nil;
-					end
-				</OnShow>
 			  </Scripts>
 		</CheckButton>
 		<EditBox parentKey="name" font="GameFontHighlightSmall">
@@ -227,30 +236,6 @@
           </OnMouseDown>
         </Scripts>
       </Frame>
-	  <Frame name="$parentBuffFrame" parentKey="buffFrame">
-		<Size x="180" y="32"/>
-		<Anchors>
-			<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="-45">
-			</Anchor>
-		</Anchors>
-		<Scripts>
-			<OnLoad> 			
-				-- create buff buttons
-				self:GetParent().buffs = {}
-				for y = 0,2 do
-					for x = 0,4 do
-					  local buff = CreateFrame( "Button", nil, self, "DiceMasterBuffButtonTemplate" )
-					  buff:SetSize( 24, 24 )
-					  buff:SetPoint( "TOPLEFT", 28*x+22, -35*y-10 )
-					  buff:SetScript("OnLoad", DiceMaster4.UnitFrames_BuffButton_OnLoad);
-					  buff:SetScript("OnClick", DiceMaster4.UnitFrames_BuffButton_OnClick);
-					  table.insert( self:GetParent().buffs, buff )
-					  buff.buffIndex = #self:GetParent().buffs
-					end
-				end
-			</OnLoad>
-		</Scripts>
-	  </Frame>
 	</Frames>
     <Scripts>
       <OnLoad>
@@ -271,22 +256,11 @@
 				elseif button=="RightButton" then
 					DiceMaster4.DeleteUnitFrame( self )
 				end
-				return
 			elseif IsControlKeyDown() then
 				DiceMaster4.MarkUnitFrame( self )
-				return
 			elseif button=="LeftButton" then
 				DiceMaster4.AffixEditor_Open( self )
-				return
 			end
-		elseif DiceMaster4.IsLeader( true ) then
-			if IsControlKeyDown() then
-				DiceMaster4.MarkUnitFrame( self )
-				return
-			end
-		end
-		if button=="LeftButton" then
-			DiceMaster4.SelectUnitFrame( self )
 		end
 	  </OnMouseDown>
 	  <OnAnimFinished>

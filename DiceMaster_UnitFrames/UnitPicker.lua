@@ -12,8 +12,6 @@ local startOffset = 0
 local filteredList = nil
 local refreshCounter = 0;
 
-C_Timer.NewTicker( 7, function() refreshCounter = 0 end )
-
 Me.effectList = 109302
 
 function Me.UnitPickerDropDown_OnClick(self, arg1, arg2, checked)
@@ -397,11 +395,9 @@ end
 -------------------------------------------------------------------------------
 -- Close the icon picker window. Use this instead of a direct Hide()
 --
-function Me.UnitPicker_Close( noSound )
+function Me.UnitPicker_Close()
 	DiceMasterUnitPicker.scrollposition = DiceMasterUnitPicker.selectorFrame.scroller:GetValue()
-	if not noSound then
-		PlaySound(680)
-	end
+	PlaySound(680)
 	DiceMasterUnitPicker:Hide()
 end
     
