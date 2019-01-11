@@ -557,6 +557,30 @@ function Me.BuffFrame_CastBuff( traitIndex )
 		
 		if name == "" or icon == "" or desc == "" then return end
 		
+		if Me.UnitFrameTargeted and not Me.db.char.unitframes.enable then
+			-- We're targeting a Unit Frame.
+			target = tonumber( Me.UnitFrameTargeted )
+			
+			local msg = Me:Serialize( "UFBUFF", {
+				un = target;
+				na = name;
+				ic = icon;
+				de = desc;
+				st = stackable;
+				co = 1;
+				du = duration;
+			})
+
+			for i=1, MAX_RAID_MEMBERS do
+				local name, rank = GetRaidRosterInfo(i)
+				if name and UnitIsGroupLeader( name ) then
+					Me:SendCommMessage( "DCM4", msg, "WHISPER", name, "NORMAL" )
+					break
+				end
+			end
+			return
+		end
+		
 		local msg = Me:Serialize( "BUFF", {
 			na = name;
 			ic = icon;
@@ -569,6 +593,7 @@ function Me.BuffFrame_CastBuff( traitIndex )
 		if range then
 			Me.BuffFrame_CastAOEBuff( target, range, msg )
 		end
+		
 		Me:SendCommMessage( "DCM4", msg, "WHISPER", target, "NORMAL" )
 		
 		C_Timer.After( 1.0, function() Me.Inspect_Open( UnitName( "target" )) end)
@@ -583,6 +608,26 @@ function Me.BuffFrame_RemoveBuff( traitIndex )
 		local target = UnitName("target") or UnitName("player")
 		
 		if name == "" then return end
+		
+		if Me.UnitFrameTargeted and not Me.db.char.unitframes.enable then
+			-- We're targeting a Unit Frame.
+			target = tonumber( Me.UnitFrameTargeted )
+			
+			local msg = Me:Serialize( "UFREMOVE", {
+				un = target;
+				na = name;
+				co = count;
+			})
+
+			for i=1, MAX_RAID_MEMBERS do
+				local name, rank = GetRaidRosterInfo(i)
+				if name and UnitIsGroupLeader( name ) then
+					Me:SendCommMessage( "DCM4", msg, "WHISPER", name, "NORMAL" )
+					break
+				end
+			end
+			return
+		end
 		
 		local msg = Me:Serialize( "REMOVE", {
 			na = name;

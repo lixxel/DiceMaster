@@ -30,8 +30,8 @@
   </PlayerModel>
   
   <!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
-  <Frame name="DiceMasterAffixEditor" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="HIGH">
-    <Size x="384" y="580" />
+  <Frame name="DiceMasterAffixEditor" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="HIGH" toplevel="true">
+    <Size x="384" y="630" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
@@ -84,7 +84,7 @@
         end
       </OnLoad>
 	  <OnHide>
-		DiceMaster4.AffixEditor_Close()
+		DiceMaster4.AffixEditor_Close( true )
 	  </OnHide>
     </Scripts>
     <Frames>
@@ -344,7 +344,7 @@
         <Scripts>
           <OnLoad>
             
-            self:SetCustomTooltip( "|cFFFFD100Click to select an icon for this affix." )
+            self:SetCustomTooltip( "|cFFFFD100Click to select an icon for this buff." )
             
           </OnLoad>
           <OnClick>
@@ -361,7 +361,7 @@
 		</Anchors>
 		<Layers>
 			<Layer level="ARTWORK">
-		  <FontString name="$parentAffixNameTitle" inherits="GameFontNormalLeft" justifyH="left" text="Affix Name">
+		  <FontString name="$parentAffixNameTitle" inherits="GameFontNormalLeft" justifyH="left" text="Buff Name">
 				<Size x="150" y="12"/>
 				<Anchors>
 				  <Anchor point="TOPLEFT" x="0" y="20"/> 
@@ -375,9 +375,6 @@
 			self:SetTextColor( 1, 1, 1 )
 			self:SetMaxLetters( 40 )
 		  </OnLoad>
-		  <OnEditFocusLost>
-			DiceMaster4.AffixEditor_SaveName()
-		  </OnEditFocusLost>
 		  <OnEscapePressed function="EditBox_ClearFocus"/>
 		  <OnEnterPressed function="EditBox_ClearFocus"/>
 		  <OnTabPressed>
@@ -402,26 +399,77 @@
 		  </Layer>
 		</Layers>
 		<KeyValues>
-			<KeyValue key="maxLetters" value="600" type="number"/>
-			<KeyValue key="instructions" value="A short description of this affix."/>
-			<KeyValue key="hideCharCount" value="false" type="boolean"/>
+			<KeyValue key="instructions" value="A description of this buff."/>
+			<KeyValue key="hideCharCount" value="true" type="boolean"/>
 		</KeyValues>
 		<Scripts>
 			<OnLoad>
 				InputScrollFrame_OnLoad(self);
-				self.EditBox:SetScript("OnEditFocusLost", DiceMaster4.AffixEditor_SaveDescription)
 			</OnLoad>
 		</Scripts>
 		</ScrollFrame>
+		
+		<CheckButton name="$parentAffixCancelable" parentKey="buffCancelable" inherits="ChatConfigCheckButtonTemplate">
+			<Anchors>
+			  <Anchor point="TOPLEFT" relativeKey="$parent.affixDesc" relativePoint="BOTTOMLEFT" x="-8" y="-24" />
+			</Anchors>
+			<HitRectInsets>
+				<AbsInset left="0" right="-120" top="0" bottom="0"/>
+			</HitRectInsets>
+			<Scripts>
+				<OnLoad>
+					_G[self:GetName().."Text"]:SetText("|cFFFFD100Lasts until cancelled")
+					self.tooltip = "Enables this buff to persist until it is manually removed."
+				</OnLoad>
+				<OnClick>
+					if self:GetChecked() then
+						self:GetParent().buffDuration:Hide()
+					else
+						self:GetParent().buffDuration:Show()
+					end
+				</OnClick>
+			</Scripts>
+		</CheckButton>
+		
+		<Slider name="$parentAffixDuration" parentKey="buffDuration" inherits="OptionsSliderTemplate" orientation="HORIZONTAL" enableMouse="true">
+			<Size x="190" y="20"/>
+			<Anchors>
+			  <Anchor point="LEFT" relativeTo="DiceMasterAffixEditorAffixCancelableText" relativePoint="RIGHT" x="18" y="0" />
+			</Anchors>
+			
+			<Scripts>
+				<OnLoad>
+					DiceMaster4.BuffDuration_OnLoad( self )
+				</OnLoad>
+				<OnValueChanged>
+					DiceMaster4.BuffDuration_OnValueChanged( self, value, userInput )
+				</OnValueChanged>
+			</Scripts>
+		</Slider>
+		
+		<CheckButton name="$parentAffixStackable" parentKey="buffStackable" inherits="ChatConfigCheckButtonTemplate">
+			<Anchors>
+			  <Anchor point="TOPLEFT" relativeKey="$parent.buffCancelable" relativePoint="BOTTOMLEFT" x="0" y="0" />
+			</Anchors>
+			<HitRectInsets>
+				<AbsInset left="0" right="-50" top="0" bottom="0"/>
+			</HitRectInsets>
+			<Scripts>
+				<OnLoad>
+					_G[self:GetName().."Text"]:SetText("|cFFFFD100Stackable")
+					self.tooltip = "Enables this buff to stack more than once on the same target."
+				</OnLoad>
+			</Scripts>
+		</CheckButton>
 		  
 		<Button name="$parentAffixEffect" parentKey="affixEffect" inherits="UIPanelButtonTemplate" text="Choose Effect...">
 			<Size x="170" y="22"/>
 			<Anchors>
-				<Anchor point="TOPLEFT" relativeKey="$parent.affixDesc" relativePoint="BOTTOMLEFT" x="-4" y="-16"/> 
+				<Anchor point="TOPLEFT" relativeKey="$parent.buffStackable" relativePoint="BOTTOMLEFT" x="4" y="0"/> 
 			</Anchors>
 			<Scripts>
 				<OnLoad>
-					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to choose a spell effect for this affix.")
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to choose a spell effect for this unit.")
 				</OnLoad>
 				<OnClick>
 					DiceMaster4.UnitPicker_Open( DiceMaster4.UnitEditing )
@@ -429,21 +477,14 @@
 			</Scripts>
 		</Button>
 		
-		<Button name="$parentAffixToggle" parentKey="affixToggle" inherits="UIPanelButtonTemplate" text="Show Affix">
+		<Button name="$parentAffixToggle" parentKey="affixToggle" inherits="UIPanelButtonTemplate" text="Apply Buff">
 			<Size x="170" y="22"/>
 			<Anchors>
 				<Anchor point="LEFT" relativeKey="$parent.affixEffect" relativePoint="RIGHT" x="4" y="0"/> 
 			</Anchors>
 			<Scripts>
-				<OnShow>
-					if DiceMaster4.AffixEditing.affixIcon:IsShown() then
-						self:SetText("Hide Affix")
-					else
-						self:SetText("Show Affix")
-					end
-				</OnShow>
 				<OnLoad>
-					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to make this affix visible to the rest of your group.")
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to apply this buff to the unit.")
 				</OnLoad>
 				<OnClick>
 					DiceMaster4.AffixEditor_ToggleAffix( self )
@@ -458,7 +499,7 @@
 			</Anchors>
 			<Scripts>
 				<OnLoad>
-					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to load a saved affix.")
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to load a saved buff.")
 				</OnLoad>
 			  <OnShow>
 				UIDropDownMenu_Initialize( self, DiceMaster4.AffixEditorLoadDropDown_OnLoad )
@@ -480,7 +521,7 @@
 			</Anchors>
 			<Scripts>
 				<OnLoad>
-					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to save this affix.")
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to save this buff.")
 				</OnLoad>
 				<OnClick>
 					local name = DiceMasterAffixEditorAffixName:GetText()
@@ -500,7 +541,7 @@
 			</Anchors>
 			<Scripts>
 				<OnLoad>
-					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to delete this affix.")
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to delete this buff.")
 				</OnLoad>
 				<OnClick>
 					StaticPopup_Show("DICEMASTER4_DELETEAFFIX", nil, nil, DiceMasterAffixEditorAffixName:GetText() or "")

@@ -258,9 +258,6 @@
 			self:SetTextColor( 1, 1, 1 )
 			self:SetMaxLetters( 200 )
 		  </OnLoad>
-		  <OnEditFocusLost>
-			--DiceMaster4.AffixEditor_SaveName()
-		  </OnEditFocusLost>
 		  <OnEscapePressed function="EditBox_ClearFocus"/>
 		  <OnEnterPressed function="EditBox_ClearFocus"/>
 		  <OnTabPressed>
