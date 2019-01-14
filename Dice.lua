@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 --
@@ -76,6 +76,39 @@ function Me.FormatDiceType( count, sides, mod )
 end
 
 -------------------------------------------------------------------------------
+-- Format a dice string. e.g. 1, 20, 3
+--
+-- @param dice 		The dice string to format.
+-- @param modifier  Optional modifier to add (for statistics).
+--
+function Me.FormatDiceString( dice, modifier )
+	
+	if type( dice ) ~= "string" then 
+		return
+	end
+	
+	local count, sides, modtype, mod = dice:match("^%s*(%d*)[dD](%d+)([+-]?)(%d*)%s*$")
+	
+	if not count or not sides then return end
+	
+	-- some sanitizing
+	count    = count    == "" and 1 or tonumber(count)
+	sides    = sides    == "" and 20 or tonumber(sides)
+	modtype  = modtype  == "" and "+" or modtype
+	mod      = mod      == "" and 0 or tonumber(mod)
+	
+	if modtype == "-" then
+		mod = -mod
+	end
+	
+	if modifier then
+		mod = mod + modifier
+	end
+	
+	return Me.FormatDiceType( count, sides, mod )
+end
+
+-------------------------------------------------------------------------------
 -- Colorizes a number if it's the minimum or maximum amount.
 --
 -- This function has two signatures:
@@ -102,7 +135,7 @@ end
 -------------------------------------------------------------------------------
 -- Version 2 with natural amounts and color codes for crits.
 --
-local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
+local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls, rollType )
 	local sum = 0
 	for k,v in pairs( rolls ) do 
 		sum = sum + v
@@ -145,14 +178,20 @@ local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
 	rollstring = rollstring .. " (" .. dice .. ")"
 	
 	if not you then
+		if rollType then
+			return "(" .. rollType .. ") " .. name .. " rolls " .. rollstring
+		end
 		return name .. " rolls " .. rollstring
 	else
+		if rollType then
+			return "(" .. rollType .. ") You roll " .. rollstring
+		end
 		return "You roll " .. rollstring
 	end
 end
 
-local function FormatDiceMasterRoll( name, you, count, sides, mod, rolls )
-	return FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls )
+local function FormatDiceMasterRoll( name, you, count, sides, mod, rolls, rollType )
+	return FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls, rollType )
 end
 
 -------------------------------------------------------------------------------
@@ -174,7 +213,7 @@ end
 -- @param rolls     Table of rolls to sum up. (Usually just one.)
 -- @param broadcast Broadcast result to party/raid, but only if name is YOU.
 --
-local function PrintDiceMasterRoll( name, count, sides, mod, rolls, broadcast )
+local function PrintDiceMasterRoll( name, count, sides, mod, rolls, rollType, broadcast )
 
 	local is_self = UnitName("player") == name
 	
@@ -188,11 +227,13 @@ local function PrintDiceMasterRoll( name, count, sides, mod, rolls, broadcast )
 			SendChatMessage( "<DiceMaster> " .. StripMessage(msg), chatType, language )
 		end
 		
+		msg = FormatDiceMasterRoll( name, false, count, sides, mod, rolls, rollType )
+		
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
 		
 	else
-		local msg = FormatDiceMasterRoll( name, true, count, sides, mod, rolls )
+		local msg = FormatDiceMasterRoll( name, true, count, sides, mod, rolls, rollType )
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
 		Me.OnRollMessage( name, you, count, sides, mod, sum ) 
@@ -290,7 +331,7 @@ local function CheckRolls( name )
 				end
 				table.remove( rollInfo, 1 )
 				
-				PrintDiceMasterRoll( name, r.count, r.max, r.mod, rolls, true )
+				PrintDiceMasterRoll( name, r.count, r.max, r.mod, rolls, r.type, true )
 			end
 		end
 	end
@@ -300,7 +341,7 @@ end
 -- Record player roll info from a Dice Master roll command. (Locally or
 --   over the network.)
 --
-local function AddRollInfo( name, count, min, max, mod, vanilla )
+local function AddRollInfo( name, count, min, max, mod, vanilla, rollType )
 	playerRollInfo[name] = playerRollInfo[name] or {}
 	
 	local data = {
@@ -309,6 +350,7 @@ local function AddRollInfo( name, count, min, max, mod, vanilla )
 		max   = max or 100;
 		mod   = mod or 0;
 		v     = vanilla;
+		type  = rollType;
 		time  = GetTime();
 	}
 	
@@ -339,7 +381,7 @@ local function AddServerRoll( name, roll, min, max )
 	CheckRolls( name )  
 end
 
-local function SendRollMessage( count, min, max, mod, vanilla )
+local function SendRollMessage( count, min, max, mod, vanilla, rollType )
 
 
 	if IsInGroup()  then
@@ -349,6 +391,7 @@ local function SendRollMessage( count, min, max, mod, vanilla )
 		if max and max ~= 100 then data.b = max end
 		if mod and mod ~= 0 then data.m = mod end
 		if vanilla then data.v = true end
+		if rollType then data.t = rollType end
 		
 		local msg = Me:Serialize( "R", data )
 		
@@ -358,7 +401,7 @@ local function SendRollMessage( count, min, max, mod, vanilla )
 		C_ChatInfo.SendAddonMessage( "DCM4", msg, "RAID" )
 	end
 	
-	AddRollInfo( UnitName("player"), count, min, max, mod, vanilla )
+	AddRollInfo( UnitName("player"), count, min, max, mod, vanilla, rollType )
 end
  
 -------------------------------------------------------------------------------
@@ -366,7 +409,7 @@ end
 --
 -- @param dice Dice format, e.g. 2d6+1, d20, 4D4-2
 --
-function Me.Roll( dice )
+function Me.Roll( dice, rollType )
 	
 	local function UIError( msg )
 		-- helper function to throw errors.
@@ -382,10 +425,11 @@ function Me.Roll( dice )
 	if not count then return UIError( "Invalid dice format." ) end
 	
 	-- some sanitizing
-	count   = count   == "" and 1 or tonumber(count)
-	sides   = sides   == "" and 20 or tonumber(sides)
-	modtype = modtype == "" and "+" or modtype
-	mod     = mod     == "" and 0 or tonumber(mod)
+	count    = count    == "" and 1 or tonumber(count)
+	sides    = sides    == "" and 20 or tonumber(sides)
+	modtype  = modtype  == "" and "+" or modtype
+	mod      = mod      == "" and 0 or tonumber(mod)
+	rollType = rollType or nil
 	
 	if count == 0 then    return UIError( "You must have at least one die." )              end 
 	if count > 10 then    return UIError( "You can only roll 10 dice at a time." )         end 
@@ -396,7 +440,7 @@ function Me.Roll( dice )
 		mod = -mod
 	end
 	
-	SendRollMessage( count, 1, sides, mod )
+	SendRollMessage( count, 1, sides, mod, nil, rollType )
 	
 	doingDiceMasterRoll = true
 	
@@ -417,7 +461,7 @@ local function RollFilter( self, event, msg, sender, ... )
 	-- Filter out system roll messages
 	-- They're added again later if we know that they're not associated
 	-- with a Dice Master ROLL message.
-	 
+	
 	if msg:match( SYSTEM_ROLL_PATTERN ) then
 		return true
 	end 
@@ -429,10 +473,11 @@ end
 local function RollPartyFilter( self, event, msg, ... )
 	-- If we have Dice Master installed, hide all roll raid messages
 	--
+	
 	if msg:match( "^<DiceMaster> %S+ rolls" ) then
 	
 		if Me.db.char.showRaidRolls then
-			msg = "|cffffff00" .. msg:sub( 15 ) .. "|r"
+			msg = "|cffffff00" .. msg:sub( 14 ) .. "|r"
 			return false, msg, ...
 		end
 		return true
@@ -471,7 +516,7 @@ local function OnRandomRoll( min, max )
 	
 	if not doingDiceMasterRoll then
 		-- we want to create a ROLL message for direct usage too.
-		SendRollMessage( 1, min, max, 0, true )
+		SendRollMessage( 1, min, max, 0, true, nil )
 	end
 end
 
@@ -481,7 +526,7 @@ end
 function Me.Dice_OnRollMessage( data, dist, sender )
 
 	if sender == UnitName("player") then return end
-	AddRollInfo( sender, data.c, data.a, data.b, data.m, data.v )
+	AddRollInfo( sender, data.c, data.a, data.b, data.m, data.v, data.t )
 end
 
 -------------------------------------------------------------------------------

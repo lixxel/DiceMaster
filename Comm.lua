@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 -- comm message handling
@@ -27,6 +27,7 @@ local MessageHandlers = {
 	TARGET  = "RollTracker_OnTargetMessage";
 	NOTES   = "RollTracker_OnNoteMessage";
 	NOTREQ  = "RollTracker_OnStatusRequest";
+	RTYPE   = "RollTracker_OnRollType";
 	
 	BUFF    = "BuffFrame_OnBuffMessage";
 	REMOVE  = "BuffFrame_OnRemoveBuffMessage";

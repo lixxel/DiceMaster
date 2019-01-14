@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 local Me = DiceMaster4
@@ -41,7 +41,7 @@ function Me.GetCharInfo()
 		if data.RA and data.RA ~= "" then race = data.RA end
 		if data.RC and data.RC ~= "" then class = data.RC end
 	elseif mrp then
-		-- 2017 and still using mrp? x)))
+		-- 2019 and still using mrp? x)))
 		
 		local data = msp.char[UnitName("player")].field
 		if data.NA and data.NA ~= "" then name = data.NA end

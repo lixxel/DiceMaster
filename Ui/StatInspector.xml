@@ -19,29 +19,25 @@
 				</Anchors>
 				<Color r="1" g="0.81" b="0" />
 			</FontString>
-			<FontString name="$parentValue" inherits="GameFontHighlightSmall2" justifyH="LEFT" parentKey="value">
+			<FontString name="$parentTitle" inherits="GameFontNormal" justifyH="CENTER" parentKey="title">
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parentName" relativePoint="RIGHT" x="3" y="0"/>
+					<Anchor point="CENTER" x="0" y="0"/>
+				</Anchors>
+				<Color r="1" g="1" b="1" />
+			</FontString>
+			<FontString name="$parentValue" inherits="GameFontHighlightSmall2" justifyH="RIGHT" parentKey="value">
+				<Anchors>
+					<Anchor point="RIGHT" x="-10" y="0"/>
 				</Anchors>
 				<Color r="1" g="1" b="1" />
 			</FontString>
 		</Layer>
 	</Layers>
 	<Scripts>
-		<OnLoad>
-			self.highlight:SetVertexColor(1, 0.81, 0);
-			--self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-		</OnLoad>
 	</Scripts>
-	<HighlightTexture file="Interface\QuestFrame\UI-QuestLogTitleHighlight" alphaMode="ADD" parentKey="highlight">
-		<Anchors>
-			<Anchor point="TOPLEFT" x="0" y="-1"/>
-			<Anchor point="BOTTOMRIGHT" x="0" y="1"/>
-		</Anchors>
-	</HighlightTexture>
   </Button>
   
-  <Button name="DiceMasterStatInspectButton" movable="true" enableMouse="true" frameStrata="MEDIUM" parent="UIParent" hidden="true">
+  <Button name="DiceMasterStatInspectButton" movable="true" enableMouse="true" frameStrata="MEDIUM" parent="UIParent" hidden="true" toplevel="true">
 	<Size x="20" y="20"/>
 	<Anchors>
       <Anchor point="CENTER" x="0" y="0" />

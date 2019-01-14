@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 --
@@ -64,16 +64,15 @@ local LEAGUE_RANKS = {
 }
 
 local TRAIT_RULES = {
-	[1] = "When designing your traits, avoid overpowered or unreasonable abilities that grant you an unfair advantage.|n|nIf a trait seems too powerful, you can balance it by adding a drawback, such as a negative modifier or built-in consequence.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName rolls D40 this turn, but sustains twice as severe an injury if the roll fails.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName rolls D40 for the next three rounds.\"",
-	[2] = "Traits cannot decide their own |cFFFFd100Difficulty Class|r, or the number set by the DM that you must score in order to succeed.|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"This trait succeeds with a roll of at least 10.\"",
-	[3] = "Active trait modifiers may not exceed |cFF00FF00+5|r.|n|nPassive trait modifiers may not exceed |cFF00FF00+3|r, or |cFF00FF00+5|r if they target specific effects or creatures (e.g. Undead, Demons, Beasts).|n|nTraits that use |cFFFFd100Charges|r are exempt from this rule.|n|nTraits that grant other players a bonus may not exceed a modifier of |cFF00FF00+2|r.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName gains +5 to attacks made against the Undead.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +7 for the next attack.\"",
-	[4] = "|cFFFFd100Advantage|r cannot be used for passive traits and cannot be granted to more than one target at a time.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName grants a chosen ally Advantage this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"All players gain Advantage this turn.\"",
-	[5] = "Avoid giving a trait too many modifiers or effects.|n|nIf each effect can stand alone, it is probably best to separate them into multiple traits.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName benefits from +3 to attack this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +3 to attack, +3 to defence, +3 to perception, and +3 to stealth checks.\"",
-	[6] = "Traits may not assign their own critical threshold. Only the DM can determine which rolls are critical.|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"This ability critically strikes with a roll of at least 15.\"",
-	[7] = "Traits may not decide the action of any unit controlled by the DM, and may not decide the DM's dice. Traits can sometimes affect an enemy's modifiers, but this is left up to the DM's discretion.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"Reduces the target's attack attempts by -3 for the next turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName forces the enemy to roll with a D10 for the rest of combat.\"",
-	[8] = "Traits that grant a player |cFFFFd100Immunity|r, or bypass a failed roll to spare a player from the consequences, should be limited to one or two uses and can only target a single player at a time.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName spares a single chosen ally from failure this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName spares all players from failure this turn.\"",
-	[9] = "An |cFFFFd100Ultimate|r trait, or a powerful, single-use slot four trait, may sometimes bend or break these rules, however they must still obey Rule I and require officer approval. An |cFFFFd100Ultimate|r is intended to give a character a short moment of heroic action - not to guarantee success or overshadow the actions of others.",
-	[10] = "Your traits |cFFFF0000must|r be approved by two ranking officers before they are considered \"legal\" and allowed to be used in guild events. Please reach out to an officer when you are ready to have your traits reviewed.",
+	[1] = "|cFFFFd100Trait Rules|r|n|nAvoid overpowered or unreasonable traits that grant you an unfair advantage.|n|nIf a trait seems too powerful, you can balance it by adding a drawback, such as a negative modifier or built-in consequence.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName rolls Double or Nothing this turn, but sustains twice as severe an injury if the roll fails.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName rolls Double or Nothing for the next three turns.\"",
+	[2] = "Traits cannot decide their own |cFFFFd100Difficulty Class|r, or the number set by the DM that you must score in order to succeed; however, a trait may reduce the Difficulty Class for a player by a value of 5 or less.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"Reduces the Difficulty Class by 3 as it applies to charName this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"This trait succeeds with a roll of at least 10.\"",
+	[3] = "Active trait modifiers may not exceed |cFF00FF00+5|r.|n|nPassive trait modifiers may not exceed |cFF00FF00+3|r, or |cFF00FF00+5|r if they target specific conditions or creatures (e.g. Undead, Demons, Beasts).|n|nTraits that use |cFFFFd100Charges|r are exempt from this rule.|n|nTraits that grant other players a bonus may not exceed a modifier of |cFF00FF00+2|r.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName gains +5 to Attacks made against the Undead.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +7 for the next Attack.\"",
+	[4] = "Passive traits cannot grant |cFFFFd100Advantage|r to combat actions (such as Attack or Defence), and |cFFFFd100Advantage|r cannot be granted to more than one target at a time.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName grants a chosen ally Advantage this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains Advantage for all Attack rolls.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"All players gain Advantage this turn.\"",
+	[5] = "Avoid giving a trait too many modifiers or effects.|n|nIf each effect can stand alone, it is probably best to separate them into multiple traits.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName benefits from +3 to Attack this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +3 to Attack, +3 to Defence, +3 to Perception, and +3 to Stealth checks.\"",
+	[6] = "Traits may not assign the DM's dice. Traits can sometimes affect an enemy's modifiers, but this is left up to the DM's discretion.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"Reduces the target's Attack attempts by -3 for the next turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName forces the enemy to roll with a D10 for the rest of combat.\"",
+	[7] = "Traits that grant a player |cFFFFd100Immunity|r, or bypass a failed roll to spare a player from the consequences, should be limited to one or two uses and can only target a single player at a time.|n|nTraits that |cFFFFd100Revive|r, or return a character with 0|TInterface/AddOns/DiceMaster/Texture/health-heart:14:14:0:-8|t to combat with diminished health, may only have one use and can only target a single player at a time.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName grants a target of their choosing Immunity for this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName grants all players Immunity this turn.\"",
+	[8] = "An |cFFFFd100Ultimate|r trait, or a powerful, single-use slot four trait, may sometimes bend or break these rules, however they must still obey Rule I and require officer approval. An |cFFFFd100Ultimate|r is intended to give a character a short moment of heroic action - not to guarantee success or overshadow the actions of others.",
+	[9] = "Your traits |cFFFF0000must|r be approved by two ranking officers before they are considered \"legal\" and allowed to be used in guild events. Please reach out to an officer when you are ready to have your traits reviewed.",
 }
 
 local Me      = DiceMaster4
@@ -83,9 +82,10 @@ Me.editing_trait = 1
 local StatsListEntries = { };
 
 StaticPopupDialogs["DICEMASTER4_CREATESTAT"] = {
-  text = "Enter a name for this statistic:",
-  button1 = "Accept",
+  text = "Enter a name:",
+  button1 = "Create Statistic",
   button2 = "Cancel",
+  button3 = "Create Header",
   OnShow = function (self, data)
     self.editBox:SetText("Statistic")
 	self.editBox:HighlightText()
@@ -99,7 +99,18 @@ StaticPopupDialogs["DICEMASTER4_CREATESTAT"] = {
 	elseif strlen(text) > 20 then
 		UIErrorsFrame:AddMessage( "Invalid name: too long.", 1.0, 0.0, 0.0, 53, 5 );
 	else
-		Me.TraitEditor_StatsList_Add( data, text )
+		Me.TraitEditor_StatsList_Add( data, text, true )
+	end
+  end,
+  OnAlt = function (self, data)
+	local name = UnitName("player")
+    local text = self.editBox:GetText()
+	if text == "" then
+		UIErrorsFrame:AddMessage( "Invalid name: too short.", 1.0, 0.0, 0.0, 53, 5 );
+	elseif strlen(text) > 20 then
+		UIErrorsFrame:AddMessage( "Invalid name: too long.", 1.0, 0.0, 0.0, 53, 5 );
+	else
+		Me.TraitEditor_StatsList_Add( data, text, false )
 	end
   end,
   hasEditBox = true,
@@ -196,9 +207,26 @@ function Me.TraitEditor_StatsFrame_UpdateStatButton(button)
 	
 	-- finish setting up button if it's not a header
 	if ( stat ) then
-		button.name:SetText(stat.name .. ":");
-		button.value:SetText(stat.value);
-		Me.SetupTooltip( button.rollButton, nil, "|cFFFFD100Roll a "..stat.name.." Check" )
+		
+		if stat.value then
+			button.name:SetText(stat.name .. ":");
+			button.title:SetText("");
+			button.value:Show()
+			button.value:SetText(stat.value);
+			button.rollButton:Show()
+		else
+			button.name:SetText("");
+			button.title:SetText(stat.name);
+			button.value:Hide()
+			button.rollButton:Hide()
+		end
+		
+		local determiner = "a"
+		if stat.name:match("^[AEIOU]") then
+			determiner = "an"
+		end
+		
+		Me.SetupTooltip( button.rollButton, nil, "|cFFFFD100Roll "..determiner.." "..stat.name.." Check" )
 		button:Show();
 	else
 		button:Hide();
@@ -241,15 +269,16 @@ end
 -- Add a new stat.
 -- 
 --
-function Me.TraitEditor_StatsList_Add( button, name )
+function Me.TraitEditor_StatsList_Add( button, name, statistic )
 	local index = 0
 	if button then 
 		index = button.index
 	end
 	local stat = {
 		name = name;
-		value = 0;
 	}
+	
+	if statistic then stat.value = 0 end
 	
 	tinsert(Profile.stats, index + 1, stat)
 	
@@ -264,34 +293,8 @@ function Me.TraitEditor_StatsList_Roll( button )
 	local dice = DiceMasterPanelDice:GetText()
 	local modifier = button:GetParent().value:GetText()
 	
-	local count, sides, modtype, mod = dice:match("^%s*(%d*)[dD](%d+)([+-]?)(%d*)%s*$")
+	dice = Me.FormatDiceString( dice, modifier )
 	
-	if not count then
-		count = 1
-		sides = 20
-		modtype = "+"
-		mod = 0
-	end
-	
-	-- some sanitizing
-	if modifier == "" then modifier = 0 end
-	count   = count   == "" and 1 or tonumber(count)
-	sides   = sides   == "" and 20 or tonumber(sides)
-	modtype = modtype == "" and "+" or modtype
-	mod     = mod     == "" and 0 or tonumber(mod)
-	
-	if modtype == "+" then
-		mod = mod + modifier
-	else
-		mod = ( -1 * mod ) + modifier
-		if mod > -1 then
-			modtype = "+"
-		else
-			mod = -1 * mod
-		end
-	end
-	
-	dice = count.."D"..sides..modtype..mod
 	Me.Roll( dice )
 end
 
@@ -301,6 +304,41 @@ end
 --
 function Me.TraitEditor_StatsList_CreateDefaults()
 	local defaults = { "Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma", }
+	
+	local league_defaults = { "Attack", "Defence", "Healing", "Bluff", "Diplomacy", "Intimidation", "Insight", "Physical Perception", "Magical Perception", "Sleight of Hand", "Stealth", "Survival" }
+	
+	if Me.PermittedUse() then
+		local stat = {
+			name = "Base Statistics";
+		}
+		tinsert(Profile.stats, stat)
+		
+		for i = 1,3 do
+			local stat = {
+				name = league_defaults[i];
+				value = 0;
+			}
+			tinsert(Profile.stats, stat)
+		end
+		
+		local stat = {
+			name = "Skills";
+		}
+		tinsert(Profile.stats, stat)
+		
+		for i = 4,#league_defaults do
+			local stat = {
+				name = league_defaults[i];
+				value = 0;
+			}
+			tinsert(Profile.stats, stat)
+		end
+	end
+	
+	local stat = {
+		name = "Ability Scores";
+	}
+	tinsert(Profile.stats, stat)
 	
 	for i = 1,#defaults do
 		local stat = {

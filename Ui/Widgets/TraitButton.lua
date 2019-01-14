@@ -1,21 +1,39 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 local Me = DiceMaster4
 
 local DICEMASTER_TERMS = {
+	-- Glossary Terms
+	{ "Attack", "Attack", "An attempt to fight or inflict harm upon someone." },
 	{ "Advantage", "Advantage", "Allows the character to roll the same dice twice, and take the greater of the two resulting numbers." },
+	{ "Bluff", "Bluff", "The character's skill in deceiving, tricking, or lying to someone." },
+	{ "Control[sleding]*", "Control", "Allows the character to take command of a target until the effect expires." },
+	{ "Defence", "Defence", "An attempt to defend against enemy damage." },
+	{ "Defense", "Defense", "An attempt to defend against enemy damage." },
+	{ "Diplomacy", "Diplomacy", "The character's skill in persuading or winning favour with someone." },
 	{ "Disadvantage", "Disadvantage", "Allows the character to roll the same dice twice, and take the lesser of the two resulting numbers." },
 	{ "Double or Nothing", "Double or Nothing", "An unmodified D40 roll. If the roll succeeds, the character is rewarded with a critical success; however, if the roll fails, the character suffers critically failure." },
-	{ "Reload[edsing]*", "Reload", "Grants the character's active trait another use." },
-	{ "Reviv[desing]*", "Revive", "Allows a character with |cFFFFFFFF0|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t|cFFffd100 remaining to return to battle with diminished health." },
-	{ "Poison[seding]*", "Poison", "Causes additional damage to a target each round." },
-	{ "Control[sleding]*", "Control", "Allows the character to take command of a target until the effect expires." },
-	{ "Stun[snedig]*", "Stun", "Incapacitates a target, preventing them from performing any action next round." },
+	{ "Fortitude", "Fortitude Save", "An attempt to resist physical punishment or pain." },
+	{ "%sHeal[sing]*%A", "Healing", "An attempt to mend wounds or restore health to someone." },
+	{ "Immunity", "Immunity", "Prevents a character from suffering the effects of a failure this round." },
+	{ "Insight", "Insight", "The character's skill in discerning intent and deciphering body language during social interactions." },
+	{ "Intimidat[eion]*", "Intimidation", "The character's skill in coercing or frightening someone." },
 	{ "NAT1", "Natural 1", "A roll of 1 that is achieved before dice modifiers are applied that results in critical failure." },
 	{ "NAT20", "Natural 20", "A roll of 20 that is achieved before dice modifiers are applied that results in critical success." },
-	{ "Immunity", "Immunity", "Prevents a character from suffering the effects of a failure this round." },
+	{ "Poison[seding]*", "Poison", "Causes additional damage to a target each round." },
+	{ "Perception", "Physical Perception", "The character's skill in gaining information about their environment." },
+	{ "Reflex", "Reflex Save", "An attempt to avoid or prevent an unexpected action." },
+	{ "Reload[edsing]*", "Reload", "Grants the character's active trait another use." },
+	{ "Reviv[desing]*", "Revive", "Allows a character with |cFFFFFFFF0|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t|cFFffd100 remaining to return to battle with diminished health." },
+	{ "Saving Throw[s]*", "Saving Throw", "An attempt to resist or prevent a negative condition or effect." },
+	{ "Sleight of Hand", "Sleight of Hand", "The character's skill in planting an object on someone or concealing an object on their person." },
+	{ "Stealth[sed]*", "Stealth", "The character's skill in concealing themselves from detection." },
+	{ "Stun[snedig]*", "Stun", "Incapacitates a target, preventing them from performing any action next round." },
+	{ "Surviv[eal]*", "Survival", "The character's skill in keeping themselves safe and fed in the wild." },
+	{ "Will", "Will Save", "An attempt to resist mental influence and mind control." },
+	-- Icons
 	{ "Armo[u]*r", "Armour (|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t)", "Extends a character's Health beyond the maximum amount by a certain value. Damage taken will always be deducted from Armour before Health." },
 	{ "Health", "Health (|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t)", "A measure of a character's health or an object's integrity. Damage taken decreases Health, and healing restores Health." },
 }

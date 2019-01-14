@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 --
@@ -23,14 +23,38 @@ local ROLL_ROUND_TYPES = {
 	["Diplomacy"] = "Roll to persuade or win favour with someone.",
 	["Fortitude"] = "Roll to resist physical punishment or pain.",
 	["Heal"] = "Roll to restore health to yourself or others.",
+	["Insight"] = "Roll to discern intent and decipher body language during social interactions.",
 	["Intimidat"] = "Roll to coerce or frighten someone.",
 	-- Matches "Intimidate" and "Intimidation"
 	["Magical Perception"] = "Roll to detect magic in the area.",
 	-- Magical Perception has to go first to satisfy the str:find function.
 	["Perception"] = "Roll to gain information about the area.",
 	["Reflex"] = "Roll to avoid or prevent an unexpected action.",
+	["Research"] = "Roll to gather information about a topic.",
+	["Sleight of Hand"] = "Roll to plant an object on someone or conceal an object on your person.",
 	["Stealth"] = "Roll to conceal yourself from detection.",
+	["Surviv"] = "Roll to keep yourself safe and fed in the wild.",
+	-- Matches "Survival" and "Survive"
 	["Will"] = "Roll to resist mental influence.",
+}
+
+local ROLL_OPTIONS = {
+	{name = "Attack", desc = "Roll to attempt a combat action of your choosing.", stat = "Attack"},
+	{name = "Bluff", desc = "Roll to deceive, trick, or lie to someone.", stat = "Bluff"},
+	{name = "Defence", desc = "Roll to defend yourself from enemy damage.", stat = "Defence"},
+	{name = "Diplomacy", desc = "Roll to persuade or win favour with someone.", stat = "Diplomacy"},
+	{name = "Fortitude Save", desc = "Roll to resist physical punishment or pain.", stat = "Constitution"},
+	{name = "Healing", desc = "Roll to restore health to yourself or others.", stat = "Healing"},
+	{name = "Intimidation", desc = "Roll to coerce or frighten someone.", stat = "Intimidation"},
+	{name = "Insight", desc = "Roll to discern intent and decipher body language during social interactions.", stat = "Insight"},
+	{name = "Magical Perception", desc = "Roll to detect magic in the area.", stat = "Magical Perception"},
+	{name = "Physical Perception", desc = "Roll to gain information about the area.", stat = "Physical Perception"},
+	{name = "Reflex Save", desc = "Roll to avoid or prevent an unexpected action.", stat = "Dexterity"},
+	{name = "Research", desc = "Roll to gather information about a topic.", stat = "Intelligence"},
+	{name = "Sleight of Hand", desc = "Roll to plant an object on someone or conceal an object on your person.", stat = "Sleight of Hand"},
+	{name = "Stealth", desc = "Roll to conceal yourself from detection.", stat = "Stealth"},
+	{name = "Survival", desc = "Roll to keep yourself safe and fed in the wild.", stat = "Survival"},
+	{name = "Will Save", desc = "Roll to resist mental influence.", stat = "Wisdom"},
 }
 
 local WORLD_MARKER_NAMES = {
@@ -45,7 +69,7 @@ local WORLD_MARKER_NAMES = {
 }
 
 StaticPopupDialogs["DICEMASTER4_ROLLBANNER"] = {
-  text = "Enter a title for the banner, or use one of the default prompts below:|n|n|cFFFFD100Attack|r | |cFFFFD100Bluff|r | |cFFFFD100Defence|r | |cFFFFD100Diplomacy|r | |cFFFFD100Fortitude Save|r | |cFFFFD100Healing|r | |cFFFFD100Intimidation|r | |cFFFFD100Perception|r | |cFFFFD100Magical Perception|r | |cFFFFD100Reflex Save|r | |cFFFFD100Stealth|r | |cFFFFD100Will Save|r",
+  text = "Enter a title for the banner, or use one of the default prompts below:|n|n|cFFFFD100Attack|r, |cFFFFD100Bluff|r, |cFFFFD100Defence|r, |cFFFFD100Diplomacy|r, |cFFFFD100Fortitude Save|r, |cFFFFD100Healing|r, |cFFFFD100Intimidation|r, |cFFFFD100Insight|r, |cFFFFD100Perception|r, |cFFFFD100Magical Perception|r, |cFFFFD100Reflex Save|r, |cFFFFD100Research|r, |cFFFFD100Sleight of Hand|r, |cFFFFD100Stealth|r, |cFFFFD100Survival|r, |cFFFFD100Will Save|r",
   button1 = "Accept",
   button2 = "Cancel",
   OnShow = function (self, data)
@@ -227,7 +251,7 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 			if Me.IsLeader() then
 				DiceMasterDMNotesAllowAssistants:Show()
 				DiceMasterDMNotesDMNotes.EditBox:Enable()
-				Me.RollTracker_ShareNoteWithParty()
+				Me.RollTracker_ShareNoteWithParty( true )
 			end
 			for i = 1, GetNumGroupMembers(1) do
 				-- Get level and experience data from players.
@@ -303,67 +327,65 @@ function Me.RollTargetDropDown_OnLoad(frame, level, menuList)
 	UIDropDownMenu_AddButton(info, level)
 end
 
-function Me.RollListDropDown_OnClick(self, arg1)
-	local dc = tonumber(DiceMasterRollTrackerDCThreshold:GetText()) or nil
-	local list = nil
-	if not dc then return end
+function Me.RollListDropDown_OnClick( self, arg1, arg2, checked )
 	
-	if arg1 == "success" then
-		for i=1,#Me.SavedRolls do
-			if Me.SavedRolls[i].roll > dc then
-				if not list then 
-					list = Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
-				else
-					list = list..", "..Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
-				end
-			end
-		end
-	elseif arg1 == "tie" then
-		for i=1,#Me.SavedRolls do
-			if Me.SavedRolls[i].roll == dc then
-				if not list then 
-					list = Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
-				else
-					list = list..", "..Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
-				end
-			end
-		end
-	elseif arg1 == "failure" then
-		for i=1,#Me.SavedRolls do
-			if Me.SavedRolls[i].roll < dc then
-				if not list then 
-					list = Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
-				else
-					list = list..", "..Me.SavedRolls[i].name.." ("..Me.SavedRolls[i].roll..")"
-				end
-			end
+	for i = 1, #Me.db.char.rollOptions do
+		if Me.db.char.rollOptions[i].name == ROLL_OPTIONS[arg1].name then
+			tremove( Me.db.char.rollOptions, i )
+			break
 		end
 	end
 	
-	if list then
-		ChatFrame1EditBox:SetFocus()
-		ChatEdit_InsertLink( list ) 
+	if checked then
+	
+		if #Me.db.char.rollOptions < 8 then
+			tinsert( Me.db.char.rollOptions, ROLL_OPTIONS[arg1] )
+		else
+			UIErrorsFrame:AddMessage( "Only 8 roll options can be used at a time.", 1.0, 0.0, 0.0, 53, 5 ); 
+			 CloseDropDownMenus()
+		end
+		
 	end
+
+	local msg = Me:Serialize( "RTYPE", {
+		rt = Me.db.char.rollOptions;
+	})
+	
+	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 end
 
-function Me.RollListDropDown_OnLoad(frame, level, menuList)
-	local dc = DiceMasterRollTrackerDCThreshold:GetText() or ""
+function Me.RollListDropDown_OnLoad( frame, level, menuList )
 	local info = UIDropDownMenu_CreateInfo()
-    info.text = "|cFF00FF00Success|r (>"..dc..")"
-    info.arg1 = "success"
-    info.notCheckable = true;
-    info.func = Me.RollListDropDown_OnClick;
-    UIDropDownMenu_AddButton(info, level)
-	info.text = "|cFFFFFF00Tie|r ("..dc..")"
-    info.arg1 = "tie"
-    info.notCheckable = true;
-    info.func = Me.RollListDropDown_OnClick;
-    UIDropDownMenu_AddButton(info, level)
-	info.text = "|cFFFF0000Failure|r (<"..dc..")"
-    info.arg1 = "failure"
-    info.notCheckable = true;
-    info.func = Me.RollListDropDown_OnClick;
-    UIDropDownMenu_AddButton(info, level)
+	
+	info.text = "|cFFffd100Roll Options for Group Members:"
+	info.notClickable = true;
+	info.notCheckable = true;
+	UIDropDownMenu_AddButton(info, level)
+	
+	for i = 1,#ROLL_OPTIONS do
+		info.text = ROLL_OPTIONS[i].name
+		info.arg1 = i
+		info.func = Me.RollListDropDown_OnClick;
+		info.notClickable = false;
+		info.disabled = false;
+		info.notCheckable = false;
+		info.keepShownOnClick = true;
+		info.isNotRadio = true;
+		info.tooltipTitle = ROLL_OPTIONS[i].name;
+		info.tooltipText = ROLL_OPTIONS[i].desc;
+		if ROLL_OPTIONS[i].stat then
+			info.tooltipText = ROLL_OPTIONS[i].desc .. "|n|cFF707070(Modified by the "..ROLL_OPTIONS[i].stat.." Statistic)|r";
+		end
+		info.tooltipOnButton = true;
+		info.checked = false;
+		for i = 1,#Me.db.char.rollOptions do
+			if Me.db.char.rollOptions[i].name == info.text then
+				info.checked = true;
+				break;
+			end
+		end
+		UIDropDownMenu_AddButton(info, level)
+	end
 end
 
 function DiceMasterRollTrackerButton_OnClick(self, button)
@@ -728,7 +750,7 @@ end
 -------------------------------------------------------------------------------
 -- Send a NOTES message to the party.
 --
-function Me.RollTracker_ShareNoteWithParty()
+function Me.RollTracker_ShareNoteWithParty( shareRollOptions )
 	if not Me.IsLeader( true ) or not IsInGroup(1) then
 		return
 	end
@@ -739,6 +761,15 @@ function Me.RollTracker_ShareNoteWithParty()
 	})
 	
 	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
+	
+	if not shareRollOptions then return end
+	
+	-- Update roll options as well.
+	msg = Me:Serialize( "RTYPE", {
+		rt = Me.db.char.rollOptions;
+	})
+	
+	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 end
 
 -------------------------------------------------------------------------------
@@ -948,6 +979,13 @@ function Me.RollTracker_OnStatusRequest( data, dist, sender )
 		})
 		
 		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
+		
+		-- Update roll options as well.
+		msg = Me:Serialize( "RTYPE", {
+			rt = Me.db.char.rollOptions;
+		})
+		
+		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 	end
 end
 
@@ -1044,4 +1082,28 @@ function Me.RollTracker_OnBanner( data, dist, sender )
 	end
 end
 
+---------------------------------------------------------------------------
+-- Received RTYPE data.
+-- 
 
+function Me.RollTracker_OnRollType( data, dist, sender )
+
+	-- Only the party leader can send us these.
+	if sender == UnitName( "player" ) or not UnitIsGroupLeader(sender, 1) then return end
+	
+	-- sanitize message
+	if not data.rt then
+	   
+		return
+	end
+ 
+	if type(data.rt) == "table" then
+		Me.db.char.rollOptions = {}
+		for i = 1,#data.rt do
+			-- TODO
+			tinsert( Me.db.char.rollOptions, data.rt[i] )
+		end
+		DiceMasterPanel.rollWheel.selected = 0
+		DiceMasterPanel.rollWheel:Hide()
+	end
+end

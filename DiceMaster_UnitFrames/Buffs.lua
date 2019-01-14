@@ -12,6 +12,10 @@ local Profile = Me.Profile
 ------------------------------------------------------------
 
 function Me.UnitFrames_UpdateBuffButton(button, index)
+	if not button or not button.buffsActive then
+		return
+	end
+
 	local data = button.buffsActive[index] or nil
 	local name, icon, description, count, duration, expirationTime, sender
 	if data then 

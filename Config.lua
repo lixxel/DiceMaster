@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 local Me = DiceMaster4
@@ -42,6 +42,7 @@ local DB_DEFAULTS = {
 			enable  = true;
 			scale   = 0.5;
 		};
+		rollOptions = {};
 	};
 	
 	profile = {

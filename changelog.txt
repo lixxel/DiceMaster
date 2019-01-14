@@ -1,3 +1,14 @@
+### 5.0.6
+ - Added a new selection wheel to the Roll Dice button on the Dice Panel (hold down the button to access).
+ - The Trait Editor now removes extra spaces/lines from the beginning and end of trait descriptions.
+ - Replaced the "List Results..." button on the Roll Tracker with a "Roll Options" button, allowing the group leader to set up to 8 options to display on the Roll Dice selection wheel for all group members.
+ - Added new glossary terms.
+ - Statistics can now have negative values.
+ - Added an option to create headers in the Statistics list.
+ - Moved the values for Statistics to the right side on the Statistics Inspector.
+ - Fixed a visibility issue with Unit Frames buffs.
+ - Added UI sounds to some frames and buttons.
+
 ### 5.0.5
  - Added buffs to Unit Frames (replaced affixes).
  - Added option for players to apply buffs to Unit Frame units by left clicking the desired frame and then using a trait.
@@ -6,7 +17,7 @@
  - Fixed an issue preventing players from inputting non-numerical type in some pop up dialogs.
  - Fixed Unit Frame visibility issues that resulted when group leadership was exchanged.
  - Removed misnamed texture files from the icon list.
- - Added roll options to the Statistics tab.
+ - Added roll buttons to Statistics.
 
 ### 5.0.4
  - Fixed issues communicating between users with Unit Frames.

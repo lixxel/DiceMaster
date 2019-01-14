@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 --
@@ -16,6 +16,10 @@ local StatsListEntries = { };
 --
 --
 function Me.StatInspector_Update()
+
+	SetPortraitTexture( Me.statinspector.portrait, "target" )
+	Me.statinspector.TitleText:SetText( UnitName("target") )
+
 	if not Me.inspectName then
 		return
 	end
@@ -97,8 +101,18 @@ function Me.StatInspector_UpdateStatButton(button)
 	
 	-- finish setting up button if it's not a header
 	if ( stat ) then
-		button.name:SetText(stat.name .. ":");
-		button.value:SetText(stat.value);
+	
+		if stat.value then
+			button.name:SetText(stat.name .. ":");
+			button.title:SetText("");
+			button.value:Show()
+			button.value:SetText(stat.value);
+		else
+			button.name:SetText("");
+			button.title:SetText(stat.name);
+			button.value:Hide()
+		end
+		
 		button:Show();
 	else
 		button:Hide();

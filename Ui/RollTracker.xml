@@ -605,11 +605,13 @@
 	    PanelTemplates_SetTab(self, 1);
 	  </OnLoad>
 	  <OnShow>
+		PlaySound(839)
 		if not DiceMaster4.db.global.hideTracker then
 			DiceMaster4.db.global.hideTracker = true
 		end
 	  </OnShow>
 	  <OnHide>
+		PlaySound(840)
 		if DiceMaster4.db.global.hideTracker then
 			DiceMaster4.db.global.hideTracker = false
 		end
@@ -760,25 +762,34 @@
 						</Anchors>
 				</Button>
 				
-				<Button name="$parentListResultsButton" inherits="UIPanelButtonTemplate" text="List Results...">
+				<Button name="$parentListResultsButton" inherits="UIPanelButtonTemplate" text="Roll Options">
 					<Size x="85" y="22"/>
 					<Anchors>
 						<Anchor point="BOTTOMRIGHT" x="-6" y="4"/>
 					</Anchors>
 					<Scripts>
-						<OnLoad>
-						UIDropDownMenu_Initialize( self, DiceMaster4.RollListDropDown_OnLoad )
-						
-						UIDropDownMenu_SetWidth(self, 85, 5)
-						self:SetHeight(22)
-					  </OnLoad>
-						<OnClick>
+						<OnShow>
 							UIDropDownMenu_Initialize( self, DiceMaster4.RollListDropDown_OnLoad )
+							
+							UIDropDownMenu_SetWidth(self, 85, 5)
+							self:SetHeight(22)
+						</OnShow>
+						<OnClick>
+							--UIDropDownMenu_Initialize( self, DiceMaster4.RollListDropDown_OnLoad )
 							ToggleDropDownMenu(1, nil, self, self, 0, 0)
 							self:SetHeight(22)
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 						</OnClick>
+						<OnUpdate>
+							if DiceMaster4.IsLeader( false ) then
+								self:Enable()
+							else
+								self:Disable()
+							end
+						</OnUpdate>
 					</Scripts>
 				</Button>
+				
 				<Button name="$parentBannerButton" inherits="UIPanelButtonTemplate" text="Banner...">
 					<Size x="85" y="22"/>
 					<Anchors>
@@ -799,6 +810,7 @@
 						</OnUpdate>
 					</Scripts>
 				</Button>
+				
 				<Button name="$parentRefreshButton" inherits="UIPanelButtonTemplate" text="Clear">
 					<Size x="85" y="22"/>
 					<Anchors>
@@ -951,6 +963,7 @@
 						<OnClick>
 							self:GetParent().DMNotes.EditBox:SetText("")
 							self:GetParent().DMNotes.EditBox:ClearFocus()
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 						</OnClick>
 						<OnUpdate>
 							if DiceMaster4.IsLeader() then
@@ -1010,6 +1023,7 @@
 						</OnLoad>
 						<OnClick>
 							DiceMaster4.DMExperienceButton_OnClick(self, true)
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 						</OnClick>
 					</Scripts>
 				</CheckButton>
@@ -1128,6 +1142,7 @@
                     DiceMasterRollTracker:Show();
                     DiceMasterDMNotes:Hide();
 					DiceMasterDMExp:Hide();
+					PlaySound(841)
 				</OnClick>
 			</Scripts>
 		</Button>
@@ -1142,6 +1157,7 @@
                     DiceMasterRollTracker:Hide();
                     DiceMasterDMNotes:Show();
 					DiceMasterDMExp:Hide();
+					PlaySound(841)
 				</OnClick>
 			</Scripts>
 		</Button>
@@ -1156,6 +1172,7 @@
                     DiceMasterRollTracker:Hide();
                     DiceMasterDMNotes:Hide();
 					DiceMasterDMExp:Show();
+					PlaySound(841)
 				</OnClick>
 			</Scripts>
 		</Button>

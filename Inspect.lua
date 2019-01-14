@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 local Me = DiceMaster4
@@ -343,6 +343,8 @@ function Me.Inspect_Open( name )
 		DiceMasterStatInspectButton:Show()
 	end
 	if name == nil then return end
+	
+	Me.StatInspector_Update()
 	
 	Me.Inspect_UpdatePlayer( name )
 	Me.Inspect_Refresh( true, "all" ) 
@@ -904,6 +906,7 @@ function Me.Inspect_OnExperience( data, dist, sender )
 		Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Your level has been reset to 1.", "RAID")
 	end
 	
+	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.Inspect_ShareStatusWithParty()
 	Me.TraitEditor_StatsList_Update()
 	Me.DMExperienceFrame_Update()

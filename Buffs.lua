@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 --
@@ -469,6 +469,7 @@ function Me.BuffButton_OnClick(self)
 		Profile.buffsActive[self:GetID()].count = Profile.buffsActive[self:GetID()].count - 1
 	end
 	Me.BuffFrame_Update()
+	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.Inspect_ShareStatusWithParty()
 end
 

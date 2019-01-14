@@ -19,6 +19,12 @@
 				</Anchors>
 				<Color r="1" g="0.81" b="0" />
 			</FontString>
+			<FontString name="$parentTitle" inherits="GameFontNormal" justifyH="CENTER" parentKey="title">
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="0"/>
+				</Anchors>
+				<Color r="1" g="1" b="1" />
+			</FontString>
 		</Layer>
 	</Layers>
 	<Frames>
@@ -33,13 +39,26 @@
 			  <OnLoad>
 				self:SetAutoFocus( false )
 				self:SetMaxLetters( 3 )
-				self:SetNumeric( true )
 			  </OnLoad>
+			  <OnEditFocusGained>
+				self.lastValue = tonumber(self:GetText()) or 0;
+			  </OnEditFocusGained>
 			  <OnEditFocusLost>
 				self:HighlightText(0, 0)
-				if self:GetText()=="" then self:SetText(0) end
+				if self:GetText()=="" then
+					self:SetText(self.lastValue)
+				end
+				if not tonumber(self:GetText()) then
+					self:SetText(self.lastValue)
+				end
 				DiceMaster4.TraitEditor_StatsList_SaveStat( self )
 			  </OnEditFocusLost>
+			  <OnTabPressed>
+				if DiceMasterStatsFrame.buttons[self:GetParent().index + 1] then
+					DiceMasterStatsFrame.buttons[self:GetParent().index + 1].value:SetFocus()
+					DiceMasterStatsFrame.buttons[self:GetParent().index + 1].value:HighlightText()
+				end
+			  </OnTabPressed>
 			  <OnEscapePressed function="EditBox_ClearFocus"/>
 			  <OnEnterPressed function="EditBox_ClearFocus"/>
 			</Scripts>
@@ -749,6 +768,7 @@
 						DiceMaster4.editor.trait_buttons[i]:Show();
 					end
                     DiceMasterStatsFrame:Hide();
+					PlaySound(841)
 				</OnClick>
 			</Scripts>
 		</Button>
@@ -768,6 +788,7 @@
 					DiceMaster4.editor.trait_buttons[i]:Hide();
 				end
 				DiceMasterStatsFrame:Show();
+				PlaySound(841)
 			</OnClick>
 		</Scripts>
 	  </Button>

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2017 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -50,23 +50,57 @@ local TRAIT_USAGE_MODES = {
 
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
-	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                                    -- "double or nothing"
-	{ "Reload[edsing]*",             "|cFFFFFFFFReload|r" };                                                       -- "reload"
-	{ "(Reviv[edsing]*)",             "|cFFFFFFFF%1|r" };                                                       -- "revive"
-	{ "(%d+)%sHealth",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 health"
-	{ "(%d+)%sHP",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };                -- e.g. "1 hp"
-	{ "(%d+)%sArmo[u]*r",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };			-- e.g. "1 armour"
-	{ "Immunity",             "|cFFFFFFFFImmunity|r" };                                                       -- "immunity"
-	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                    -- "advantage"
-	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                                 -- "disadvantage"
-	{ "(Stun[snedig]*)",    "|cFFFFFFFF%1|r" };   -- "stun"
-	{ "(Poison[seding]*)",   "|cFFFFFFFF%1|r" };   -- "poison"
-	{ "(Control[sleding]*)", "|cFFFFFFFF%1|r" };	  -- "control"
-	{ "(NAT1)", "|cFFFFFFFF%1|r" };	  -- "NAT1"
-	{ "(NAT20)", "|cFFFFFFFF%1|r" };	  -- "NAT20"
-	{ "%s?[+]%d+",           "|cFF00FF00%1|r" };                                                           -- e.g. "+1"
-	{ "%s?[-]%d+",           "|cFFFF0000%1|r" };                                                           -- e.g. "-3"
-	{ "%s?%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };                                                           -- dice rolls e.g. "1d6" 
+	-- Glossary Terms
+	{ "(%s)(Attack[s]*)",          "%1|cFFFFFFFF%2|r" };                   	                            -- "attack"
+	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                  -- "advantage"
+	{ "(Bluff[s]*)",             "|cFFFFFFFF%1|r" };                                           		    -- "bluff"
+	{ "(%s)(Control[sleding]*)", "%1|cFFFFFFFF%2|r" };	  												-- "control"
+	{ "(%s)(Defen[cs]e[s]*)",          "%1|cFFFFFFFF%2|r" };                   	                        -- "defence"
+	{ "Diplomacy",             "|cFFFFFFFFDiplomacy|r" };                                               -- "diplomacy"
+	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                               -- "disadvantage"
+	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                       			-- "double or nothing"
+	{ "(Fortitude%s?[Saves]*)(%A)", "|cFFFFFFFF%1|r%2" };                                    			-- "fortitude save"
+	{ "(%s)(Heal[sing]*)(%A)",          "%1|cFFFFFFFF%2|r%3" };                   	                    -- "healing"
+	{ "Immunity",             "|cFFFFFFFFImmunity|r" };                                                 -- "immunity"
+	{ "Insight",             "|cFFFFFFFFInsight|r" };                                                   -- "insight"
+	{ "Intimidat[eion]*",             "|cFFFFFFFFIntimidate|r" };                                       -- "intimidate"
+	{ "(%s)(Magical)",             "%1|cFFFFFFFF%2|r" };                            					-- "magical perception/defence"
+	{ "(NAT1)", "|cFFFFFFFF%1|r" };	  																	-- "NAT1"
+	{ "(NAT20)", "|cFFFFFFFF%1|r" };	  																-- "NAT20"
+	{ "(%s)(Perception[s]?)",             "%1|cFFFFFFFF%2|r" };                           				-- "perception"
+	{ "(%s)(Poison[seding]*)",   "%1|cFFFFFFFF%2|r" };   												-- "poison"
+	{ "(%s)(Physical)",             "%1|cFFFFFFFF%2|r" };                           					-- "physical perception/defence"
+	{ "(Reflex%s?[Saves]*)(%A)", "|cFFFFFFFF%1|r%2" };                                    				-- "reflex save"
+	{ "(%s)(Reload[edsing]*)",             "%1|cFFFFFFFF%2|r" };                                        -- "reload"
+	{ "(%s)(Research)",             "%1|cFFFFFFFF%2|r" };                                        		-- "research"
+	{ "(%s)(Reviv[edsing]*)",             "%1|cFFFFFFFF%2|r" };                                         -- "revive"
+	{ "(%s)(Sleight of Hand)",    "%1|cFFFFFFFF%2|r" };   												-- "sleight of hand"
+	{ "(%s)(Stealth[sed]*)",    "%1|cFFFFFFFF%2|r" };   												-- "stealth"
+	{ "(%s)(Stun[snedig]*)",    "%1|cFFFFFFFF%2|r" };   												-- "stun"
+	{ "(%s)(Surviv[eal]*)",    "%1|cFFFFFFFF%2|r" };   													-- "survival" or "survive"
+	{ "(Will%s?[Saves]*)(%A)", "|cFFFFFFFF%1|r%2" };                                    				-- "will save"
+	-- Icons
+	{ "(%s)(%d+)%sHealth",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };  -- e.g. "1 health"
+	{ "(%s)(%d+)%sHP",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };      -- e.g. "1 hp"
+	{ "(%d+)%sArmo[u]*r",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };	  -- e.g. "1 armour"
+	-- Dice
+	{ "%s?[+]%d+",           "|cFF00FF00%1|r" };                                                        -- e.g. "+1"
+	{ "%s?[-]%d+",           "|cFFFF0000%1|r" };                                                        -- e.g. "-3"
+	{ "%s?%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };                                                      -- dice rolls e.g. "1d6" 
+}
+
+local ROLL_OPTION_SUBS = {
+	{ "Diplomacy", "Diplom." },
+	{ "Fortitude Save", "Fort.|nSave" },
+	{ "Healing", "Heal" },
+	{ "Intimidation", "Coerce" },
+	{ "Magical Perception", "Magic|nPercep." },
+	{ "Physical Perception", "Phys.|nPercep." },
+	{ "Reflex Save", "Reflex|nSave" },
+	{ "Sleight of Hand", "Sleight" },
+	{ "Stealth", "Sneak" },
+	{ "Survival", "Survive" },
+	{ "Will Save", "Will|nSave" },
 }
 
 StaticPopupDialogs["DICEMASTER4_SETHEALTHVALUE"] = {
@@ -428,6 +462,9 @@ function Me.FormatDescTooltip( text )
 	for i = 1, colorCount do
 		text = Me.FormatTooltipColors( text )
 	end
+	
+	-- Remove extra spaces/lines at the beginning/end.
+	text = string.gsub(text, '^%s*(.-)%s*$', '%1')
 
 	return text
 end
@@ -611,6 +648,91 @@ function Me.RollButtonClicked()
 	end
 end
 
+-------------------------------------------------------------------------------
+function Me.RollWheel_Update()
+	for i = 1, 8 do
+		local frame = _G["DiceMasterPanelRollWheelQ"..i]
+		local rollOptions = Me.db.char.rollOptions
+		
+		if rollOptions and rollOptions[i] then
+			local name = rollOptions[i].name
+			
+			frame:Enable()
+			frame.Value = name
+			frame.Desc = rollOptions[i].desc
+			frame.Stat = rollOptions[i].stat or nil
+			
+			for k, v in ipairs( ROLL_OPTION_SUBS ) do
+				name = gsub( name, v[1], v[2] )
+			end
+			
+			frame.Text:SetText(name)
+			frame.Text:SetTextColor( 1, 1, 1 )
+		else
+			frame:Disable()
+			frame.Value = nil
+			frame.Desc = nil
+			frame.Stat = nil
+			frame.Text:SetText("(none)")
+			frame.Text:SetTextColor( 0.5, 0.5, 0.5 )
+		end
+	end	
+end
+
+-------------------------------------------------------------------------------
+function Me.RollWheel_OnEnter( self, rotation )
+	DiceMasterPanel.rollWheel.selected = self.Value
+	self.Text:SetTextColor( 1, 0.81, 0 )
+	DiceMasterPanel.rollWheel.Highlight:SetRotation( rotation )
+	DiceMasterPanel.rollWheel.Highlight:Show()
+	
+	local dice = DiceMasterPanelDice:GetText()
+	local modifier = 0;
+	if self.Stat then
+		for i = 1,#Profile.stats do
+			if Profile.stats[i] and Profile.stats[i].name == self.Stat then
+				modifier = Profile.stats[i].value
+			end
+		end
+	end
+	dice = Me.FormatDiceString( dice, modifier ) or "D20"
+	
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:AddLine( self.Value, 1, 1, 1 )
+	
+	local desc = self.Desc:gsub( "Roll", "Roll "..dice )
+	
+	GameTooltip:AddLine( desc, 1, 0.81, 0, true )
+	
+	if modifier == 0 and self.Stat then
+		local determiner = "a"
+		if self.Stat:match("^[AEIOU]") then
+			determiner = "an"
+		end
+		GameTooltip:AddLine( "Create "..determiner.." "..self.Stat.." Statistic to automatically add it to these rolls.", 0.44, 0.44, 0.44, true )
+	end
+	
+	GameTooltip:Show()
+	
+	PlaySound(823)
+end
+
+-------------------------------------------------------------------------------
+function Me.RollWheel_OnClick( self )	
+	local dice = DiceMasterPanelDice:GetText()
+	local modifier = 0;
+	for i = 1,#Profile.stats do
+		if Profile.stats[i] and Profile.stats[i].name == self then
+			modifier = Profile.stats[i].value
+			break
+		end
+	end
+	dice = Me.FormatDiceString( dice, modifier )
+	
+	Me.Roll( dice, self )
+end
+
+-------------------------------------------------------------------------------
 function Me.BarOnDragStart( self )
 	if Me.db.global.snapping then
 		local offset = 0
@@ -621,6 +743,7 @@ function Me.BarOnDragStart( self )
 	self.isMoving = true
 end
 
+-------------------------------------------------------------------------------
 function Me.BarOnDragStop( self )
 	if self.isMoving then
 		if Me.db.global.snapping then
@@ -632,6 +755,7 @@ function Me.BarOnDragStop( self )
 	end
 end
 
+-------------------------------------------------------------------------------
 function Me.UnlockFrames()
 	DiceMasterUnlockDialog:Show()
 	if Me.db.global.hideTypeTracker then
@@ -656,6 +780,7 @@ function Me.UnlockFrames()
 	DiceMasterMoraleBarDragFrame:Show()
 end
 
+-------------------------------------------------------------------------------
 function Me.LockFrames()
 	DiceMasterUnlockDialog:Hide()
 	if DiceMaster4.db.global.hideTypeTracker then
@@ -678,6 +803,7 @@ function Me.LockFrames()
 	DiceMasterMoraleBarDragFrame:Hide()
 end
 
+-------------------------------------------------------------------------------
 function Me.ApplyKeybindings()
 	if Me.db.char.trackerKeybind and Me.db.char.trackerKeybind~="" then
 		SetBindingClick(Me.db.char.trackerKeybind, DiceMasterRollFrameOpen:GetName())
@@ -686,6 +812,7 @@ function Me.ApplyKeybindings()
 	end
 end
 
+-------------------------------------------------------------------------------
 function Me.ApplyUiScale()
 	DiceMasterPanel:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterTraitEditor:SetScale( Me.db.char.uiScale * 1.4 )
@@ -704,6 +831,7 @@ function Me.ApplyUiScale()
 	end
 end
 
+-------------------------------------------------------------------------------
 function Me.ShowPanel( show )
 	Me.db.char.hidepanel = not show
 	
