@@ -721,9 +721,17 @@ end
 function Me.RollWheel_OnClick( self )	
 	local dice = DiceMasterPanelDice:GetText()
 	local modifier = 0;
-	if self.Stat then
+	local stat = nil
+	for i = 1,#Me.db.char.rollOptions do
+		if Me.db.char.rollOptions[i].name == self then
+			stat = Me.db.char.rollOptions[i].stat
+			break
+		end
+	end
+	
+	if stat then
 		for i = 1,#Profile.stats do
-			if Profile.stats[i] and Profile.stats[i].name == self.Stat then
+			if Profile.stats[i] and Profile.stats[i].name == stat then
 				modifier = Profile.stats[i].value
 				break
 			end
