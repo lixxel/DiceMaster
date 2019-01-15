@@ -721,13 +721,15 @@ end
 function Me.RollWheel_OnClick( self )	
 	local dice = DiceMasterPanelDice:GetText()
 	local modifier = 0;
-	for i = 1,#Profile.stats do
-		if Profile.stats[i] and Profile.stats[i].name == self then
-			modifier = Profile.stats[i].value
-			break
+	if self.Stat then
+		for i = 1,#Profile.stats do
+			if Profile.stats[i] and Profile.stats[i].name == self.Stat then
+				modifier = Profile.stats[i].value
+				break
+			end
 		end
 	end
-	dice = Me.FormatDiceString( dice, modifier )
+	dice = Me.FormatDiceString( dice, modifier ) or "D20"
 	
 	Me.Roll( dice, self )
 end
