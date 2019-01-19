@@ -51,56 +51,26 @@ local TRAIT_USAGE_MODES = {
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
 	-- Glossary Terms
-	{ "(%s)(Attack[s]*)",          "%1|cFFFFFFFF%2|r" };                   	                            -- "attack"
 	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                  -- "advantage"
-	{ "(Bluff[s]*)",             "|cFFFFFFFF%1|r" };                                           		    -- "bluff"
-	{ "(%s)(Control[sleding]*)", "%1|cFFFFFFFF%2|r" };	  												-- "control"
-	{ "(%s)(Defen[cs]e[s]*)",          "%1|cFFFFFFFF%2|r" };                   	                        -- "defence"
-	{ "Diplomacy",             "|cFFFFFFFFDiplomacy|r" };                                               -- "diplomacy"
+	{ "(%s)(Check[s]*)", "%1|cFFFFFFFF%2|r" };	  													-- "checks"
+	{ "(Control[sleding]*)", "|cFFFFFFFF%1|r" };	  													-- "control"
 	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                               -- "disadvantage"
 	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                       			-- "double or nothing"
-	{ "(Fortitude%s?[Saves]*)(%A)", "|cFFFFFFFF%1|r%2" };                                    			-- "fortitude save"
-	{ "(%s)(Heal[sing]*)(%A)",          "%1|cFFFFFFFF%2|r%3" };                   	                    -- "healing"
 	{ "Immunity",             "|cFFFFFFFFImmunity|r" };                                                 -- "immunity"
-	{ "Insight",             "|cFFFFFFFFInsight|r" };                                                   -- "insight"
-	{ "Intimidat[eion]*",             "|cFFFFFFFFIntimidate|r" };                                       -- "intimidate"
-	{ "(%s)(Magical)",             "%1|cFFFFFFFF%2|r" };                            					-- "magical perception/defence"
-	{ "(NAT1)", "|cFFFFFFFF%1|r" };	  																	-- "NAT1"
-	{ "(NAT20)", "|cFFFFFFFF%1|r" };	  																-- "NAT20"
-	{ "(%s)(Perception[s]?)",             "%1|cFFFFFFFF%2|r" };                           				-- "perception"
-	{ "(%s)(Poison[seding]*)",   "%1|cFFFFFFFF%2|r" };   												-- "poison"
-	{ "(%s)(Physical)",             "%1|cFFFFFFFF%2|r" };                           					-- "physical perception/defence"
-	{ "(Reflex%s?[Saves]*)(%A)", "|cFFFFFFFF%1|r%2" };                                    				-- "reflex save"
-	{ "(%s)(Reload[edsing]*)",             "%1|cFFFFFFFF%2|r" };                                        -- "reload"
-	{ "(%s)(Research)",             "%1|cFFFFFFFF%2|r" };                                        		-- "research"
+	{ "NAT1", "|cFFFFFFFFNAT1|r" };	  																	-- "NAT1"
+	{ "NAT20", "|cFFFFFFFFNAT20|r" };	  																-- "NAT20"
+	{ "(Poison[seding]*)",   "|cFFFFFFFF%1|r" };   														-- "poison"
+	{ "(Reload[edsing]*)",             "|cFFFFFFFF%1|r" };                                        		-- "reload"
 	{ "(%s)(Reviv[edsing]*)",             "%1|cFFFFFFFF%2|r" };                                         -- "revive"
-	{ "(%s)(Sleight of Hand)",    "%1|cFFFFFFFF%2|r" };   												-- "sleight of hand"
-	{ "(%s)(Stealth[sed]*)",    "%1|cFFFFFFFF%2|r" };   												-- "stealth"
-	{ "(%s)(Stun[snedig]*)",    "%1|cFFFFFFFF%2|r" };   												-- "stun"
-	{ "(%s)(Surviv[eal]*)",    "%1|cFFFFFFFF%2|r" };   													-- "survival" or "survive"
-	{ "(Will%s?[Saves]*)(%A)", "|cFFFFFFFF%1|r%2" };                                    				-- "will save"
+	{ "(Stun[snedig]*)",    "|cFFFFFFFF%1|r" };   														-- "stun"
 	-- Icons
-	{ "(%s)(%d+)%sHealth",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };  -- e.g. "1 health"
-	{ "(%s)(%d+)%sHP",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };      -- e.g. "1 hp"
-	{ "(%d+)%sArmo[u]*r",      "|cFFFFFFFF%1|r|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };	  -- e.g. "1 armour"
+	{ "(%s)(%d+)%sHealth",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };  		-- e.g. "1 health"
+	{ "(%s)(%d+)%sHP",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };      		-- e.g. "1 hp"
+	{ "(%s)(%d+)%sArmo[u]*r",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };		-- e.g. "1 armour"
 	-- Dice
 	{ "%s?[+]%d+",           "|cFF00FF00%1|r" };                                                        -- e.g. "+1"
 	{ "%s?[-]%d+",           "|cFFFF0000%1|r" };                                                        -- e.g. "-3"
 	{ "%s?%d*[dD]%d+[+-]?%d*", "|cFFFFFFFF%1|r" };                                                      -- dice rolls e.g. "1d6" 
-}
-
-local ROLL_OPTION_SUBS = {
-	{ "Diplomacy", "Diplom." },
-	{ "Fortitude Save", "Fort.|nSave" },
-	{ "Healing", "Heal" },
-	{ "Intimidation", "Coerce" },
-	{ "Magical Perception", "Magic|nPercep." },
-	{ "Physical Perception", "Phys.|nPercep." },
-	{ "Reflex Save", "Reflex|nSave" },
-	{ "Sleight of Hand", "Sleight" },
-	{ "Stealth", "Sneak" },
-	{ "Survival", "Survive" },
-	{ "Will Save", "Will|nSave" },
 }
 
 StaticPopupDialogs["DICEMASTER4_SETHEALTHVALUE"] = {
@@ -443,6 +413,14 @@ function Me.FormatDescTooltip( text )
 		text = gsub( text, v[1], v[2] )
 	end
 	
+	for k, v in pairs( Me.RollList ) do
+		for i = 1, #v do
+			if v[i].subName then
+				text = gsub( text, v[i].subName, "|cFFFFFFFF%1|r" )
+			end
+		end
+	end
+	
 	-- <img> </img>
 	local imgCount = 0
 		for w in string.gmatch(text, "<img>") do
@@ -641,6 +619,82 @@ function Me.TraitButtonClicked()
 end
 
 -------------------------------------------------------------------------------
+
+function Me.RollWheelDropDown_OnClick( self, arg1, arg2, checked )
+	
+	for i = 1, #Me.db.char.rollOptions do
+		if Me.db.char.rollOptions[i].name == Me.RollList[arg1][arg2].name then
+			tremove( Me.db.char.rollOptions, i )
+			break
+		end
+	end
+	
+	if checked then
+	
+		if #Me.db.char.rollOptions < 8 then
+			tinsert( Me.db.char.rollOptions, Me.RollList[arg1][arg2] )
+		else
+			UIErrorsFrame:AddMessage( "Only 8 roll options can be used at a time.", 1.0, 0.0, 0.0, 53, 5 ); 
+			CloseDropDownMenus()
+		end
+		
+	end
+end
+
+function Me.RollWheelDropDown_OnLoad( frame, level, menuList )
+	local info = UIDropDownMenu_CreateInfo()
+	
+	if level == 1 then
+		info.text = "|cFFffd100Roll Options"
+		info.notClickable = true;
+		info.notCheckable = true;
+		UIDropDownMenu_AddButton(info)
+		info.text = "Combat Actions"
+		info.disabled = false;
+		info.notClickable = false;
+		info.hasArrow = true;
+		info.menuList = "Combat Actions"
+		UIDropDownMenu_AddButton(info)
+		info.text = "Skills"
+		info.menuList = "Skills"
+		UIDropDownMenu_AddButton(info)
+		info.text = "Saving Throws"
+		info.menuList = "Saving Throws"
+		UIDropDownMenu_AddButton(info)
+		info.text = "|cFFFF0000Clear All Options"
+		info.notClickable = false;
+		info.hasArrow = nil;
+		info.func = function() Me.db.char.rollOptions = {} end
+		info.menuList = nil
+		UIDropDownMenu_AddButton(info)
+	elseif menuList then
+		for i = 1,#Me.RollList[menuList] do
+			info.text = Me.RollList[menuList][i].name
+			info.arg1 = menuList
+			info.arg2 = i
+			info.func = Me.RollWheelDropDown_OnClick;
+			info.notCheckable = false;
+			info.keepShownOnClick = true;
+			info.isNotRadio = true;
+			info.tooltipTitle = Me.RollList[menuList][i].name;
+			info.tooltipText = Me.RollList[menuList][i].desc;
+			if Me.RollList[menuList][i].stat then
+				info.tooltipText = Me.RollList[menuList][i].desc .. "|n|cFF707070(Modified by "..Me.RollList[menuList][i].stat.." + "..info.text..")|r";
+			end
+			info.tooltipOnButton = true;
+			info.checked = false;
+			for i = 1,#Me.db.char.rollOptions do
+				if Me.db.char.rollOptions[i].name == info.text then
+					info.checked = true;
+					break;
+				end
+			end
+			UIDropDownMenu_AddButton(info, level)
+		end
+	end
+end
+
+-------------------------------------------------------------------------------
 function Me.RollButtonClicked()
 	Me.Roll( DiceMasterPanelDice:GetText() ) 
 	if DiceMasterPanelDice:HasFocus() then
@@ -662,8 +716,8 @@ function Me.RollWheel_Update()
 			frame.Desc = rollOptions[i].desc
 			frame.Stat = rollOptions[i].stat or nil
 			
-			for k, v in ipairs( ROLL_OPTION_SUBS ) do
-				name = gsub( name, v[1], v[2] )
+			if rollOptions[i].wheelName then
+				name = rollOptions[i].wheelName
 			end
 			
 			frame.Text:SetText(name)
@@ -690,8 +744,8 @@ function Me.RollWheel_OnEnter( self, rotation )
 	local modifier = 0;
 	if self.Stat then
 		for i = 1,#Profile.stats do
-			if Profile.stats[i] and Profile.stats[i].name == self.Stat then
-				modifier = Profile.stats[i].value
+			if Profile.stats[i] and ( Profile.stats[i].name == self.Stat or Profile.stats[i].name == self.Value ) then
+				modifier = modifier + Profile.stats[i].value
 			end
 		end
 	end
@@ -704,12 +758,8 @@ function Me.RollWheel_OnEnter( self, rotation )
 	
 	GameTooltip:AddLine( desc, 1, 0.81, 0, true )
 	
-	if modifier == 0 and self.Stat then
-		local determiner = "a"
-		if self.Stat:match("^[AEIOU]") then
-			determiner = "an"
-		end
-		GameTooltip:AddLine( "Create "..determiner.." "..self.Stat.." Statistic to automatically add it to these rolls.", 0.44, 0.44, 0.44, true )
+	if self.Stat then
+		GameTooltip:AddLine( "(Modified by "..self.Stat.." + "..self.Value..")", 0.44, 0.44, 0.44, true )
 	end
 	
 	GameTooltip:Show()
@@ -731,9 +781,8 @@ function Me.RollWheel_OnClick( self )
 	
 	if stat then
 		for i = 1,#Profile.stats do
-			if Profile.stats[i] and Profile.stats[i].name == stat then
-				modifier = Profile.stats[i].value
-				break
+			if Profile.stats[i] and ( Profile.stats[i].name == stat or Profile.stats[i].name == self ) then
+				modifier = modifier + Profile.stats[i].value
 			end
 		end
 	end
@@ -831,6 +880,7 @@ function Me.ApplyUiScale()
 	DiceMasterStatInspectButton:SetScale( Me.db.char.uiScale * 1.2 )
 	DiceMasterBuffEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterRemoveBuffEditor:SetScale( Me.db.char.uiScale * 1.4 )
+	DiceMasterSetDiceEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterChargesFrame:SetScale( Me.db.char.uiScale * 1.2 )
 	DiceMasterRollFrame:SetScale( Me.db.char.trackerScale * 1.4 )
 	DiceMasterMoraleBar:SetScale( Me.db.profile.morale.scale * 1.2 )

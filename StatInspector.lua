@@ -103,11 +103,49 @@ function Me.StatInspector_UpdateStatButton(button)
 	if ( stat ) then
 	
 		if stat.value then
+		
 			button.name:SetText(stat.name .. ":");
 			button.title:SetText("");
 			button.value:Show()
 			button.value:SetText(stat.value);
+			
+			if Me.inspectName == UnitName("player") then
+				local buffValue = Me.TraitEditor_AddStatisticsToValue( stat.name )
+				button.value:SetText(stat.value + buffValue);
+			end
+			
+			Me.SetupTooltip( button, nil, stat.name )
+			
+			local skills = {}
+			
+			for k, v in pairs( Me.RollList ) do
+				for i = 1, #v do
+					if v[i].name == stat.name then
+						local desc = gsub( v[i].desc, "Roll", "An attempt" )
+						Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFFFFD100" .. desc .. "|n|cFF707070(Modified by the " .. v[i].stat .. " Statistic)|r" )
+						break
+					end
+					if v[i].stat == stat.name then
+						tinsert( skills, v[i].name )
+					end
+				end
+			end
+			
+			if Me.AttributeList[ stat.name ] then
+				local skillsList = "|n|cFF707070(Modifies "
+				for i = 1, #skills do
+					if i > 1 and i == #skills then
+						skillsList = skillsList .. ", and "
+					elseif i > 1 then
+						skillsList = skillsList .. ", "
+					end
+					skillsList = skillsList .. skills[i]
+				end
+				Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFFFFD100" .. Me.AttributeList[stat.name].desc .. skillsList .. ")|r" )
+			end
+			
 		else
+			Me.SetupTooltip( button, nil )
 			button.name:SetText("");
 			button.title:SetText(stat.name);
 			button.value:Hide()
@@ -168,4 +206,3 @@ function Me.StatInspector_Open()
 	Me.StatInspector_Update()
 	Me.statinspector:Show()
 end
- 

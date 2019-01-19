@@ -72,6 +72,7 @@ local DB_DEFAULTS = {
 		traits       = {};
 		buffs		 = {};
 		removebuffs  = {};
+		setdice      = {};
 		buffsActive  = {};
 		stats = {
 		};

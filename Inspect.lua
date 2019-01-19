@@ -92,6 +92,72 @@ setmetatable( Me.inspectData, {
 })
 
 -------------------------------------------------------------------------------
+-- Popup Dialogs for setting Inspect target health.
+--
+
+StaticPopupDialogs["DICEMASTER4_SETTARGETHEALTHVALUE"] = {
+  text = "Set Health value:",
+  button1 = "Accept",
+  button2 = "Cancel",
+  OnShow = function (self, data)
+    self.editBox:SetText(Me.inspectData[Me.inspectName].health)
+	self.editBox:HighlightText()
+  end,
+  OnAccept = function (self, data)
+    local text = tonumber(self.editBox:GetText()) or Me.inspectData[Me.inspectName].health
+	if Me.OutOfRange( text, 0, Me.inspectData[Me.inspectName].healthMax ) then
+		return
+	end
+	-- Send update to target.
+	local msg = Me:Serialize( "SETHP", {
+		h = text;
+		hm = Me.inspectData[Me.inspectName].healthMax;
+		ar = Me.inspectData[Me.inspectName].armor;
+	})
+		
+	Me:SendCommMessage( "DCM4", msg, "WHISPER", Me.inspectName, "ALERT" )
+  end,
+  hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+StaticPopupDialogs["DICEMASTER4_SETTARGETHEALTHMAX"] = {
+  text = "Set maximum Health value:",
+  button1 = "Accept",
+  button2 = "Cancel",
+  OnShow = function (self, data)
+    self.editBox:SetText(Me.inspectData[Me.inspectName].healthMax)
+	self.editBox:HighlightText()
+  end,
+  OnAccept = function (self, data)
+    local text = tonumber(self.editBox:GetText()) or Me.inspectData[Me.inspectName].healthMax
+	local health = Me.inspectData[Me.inspectName].health
+	if Me.OutOfRange( text, 1, 1000 ) then
+		return
+	end
+	if health > text then 
+		health = text
+	end
+	-- Send update to target.
+	local msg = Me:Serialize( "SETHP", {
+		h = health;
+		hm = text;
+		ar = Me.inspectData[Me.inspectName].armor;
+	})
+		
+	Me:SendCommMessage( "DCM4", msg, "WHISPER", Me.inspectName, "ALERT" )
+  end,
+  hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+-------------------------------------------------------------------------------
 -- Update the buff frame.
 --
 
@@ -297,6 +363,12 @@ function Me.Inspect_Refresh( status, trait )
 		end
 		Me.RefreshHealthbarFrame( DiceMasterInspectFrame.health, store.health, store.healthMax, store.armor )
 		
+		if Me.IsLeader( true ) then
+			DiceMaster4.SetupTooltip( DiceMasterInspectFrame.health, nil, "Health", nil, nil, nil, 
+              "Represents this character's health.|n|cFF707070<Left/Right Click to Add/Remove>|n<Shift+Left Click to Set Max>|n<Ctrl+Left Click to Set Value>" )
+		else
+			DiceMaster4.SetupTooltip( DiceMasterInspectFrame.health, nil, "Health", nil, nil, nil, "Represents this character's health." )
+		end
 		
 	end
 	
@@ -419,6 +491,51 @@ function Me.Inspect_OnTraitUpdated( name, index )
 	-- If the user is mousing over this trait, via this inspect panel,
 	-- then we update it IN FRONT OF THEIR VERY EYES.
 	Me.UpdateTraitTooltip( name, index )
+end
+
+-------------------------------------------------------------------------------
+-- When the healthbar frame is clicked.
+--
+function Me.Inspect_OnHealthClicked( button )
+
+	if not Me.IsLeader( true ) or not Me.inspectName then return end
+
+	local delta = 0
+	local health = Me.inspectData[Me.inspectName].health
+	local armor =  Me.inspectData[Me.inspectName].armor
+	if button == "LeftButton" then
+		delta = 1
+	elseif button == "RightButton" then
+		delta = -1
+	else
+		return
+	end
+	  	
+	if IsShiftKeyDown() and button == "LeftButton" then
+		-- Open dialog for custom value.
+		StaticPopup_Show("DICEMASTER4_SETTARGETHEALTHMAX")
+		return
+	elseif IsControlKeyDown() and button == "LeftButton" then
+		-- Open dialog for custom value.
+		StaticPopup_Show("DICEMASTER4_SETTARGETHEALTHVALUE")
+		return
+	elseif IsAltKeyDown() then
+		armor = armor + delta;
+	else
+		if Me.OutOfRange( Me.inspectData[Me.inspectName].health+delta, 0, Me.inspectData[Me.inspectName].healthMax ) then
+			return
+		end
+		health = Me.Clamp( health + delta, 0, Me.inspectData[Me.inspectName].healthMax )
+	end
+	
+	-- Send update to target.
+	local msg = Me:Serialize( "SETHP", {
+		h = health;
+		hm = Me.inspectData[Me.inspectName].healthMax;
+		ar = armor;
+	})
+		
+	Me:SendCommMessage( "DCM4", msg, "WHISPER", Me.inspectName, "ALERT" )
 end
 
 -------------------------------------------------------------------------------
@@ -617,19 +734,38 @@ function Me.Inspect_SendStatus( dist, channel )
 end
 
 -------------------------------------------------------------------------------
--- Send data for one of your stats.
+-- Send data for your stats.
 --
--- @param index   Index of Me.stats
 -- @param dist    Addon message distribution.
 -- @param channel Whisper target or channel name.
 --
-function Me.Inspect_SendStat( index, dist, channel )
-	local stat = Profile.stats[index]
+function Me.Inspect_SendStats( dist, channel )
+
+	local stats = {}
+
+	if Profile.stats and #Profile.stats > 0 then		
+		
+		for i = 1, #Profile.stats do
+			local buffValue = Me.TraitEditor_AddStatisticsToValue( Profile.stats[i].name )
+			
+			local value = nil
+			
+			if Profile.stats[i].value then
+				value = Profile.stats[i].value + buffValue
+			end
+			
+			local data = {
+				name = Profile.stats[i].name;
+				value = value or nil;
+			}
+			
+			tinsert( stats, data )
+		end
+		
+	end
 	
-	local msg = Me:Serialize( "STAT", {
-		i = index;
-		n = stat.name;
-		v = stat.value;
+	local msg = Me:Serialize( "STATS", {
+		stats = stats;
 	})
 	
 	if (channel and (not type(channel) == "number")) then channel = tostring(channel) end
@@ -673,9 +809,7 @@ function Me.Inspect_OnInspectMessage( data, dist, sender )
 		if not Profile.stats then
 			return
 		end
-		for i = 1, #Profile.stats do
-			Me.Inspect_SendStat( i, "WHISPER", sender )
-		end
+		Me.Inspect_SendStats( "WHISPER", sender )
 	end
 end
 
@@ -839,33 +973,21 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 end
 
 ---------------------------------------------------------------------------
--- Received STAT data.
+-- Received STATS data.
 --
-function Me.Inspect_OnStatMessage( data, dist, sender )
+function Me.Inspect_OnStatsMessage( data, dist, sender )
 	
 	-- Ignore our own data.
 	if sender == UnitName( "player" ) then return end
 	
 	-- sanitize message
-	if not data.i then
+	if not data.stats or not type(data.stats) == "table" then
 		-- we require index in message
 		return
 	end
 	
-	data.i = tonumber( data.i )
-	data.n = tostring( data.n or "<Unknown name.>" )
-	data.v = tonumber( data.v )
-	
-	if not data.i or not data.n or not data.v then 
-		-- another pass after number sanitization
-		return 
-	end
-	
 	-- store in database
-	Me.inspectData[sender].stats[data.i] = {
-		name    = data.n;
-		value   = data.v;
-	}
+	Me.inspectData[sender].stats = data.stats
 	
 	Me.StatInspector_Update()
 end
@@ -910,6 +1032,39 @@ function Me.Inspect_OnExperience( data, dist, sender )
 	Me.Inspect_ShareStatusWithParty()
 	Me.TraitEditor_StatsList_Update()
 	Me.DMExperienceFrame_Update()
+end
+
+---------------------------------------------------------------------------
+-- Received SETHP data.
+--
+function Me.Inspect_OnSetHPMessage( data, dist, sender )
+	
+	-- Only the party leader can grant experience.
+	if not UnitIsGroupLeader( sender , 1 ) and not UnitIsGroupAssistant( sender, 1 ) then return end
+	
+	-- sanitize message
+	if not data.h or not data.hm or not data.ar then
+		return
+	end
+
+	data.h  = tonumber(data.h)
+	data.hm = tonumber(data.hm)
+	data.ar = tonumber(data.ar) or 0
+	
+	if not data.h or not data.hm or data.h < 0 or data.h > data.hm or data.h > 1000 or data.hm < 0 or data.hm > 1000 or not data.ar or data.ar > data.hm then
+	   
+		-- cover all those bases . . .
+		return 
+	end
+	
+	Profile.health = data.h
+	Profile.healthMax = data.hm
+	Profile.armor = data.ar
+	
+	Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Profile.health, Profile.healthMax, Profile.armor )
+	
+	Me.BumpSerial( Me.db.char, "statusSerial" )
+	Me.Inspect_ShareStatusWithParty()
 end
 
 -------------------------------------------------------------------------------

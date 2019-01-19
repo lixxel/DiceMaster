@@ -141,7 +141,7 @@ local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls, rol
 		sum = sum + v
 	end
 	
-	Me.OnRollMessage( name, you, count, sides, mod, sum ) 
+	Me.OnRollMessage( name, you, count, sides, mod, sum, rollType ) 
 	
 	local rollstring = ""
 	if count == 1 then
@@ -219,15 +219,15 @@ local function PrintDiceMasterRoll( name, count, sides, mod, rolls, rollType, br
 	
 	if IsInGroup() or not is_self then
 	
-		local msg = FormatDiceMasterRoll( name, false, count, sides, mod, rolls )
+		local message = FormatDiceMasterRoll( name, false, count, sides, mod, rolls )
 		
 		if broadcast and IsInGroup() and is_self then
 			local chatType = IsInRaid() and "RAID" or "PARTY"
 			local _, language = GetLanguageByIndex( 1 )
-			SendChatMessage( "<DiceMaster> " .. StripMessage(msg), chatType, language )
+			SendChatMessage( "<DiceMaster> " .. StripMessage(message), chatType, language )
 		end
 		
-		msg = FormatDiceMasterRoll( name, false, count, sides, mod, rolls, rollType )
+		local msg = FormatDiceMasterRoll( name, false, count, sides, mod, rolls, rollType )
 		
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
@@ -236,7 +236,7 @@ local function PrintDiceMasterRoll( name, count, sides, mod, rolls, rollType, br
 		local msg = FormatDiceMasterRoll( name, true, count, sides, mod, rolls, rollType )
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
-		Me.OnRollMessage( name, you, count, sides, mod, sum ) 
+		Me.OnRollMessage( name, you, count, sides, mod, sum, rollType ) 
 	end 
 end
 

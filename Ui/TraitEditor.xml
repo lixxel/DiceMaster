@@ -168,6 +168,9 @@
 			self.highlight:SetVertexColor(1, 0.81, 0);
 			self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 		</OnLoad>
+		<OnLeave>
+			GameTooltip:Hide()
+		</OnLeave>
 		<OnMouseDown>
 			if self.value then
 				self.value:SetFocus()

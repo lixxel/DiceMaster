@@ -5,27 +5,33 @@
 		<Layers>
 			<Layer level="BORDER">
 				<FontString name="$parentName" inherits="GameFontNormalSmall" justifyH="LEFT">
-					<Size x="88" y="14"/>
+					<Size x="65" y="14"/>
 					<Anchors>
 						<Anchor point="TOPLEFT" x="10" y="-3"/>
 					</Anchors>
 				</FontString>
-				<FontString name="$parentRoll" inherits="GameFontHighlightSmall" justifyH="LEFT">
+				<FontString name="$parentRoll" inherits="GameFontHighlightSmall" justifyH="CENTER">
 					<Size x="32" y="14"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentName" relativePoint="RIGHT" x="0" y="0"/>
 					</Anchors>
 				</FontString>
-				<FontString name="$parentTimestamp" inherits="GameFontHighlightSmall" justifyH="LEFT">
-					<Size x="75" y="8"/>
+				<FontString name="$parentRollType" inherits="GameFontHighlightSmall" justifyH="CENTER">
+					<Size x="50" y="14"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentRoll" relativePoint="RIGHT" x="0" y="0"/>
 					</Anchors>
 				</FontString>
-				<FontString name="$parentTarget" inherits="GameFontHighlightSmall" justifyH="LEFT">
+				<FontString name="$parentTimestamp" inherits="GameFontHighlightSmall" justifyH="CENTER">
+					<Size x="60" y="8"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentRollType" relativePoint="RIGHT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentTarget" inherits="GameFontHighlightSmall" justifyH="CENTER">
 					<Size x="32" y="8"/>
 					<Anchors>
-						<Anchor point="LEFT" relativeTo="$parentTimestamp" relativePoint="RIGHT" x="8" y="0"/>
+						<Anchor point="LEFT" relativeTo="$parentTimestamp" relativePoint="RIGHT" x="0" y="0"/>
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -52,19 +58,19 @@
 		<Layers>
 			<Layer level="BORDER">
 				<FontString name="$parentRoll" inherits="GameFontHighlightSmall" justifyH="LEFT">
-					<Size x="26" y="14"/>
+					<Size x="50" y="14"/>
 					<Anchors>
 						<Anchor point="TOPLEFT" x="10" y="-3"/>
 					</Anchors>
 				</FontString>
 				<FontString name="$parentTimestamp" inherits="GameFontHighlightSmall" justifyH="LEFT">
-					<Size x="75" y="8"/>
+					<Size x="55" y="8"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentRoll" relativePoint="RIGHT" x="8" y="0"/>
 					</Anchors>
 				</FontString>
-				<FontString name="$parentDice" inherits="GameFontHighlightSmall" justifyH="LEFT">
-					<Size x="50" y="8"/>
+				<FontString name="$parentType" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size x="55" y="8"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentTimestamp" relativePoint="RIGHT" x="0" y="0"/>
 					</Anchors>
@@ -127,14 +133,14 @@
 						<Anchor point="TOPLEFT" relativeKey="$parent.AverageLabel" relativePoint="BOTTOMLEFT" x="4" y="-13"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="TimestampHistoryLabel" inherits="GameFontNormalSmall" text="Timestamp">
+				<FontString parentKey="TimestampHistoryLabel" inherits="GameFontNormalSmall" text="Time">
 					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.RollHistoryLabel" relativePoint="RIGHT" x="16" y="0"/>
+						<Anchor point="LEFT" relativeKey="$parent.RollHistoryLabel" relativePoint="RIGHT" x="38" y="0"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="DiceHistoryLabel" inherits="GameFontNormalSmall" text="Dice">
+				<FontString parentKey="TypeHistoryLabel" inherits="GameFontNormalSmall" text="Type">
 					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.TimestampHistoryLabel" relativePoint="RIGHT" x="18" y="0"/>
+						<Anchor point="LEFT" relativeKey="$parent.TimestampHistoryLabel" relativePoint="RIGHT" x="28" y="0"/>
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -677,11 +683,6 @@
 					  <OnTextChanged>
 						DiceMaster4.DiceMasterRollFrame_Update()
 						DiceMaster4.DiceMasterRollDetailFrame_Update()
-						if self:GetText()~= "" then
-							DiceMasterRollTrackerListResultsButton:Enable()
-						else
-							DiceMasterRollTrackerListResultsButton:Disable()
-						end
 					  </OnTextChanged>
 					  <OnEscapePressed function="EditBox_ClearFocus"/>
 					  <OnEnterPressed function="EditBox_ClearFocus"/>
@@ -694,7 +695,7 @@
 					</Anchors>
 					<Scripts>
 						<OnLoad>
-							WhoFrameColumn_SetWidth(self, 83);
+							WhoFrameColumn_SetWidth(self, 73);
 							self.sortType = "name";
 							self.reversed = false;
 						</OnLoad>
@@ -711,7 +712,7 @@
 					</Anchors>
 					<Scripts>
 						<OnLoad>
-							WhoFrameColumn_SetWidth(self, 42);
+							WhoFrameColumn_SetWidth(self, 32);
 							self.sortType = "roll";
 							self.reversed = false;
 						</OnLoad>
@@ -722,13 +723,30 @@
 					</Scripts>
 				</Button>
 				
-				<Button name="RollTrackerColumnHeader3" inherits="WhoFrameColumnHeaderTemplate" text="Timestamp">
+				<Button name="RollTrackerColumnHeader3" inherits="WhoFrameColumnHeaderTemplate" text="Type">
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="RollTrackerColumnHeader2" relativePoint="RIGHT" x="-2" y="0"/>
 					</Anchors>
 					<Scripts>
 						<OnLoad>
-							WhoFrameColumn_SetWidth(self, 73);
+							WhoFrameColumn_SetWidth(self, 50);
+							self.sortType = "rollType";
+							self.reversed = false;
+						</OnLoad>
+						<OnClick>
+							DiceMaster4.SortRolls( self, self.reversed, self.sortType )
+							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						</OnClick>
+					</Scripts>
+				</Button>
+				
+				<Button name="RollTrackerColumnHeader4" inherits="WhoFrameColumnHeaderTemplate" text="Time">
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="RollTrackerColumnHeader3" relativePoint="RIGHT" x="-2" y="0"/>
+					</Anchors>
+					<Scripts>
+						<OnLoad>
+							WhoFrameColumn_SetWidth(self, 60);
 							self.sortType = "time";
 							self.reversed = false;
 						</OnLoad>
@@ -739,13 +757,13 @@
 					</Scripts>
 				</Button>
 				
-				<Button name="RollTrackerColumnHeader4" inherits="WhoFrameColumnHeaderTemplate" text="Target">
+				<Button name="RollTrackerColumnHeader5" inherits="WhoFrameColumnHeaderTemplate" text="Target">
 					<Anchors>
-						<Anchor point="LEFT" relativeTo="RollTrackerColumnHeader3" relativePoint="RIGHT" x="-2" y="0"/>
+						<Anchor point="LEFT" relativeTo="RollTrackerColumnHeader4" relativePoint="RIGHT" x="-2" y="0"/>
 					</Anchors>
 					<Scripts>
 						<OnLoad>
-							WhoFrameColumn_SetWidth(self, 52);
+							WhoFrameColumn_SetWidth(self, 42);
 							self.sortType = "target";
 							self.reversed = false;
 						</OnLoad>
@@ -762,38 +780,10 @@
 						</Anchors>
 				</Button>
 				
-				<Button name="$parentListResultsButton" inherits="UIPanelButtonTemplate" text="Roll Options">
-					<Size x="85" y="22"/>
-					<Anchors>
-						<Anchor point="BOTTOMRIGHT" x="-6" y="4"/>
-					</Anchors>
-					<Scripts>
-						<OnShow>
-							UIDropDownMenu_Initialize( self, DiceMaster4.RollListDropDown_OnLoad )
-							
-							UIDropDownMenu_SetWidth(self, 85, 5)
-							self:SetHeight(22)
-						</OnShow>
-						<OnClick>
-							--UIDropDownMenu_Initialize( self, DiceMaster4.RollListDropDown_OnLoad )
-							ToggleDropDownMenu(1, nil, self, self, 0, 0)
-							self:SetHeight(22)
-							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-						</OnClick>
-						<OnUpdate>
-							if DiceMaster4.IsLeader( false ) then
-								self:Enable()
-							else
-								self:Disable()
-							end
-						</OnUpdate>
-					</Scripts>
-				</Button>
-				
 				<Button name="$parentBannerButton" inherits="UIPanelButtonTemplate" text="Banner...">
 					<Size x="85" y="22"/>
 					<Anchors>
-						<Anchor point="RIGHT" relativeTo="DiceMasterRollTrackerListResultsButton" relativePoint="LEFT" x="2" y="0"/>
+						<Anchor point="BOTTOMRIGHT" x="-6" y="4"/>
 					</Anchors>
 					<Scripts>
 						<OnClick>

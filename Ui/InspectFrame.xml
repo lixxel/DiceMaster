@@ -140,6 +140,9 @@
             --self:SetTexture( "Interface/AddOns/DiceMaster/Texture/health-heart" )
             DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, "Represents this character's health." )
           </OnLoad>
+		  <OnMouseDown>
+            DiceMaster4.Inspect_OnHealthClicked( button )
+          </OnMouseDown>
         </Scripts>
       </Frame>
     </Frames>     

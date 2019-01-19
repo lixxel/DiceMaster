@@ -22,14 +22,37 @@ function SlashCmdList.DICE( msg, editBox )
 	
 	if msg == "" then
 		-- show usage
-		Me.PrintMessage("/dice XDY[+/-]Z", "SYSTEM");
+		Me.PrintMessage("/dice (rollType or XDY[+/-]Z)", "SYSTEM");
 		Me.PrintMessage("- X is how many dice to roll.", "SYSTEM");
 		Me.PrintMessage("- Y is how many sides those dice have.", "SYSTEM");
 		Me.PrintMessage("- Z is how much you add/subtract from the total after adding up all the dice.", "SYSTEM");
 		return
 	end
 	
-	Me.Roll( msg ) 
+	local dice = DiceMasterPanelDice:GetText()
+	local rollType = nil
+	local stat = nil
+	local modifier = 0
+	
+	for k, v in pairs( Me.RollList ) do
+		for i = 1, #v do
+			if v[i].name:lower() == msg:lower() then
+				rollType = v[i].name
+				stat = v[i].stat
+			end
+		end
+	end
+	
+	if rollType and stat then
+		for i = 1,#Profile.stats do
+			if Profile.stats[i] and ( Profile.stats[i].name == stat or Profile.stats[i].name == rollType ) then
+				modifier = modifier + Profile.stats[i].value
+			end
+		end
+		msg = Me.FormatDiceString( dice, modifier ) or "D20"
+	end
+	
+	Me.Roll( msg, rollType ) 
 end 
 
 -------------------------------------------------------------------------------

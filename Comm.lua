@@ -14,9 +14,10 @@ local MessageHandlers = {
 	INSP    = "Inspect_OnInspectMessage";
 	TRAIT   = "Inspect_OnTraitMessage";
 	STATUS  = "Inspect_OnStatusMessage";
-	STAT    = "Inspect_OnStatMessage";
+	STATS   = "Inspect_OnStatsMessage";
 	APPROVE = "Inspect_OnTraitApprove";
 	EXP     = "Inspect_OnExperience";
+	SETHP   = "Inspect_OnSetHPMessage";
 	
 	R       = "Dice_OnRollMessage";
 	ROLL    = "Dice_OnRollMessage";
@@ -27,7 +28,6 @@ local MessageHandlers = {
 	TARGET  = "RollTracker_OnTargetMessage";
 	NOTES   = "RollTracker_OnNoteMessage";
 	NOTREQ  = "RollTracker_OnStatusRequest";
-	RTYPE   = "RollTracker_OnRollType";
 	
 	BUFF    = "BuffFrame_OnBuffMessage";
 	REMOVE  = "BuffFrame_OnRemoveBuffMessage";

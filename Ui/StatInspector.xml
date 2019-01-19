@@ -98,7 +98,7 @@
  
   <!-- Trait editor frame. -->
   
-  <Frame name="DiceMasterStatInspector" enableMouse="true" movable="true" resizable="false" frameStrata="DIALOG" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate">
+  <Frame name="DiceMasterStatInspector" enableMouse="true" movable="true" resizable="false" frameStrata="DIALOG" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate" toplevel="true">
     <Size x="265" y="384"/>
     <Anchors>
       <Anchor point="TOP" x="0" y="-90" />

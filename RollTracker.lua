@@ -38,25 +38,6 @@ local ROLL_ROUND_TYPES = {
 	["Will"] = "Roll to resist mental influence.",
 }
 
-local ROLL_OPTIONS = {
-	{name = "Attack", desc = "Roll to attempt a combat action of your choosing.", stat = "Attack"},
-	{name = "Bluff", desc = "Roll to deceive, trick, or lie to someone.", stat = "Bluff"},
-	{name = "Defence", desc = "Roll to defend yourself from enemy damage.", stat = "Defence"},
-	{name = "Diplomacy", desc = "Roll to persuade or win favour with someone.", stat = "Diplomacy"},
-	{name = "Fortitude Save", desc = "Roll to resist physical punishment or pain.", stat = "Constitution"},
-	{name = "Healing", desc = "Roll to restore health to yourself or others.", stat = "Healing"},
-	{name = "Intimidation", desc = "Roll to coerce or frighten someone.", stat = "Intimidation"},
-	{name = "Insight", desc = "Roll to discern intent and decipher body language during social interactions.", stat = "Insight"},
-	{name = "Magical Perception", desc = "Roll to detect magic in the area.", stat = "Magical Perception"},
-	{name = "Physical Perception", desc = "Roll to gain information about the area.", stat = "Physical Perception"},
-	{name = "Reflex Save", desc = "Roll to avoid or prevent an unexpected action.", stat = "Dexterity"},
-	{name = "Research", desc = "Roll to gather information about a topic.", stat = "Intelligence"},
-	{name = "Sleight of Hand", desc = "Roll to plant an object on someone or conceal an object on your person.", stat = "Sleight of Hand"},
-	{name = "Stealth", desc = "Roll to conceal yourself from detection.", stat = "Stealth"},
-	{name = "Survival", desc = "Roll to keep yourself safe and fed in the wild.", stat = "Survival"},
-	{name = "Will Save", desc = "Roll to resist mental influence.", stat = "Wisdom"},
-}
-
 local WORLD_MARKER_NAMES = {
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:14:14|t |cffffff00Yellow|r World Marker"; -- [1]
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:14:14|t |cffff7f3fOrange|r World Marker"; -- [2]
@@ -327,67 +308,6 @@ function Me.RollTargetDropDown_OnLoad(frame, level, menuList)
 	UIDropDownMenu_AddButton(info, level)
 end
 
-function Me.RollListDropDown_OnClick( self, arg1, arg2, checked )
-	
-	for i = 1, #Me.db.char.rollOptions do
-		if Me.db.char.rollOptions[i].name == ROLL_OPTIONS[arg1].name then
-			tremove( Me.db.char.rollOptions, i )
-			break
-		end
-	end
-	
-	if checked then
-	
-		if #Me.db.char.rollOptions < 8 then
-			tinsert( Me.db.char.rollOptions, ROLL_OPTIONS[arg1] )
-		else
-			UIErrorsFrame:AddMessage( "Only 8 roll options can be used at a time.", 1.0, 0.0, 0.0, 53, 5 ); 
-			 CloseDropDownMenus()
-		end
-		
-	end
-
-	local msg = Me:Serialize( "RTYPE", {
-		rt = Me.db.char.rollOptions;
-	})
-	
-	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
-end
-
-function Me.RollListDropDown_OnLoad( frame, level, menuList )
-	local info = UIDropDownMenu_CreateInfo()
-	
-	info.text = "|cFFffd100Roll Options for Group Members:"
-	info.notClickable = true;
-	info.notCheckable = true;
-	UIDropDownMenu_AddButton(info, level)
-	
-	for i = 1,#ROLL_OPTIONS do
-		info.text = ROLL_OPTIONS[i].name
-		info.arg1 = i
-		info.func = Me.RollListDropDown_OnClick;
-		info.notClickable = false;
-		info.disabled = false;
-		info.notCheckable = false;
-		info.keepShownOnClick = true;
-		info.isNotRadio = true;
-		info.tooltipTitle = ROLL_OPTIONS[i].name;
-		info.tooltipText = ROLL_OPTIONS[i].desc;
-		if ROLL_OPTIONS[i].stat then
-			info.tooltipText = ROLL_OPTIONS[i].desc .. "|n|cFF707070(Modified by the "..ROLL_OPTIONS[i].stat.." Statistic)|r";
-		end
-		info.tooltipOnButton = true;
-		info.checked = false;
-		for i = 1,#Me.db.char.rollOptions do
-			if Me.db.char.rollOptions[i].name == info.text then
-				info.checked = true;
-				break;
-			end
-		end
-		UIDropDownMenu_AddButton(info, level)
-	end
-end
-
 function DiceMasterRollTrackerButton_OnClick(self, button)
 	if ( button == "LeftButton" ) then
 		DiceMasterRollTracker.selected = self.rollIndex
@@ -428,16 +348,14 @@ end
 function Me.Format_TimeStamp( timestamp )
 	if not timestamp then return end
 	
-	local period = "AM";
 	local hour = tonumber(timestamp:match("(%d+)%:%d+%:%d+"))
 	if hour > 12 then
-		period = "PM";
 		timestamp = string.gsub(timestamp, hour, hour-12)
 	elseif hour < 1 then
 		timestamp = string.gsub(timestamp, "00", 12)
 	end
 	
-	return (timestamp.." "..period)
+	return timestamp
 end
 
 function Me.ColourHistoryRolls( roll )
@@ -453,7 +371,7 @@ function Me.ColourHistoryRolls( roll )
 end
 
 function Me.DiceMasterRollFrame_Update()
-	local name, roll, time, timestamp, target;
+	local name, roll, rollType, time, timestamp, target;
 	local rollIndex;
 	if #Me.SavedRolls > 0 then
 		DiceMasterRollTrackerTotals:Hide()
@@ -477,6 +395,7 @@ function Me.DiceMasterRollFrame_Update()
 		if ( info ) then
 			name = info.name;
 			roll = info.roll;
+			rollType = info.rollType;
 			time = info.time;
 			timestamp = info.timestamp;
 			target = info.target;			
@@ -486,6 +405,12 @@ function Me.DiceMasterRollFrame_Update()
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Roll"];
 		buttonText:SetText(roll or "--")
 		buttonText:SetTextColor(Me.ColourRolls( roll ))
+		local buttonText = _G["DiceMasterRollTrackerButton"..i.."RollType"];
+		if rollType == 0 or not rollType then
+			buttonText:SetText("--")
+		else
+			buttonText:SetText(rollType)
+		end
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Timestamp"];
 		buttonText:SetText(Me.Format_TimeStamp( timestamp ))
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Target"];
@@ -528,7 +453,7 @@ function Me.RollTrackerColumn_SetWidth(index, width)
 end
 
 function Me.DiceMasterRollDetailFrame_Update()
-	local roll, time, timestamp, dice;
+	local roll, rollType, time, timestamp, dice;
 	local rollIndex;
 	local frame = DiceMasterRollFrame.DetailFrame
 	local name = DiceMasterRollTracker.selectedName or nil
@@ -568,17 +493,22 @@ function Me.DiceMasterRollDetailFrame_Update()
 		local info = Me.HistoryRolls[name][rollIndex];
 		if ( info ) then
 			roll = info.roll;
+			rollType = info.rollType;
 			time = info.time;
 			timestamp = info.timestamp;
 			dice = info.dice;			
 		end
 		local buttonText = _G["DiceMasterRollTrackerHistoryButton"..i.."Roll"];
-		buttonText:SetText(roll)
+		buttonText:SetText(roll.." ("..dice..")")
 		buttonText:SetTextColor(Me.ColourHistoryRolls( roll ))
 		local buttonText = _G["DiceMasterRollTrackerHistoryButton"..i.."Timestamp"];
 		buttonText:SetText(Me.Format_TimeStamp( timestamp ))
-		local buttonText = _G["DiceMasterRollTrackerHistoryButton"..i.."Dice"];
-		buttonText:SetText(dice)
+		local buttonText = _G["DiceMasterRollTrackerHistoryButton"..i.."Type"];
+		if rollType == 0 or not rollType then
+			buttonText:SetText("--")
+		else
+			buttonText:SetText(rollType)
+		end
 		
 		-- If need scrollbar resize columns
 		if ( showScrollBar ) then
@@ -775,7 +705,7 @@ end
 -------------------------------------------------------------------------------
 -- Record a DiceMaster roll.
 
-function Me.OnRollMessage( name, you, count, sides, mod, roll ) 
+function Me.OnRollMessage( name, you, count, sides, mod, roll, rollType ) 
 	
 	if not count or not sides or not mod or not roll then
 		return
@@ -783,6 +713,10 @@ function Me.OnRollMessage( name, you, count, sides, mod, roll )
 	
 	if you then
 		name = UnitName("player")
+	end
+	
+	if not rollType then
+		rollType = 0
 	end
 	
 	local dice = Me.FormatDiceType( count, sides, mod )
@@ -796,6 +730,7 @@ function Me.OnRollMessage( name, you, count, sides, mod, roll )
 		for i=1,#Me.SavedRolls do
 			if Me.SavedRolls[i].name == name then
 				Me.SavedRolls[i].roll = tonumber(roll)
+				Me.SavedRolls[i].rollType = rollType
 				Me.SavedRolls[i].time = date("%H%M%S")
 				Me.SavedRolls[i].timestamp = date("%H:%M:%S")
 				exists = true;
@@ -805,6 +740,7 @@ function Me.OnRollMessage( name, you, count, sides, mod, roll )
 		if not exists then
 			local data = {}
 			data.roll = tonumber(roll)
+			data.rollType = rollType
 			data.time = date("%H%M%S")
 			data.timestamp = date("%H:%M:%S")
 			data.target = 0
@@ -814,6 +750,7 @@ function Me.OnRollMessage( name, you, count, sides, mod, roll )
 		
 		local data = {}
 		data.roll = tonumber(roll)
+		data.rollType = rollType
 		data.time = date("%H%M%S")
 		data.timestamp = date("%H:%M:%S")
 		data.dice = dice
@@ -846,6 +783,7 @@ function Me.OnVanillaRollMessage( name, roll, min, max )
 		for i=1,#Me.SavedRolls do
 			if Me.SavedRolls[i].name == name then
 				Me.SavedRolls[i].roll = tonumber(roll)
+				Me.SavedRolls[i].rollType = 0
 				Me.SavedRolls[i].time = date("%H%M%S")
 				Me.SavedRolls[i].timestamp = date("%H:%M:%S")
 				exists = true;
@@ -855,6 +793,7 @@ function Me.OnVanillaRollMessage( name, roll, min, max )
 		if not exists then
 			local data = {}
 			data.roll = tonumber(roll)
+			data.rollType = 0
 			data.time = date("%H%M%S")
 			data.timestamp = date("%H:%M:%S")
 			data.target = 0
@@ -864,6 +803,7 @@ function Me.OnVanillaRollMessage( name, roll, min, max )
 		
 		local data = {}
 		data.roll = tonumber(roll)
+		data.rollType = 0
 		data.time = date("%H%M%S")
 		data.timestamp = date("%H:%M:%S")
 		data.dice = dice
@@ -1079,31 +1019,5 @@ function Me.RollTracker_OnBanner( data, dist, sender )
 			end
 		end)
 		
-	end
-end
-
----------------------------------------------------------------------------
--- Received RTYPE data.
--- 
-
-function Me.RollTracker_OnRollType( data, dist, sender )
-
-	-- Only the party leader can send us these.
-	if sender == UnitName( "player" ) or not UnitIsGroupLeader(sender, 1) then return end
-	
-	-- sanitize message
-	if not data.rt then
-	   
-		return
-	end
- 
-	if type(data.rt) == "table" then
-		Me.db.char.rollOptions = {}
-		for i = 1,#data.rt do
-			-- TODO
-			tinsert( Me.db.char.rollOptions, data.rt[i] )
-		end
-		DiceMasterPanel.rollWheel.selected = 0
-		DiceMasterPanel.rollWheel:Hide()
 	end
 end

@@ -1,3 +1,18 @@
+### 5.0.7
+ - The /dice command can now be used to roll for a specific roll option (such as /dice bluff).
+ - Fixed an issue causing raid rolls in raid/party chat to clip off the first letter of a name.
+ - The group leader and assistants can now change their group members' health.
+ - Expanded the number of default Statistics, including Combat Actions, Skills, Attributes, and Saving Throws.
+ - New Apply Buff option: Modify Statistic by Name: Modifies the specified Statistic by x amount.
+ - New Effect: Roll Dice: Allows a trait to roll with a specific pair of dice and (optionally) add a specific Statistic as a modifier.
+ - Fixed an issue where Saving Throw options on the Roll Wheel (Will Save, Reflex Save, Fortitude Save) were not inheriting the right Statistic modifier.
+ - Fixed an issue where Always apply to self buffs were applying to targeted Unit Frames.
+ - Individual players can now set the options (up to 8) on their own Roll Wheels by right clicking the Roll Dice button on the Dice Panel.
+ - Removed the Roll Options button from the DM Manager.
+ - The Roll Tracker has a new category for Roll Types.
+ - Over 108 new Warhammer Online icons added to the icon library.
+ - Fixed an issue where Statistics headers were displaying incorrectly as Statistics.
+
 ### 5.0.6
  - Added a new selection wheel to the Roll Dice button on the Dice Panel (hold down the button to access).
  - The Trait Editor now removes extra spaces/lines from the beginning and end of trait descriptions.

@@ -129,6 +129,10 @@ function Me.TraitEditor_StatsList_Update()
 		return;
 	end
 	
+	if Me.inspectName and Me.inspectName == UnitName("player") then
+		Me.StatInspector_Update()
+	end
+	
 	Me.editor.experienceBar.level:SetText(Profile.level or 1)
 	Me.editor.experienceBar:SetValue(Profile.experience or 0)
 
@@ -166,6 +170,11 @@ end
 --
 function Me.TraitEditor_StatsFrame_UpdateStats()
 	local scrollFrame = DiceMasterStatsFrame;
+	
+	if not ( scrollFrame:IsShown() ) then
+		return
+	end
+	
 	local offset = HybridScrollFrame_GetOffset(scrollFrame);
 	local buttons = scrollFrame.buttons;
 	local numButtons = #buttons;
@@ -200,6 +209,19 @@ function Me.TraitEditor_StatsFrame_UpdateStats()
 	HybridScrollFrame_Update(scrollFrame, scrollFrame.totalStatsListEntriesHeight, usedHeight);
 end
 
+function Me.TraitEditor_AddStatisticsToValue( stat )
+	
+	local value = 0
+	
+	for i = 1,#Profile.buffsActive do
+		if Profile.buffsActive[i].statistic and Profile.buffsActive[i].statistic == stat then
+			value = value + Profile.buffsActive[i].statAmount;
+		end
+	end
+	
+	return value
+end
+
 function Me.TraitEditor_StatsFrame_UpdateStatButton(button)
 	local index = button.index;
 	button.id = StatsListEntries[index].id;
@@ -209,12 +231,45 @@ function Me.TraitEditor_StatsFrame_UpdateStatButton(button)
 	if ( stat ) then
 		
 		if stat.value then
+			local buffValue = Me.TraitEditor_AddStatisticsToValue( stat.name )
 			button.name:SetText(stat.name .. ":");
 			button.title:SetText("");
 			button.value:Show()
-			button.value:SetText(stat.value);
+			button.value:SetText(stat.value + buffValue);
 			button.rollButton:Show()
+			
+			Me.SetupTooltip( button, nil, stat.name )
+			
+			local skills = {}
+			
+			for k, v in pairs( Me.RollList ) do
+				for i = 1, #v do
+					if v[i].name == stat.name then
+						local desc = gsub( v[i].desc, "Roll", "An attempt" )
+						Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFFFFD100" .. desc .. "|n|cFF707070(Modified by " .. v[i].stat .. ")|r" )
+						break
+					end
+					if v[i].stat == stat.name then
+						tinsert( skills, v[i].name )
+					end
+				end
+			end
+			
+			if Me.AttributeList[ stat.name ] then
+				local skillsList = "|n|cFF707070(Modifies "
+				for i = 1, #skills do
+					if i > 1 and i == #skills then
+						skillsList = skillsList .. ", and "
+					elseif i > 1 then
+						skillsList = skillsList .. ", "
+					end
+					skillsList = skillsList .. skills[i]
+				end
+				Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFFFFD100" .. Me.AttributeList[stat.name].desc .. skillsList .. ")|r" )
+			end
+			
 		else
+			Me.SetupTooltip( button, nil )
 			button.name:SetText("");
 			button.title:SetText(stat.name);
 			button.value:Hide()
@@ -263,6 +318,7 @@ function Me.TraitEditor_StatsList_Move( self, direction )
 		tinsert(Profile.stats, index + 1, stat)
 	end
 	Me.TraitEditor_StatsList_Update()
+	Me.Inspect_SendStats( "RAID" )
 end
 
 -------------------------------------------------------------------------------
@@ -283,6 +339,7 @@ function Me.TraitEditor_StatsList_Add( button, name, statistic )
 	tinsert(Profile.stats, index + 1, stat)
 	
 	Me.TraitEditor_StatsList_Update()
+	Me.Inspect_SendStats( "RAID" )
 end
 
 -------------------------------------------------------------------------------
@@ -291,7 +348,25 @@ end
 --
 function Me.TraitEditor_StatsList_Roll( button )
 	local dice = DiceMasterPanelDice:GetText()
+	local name = gsub( button:GetParent().name:GetText(), ":", "" )
 	local modifier = button:GetParent().value:GetText()
+	local stat = nil
+	
+	for k, v in pairs( Me.RollList ) do
+		for i = 1, #v do
+			if v[i].name == name then
+				stat = v[i].stat
+			end
+		end
+	end
+	
+	if stat then
+		for i = 1,#Profile.stats do
+			if Profile.stats[i] and Profile.stats[i].name == stat then
+				modifier = modifier + Profile.stats[i].value
+			end
+		end
+	end
 	
 	dice = Me.FormatDiceString( dice, modifier )
 	
@@ -303,52 +378,36 @@ end
 -- 
 --
 function Me.TraitEditor_StatsList_CreateDefaults()
-	local defaults = { "Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma", }
-	
-	local league_defaults = { "Attack", "Defence", "Healing", "Bluff", "Diplomacy", "Intimidation", "Insight", "Physical Perception", "Magical Perception", "Sleight of Hand", "Stealth", "Survival" }
-	
-	if Me.PermittedUse() then
-		local stat = {
-			name = "Base Statistics";
-		}
-		tinsert(Profile.stats, stat)
-		
-		for i = 1,3 do
-			local stat = {
-				name = league_defaults[i];
-				value = 0;
-			}
-			tinsert(Profile.stats, stat)
-		end
-		
-		local stat = {
-			name = "Skills";
-		}
-		tinsert(Profile.stats, stat)
-		
-		for i = 4,#league_defaults do
-			local stat = {
-				name = league_defaults[i];
-				value = 0;
-			}
-			tinsert(Profile.stats, stat)
-		end
-	end
 	
 	local stat = {
-		name = "Ability Scores";
+		name = "Attributes";
 	}
 	tinsert(Profile.stats, stat)
 	
-	for i = 1,#defaults do
+	for k, v in pairs( Me.AttributeList ) do
 		local stat = {
-			name = defaults[i];
+			name = k;
 			value = 0;
 		}
 		tinsert(Profile.stats, stat)
 	end
 	
+	for k, v in pairs( Me.RollList ) do
+		local stat = {
+			name = k;
+		}
+		tinsert(Profile.stats, stat)
+		for i = 1, #v do
+			local stat = {
+				name = v[i].name;
+				value = 0;
+			}
+			tinsert(Profile.stats, stat)
+		end
+	end
+	
 	Me.TraitEditor_StatsList_Update()
+	Me.Inspect_SendStats( "RAID" )
 end
 
 -------------------------------------------------------------------------------
@@ -365,7 +424,7 @@ function Me.TraitEditor_StatsList_SaveStat( self )
 	end
 	
 	stat.value = self:GetText()
-	--TraitUpdated()
+	Me.Inspect_SendStats( "RAID" )
 end
 
 -------------------------------------------------------------------------------
@@ -390,6 +449,11 @@ function Me.TraitEditor_EffectsOnLoad(frame, level, menuList)
 	info.text = "Remove Buff"
 	info.checked = Profile.removebuffs[Me.editing_trait] and Profile.removebuffs[Me.editing_trait].name and not Profile.removebuffs[Me.editing_trait].blank;
 	info.arg1 = Me.RemoveBuffEditor_Open;
+	UIDropDownMenu_AddButton(info, level)
+	info.icon = "Interface/Icons/INV_Misc_Dice_01"
+	info.text = "Roll Dice"
+	info.checked = Profile.setdice[Me.editing_trait] and Profile.setdice[Me.editing_trait].value and not Profile.setdice[Me.editing_trait].blank;
+	info.arg1 = Me.SetDiceEditor_Open;
 	UIDropDownMenu_AddButton(info, level)
 end
 
@@ -435,6 +499,7 @@ function Me.TraitEditor_OnCloseClicked()
 	Me.editor:Hide()
 	Me.buffeditor:Hide()
 	Me.removebuffeditor:Hide()
+	Me.setdiceeditor:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -451,6 +516,7 @@ function Me.TraitEditor_StartEditing( index )
 	Me.TraitEditor_Refresh() 
 	Me.buffeditor:Hide()
 	Me.removebuffeditor:Hide()
+	Me.setdiceeditor:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -505,6 +571,9 @@ function Me.TraitEditor_OnTraitClicked( self, button )
 				end
 				if Me.removebuffeditor:IsShown() then
 					Me.removebuffeditor:Hide()
+				end
+				if Me.setdiceeditor:IsShown() then
+					Me.setdiceeditor:Hide()
 				end
 			end
 		end
