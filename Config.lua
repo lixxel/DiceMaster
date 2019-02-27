@@ -17,6 +17,7 @@ local DB_DEFAULTS = {
 		version     = nil;
 		hideInspect = false; -- hide inspect frame when panel is hidden
 		hideStats   = false; -- hide stats button from inspect frame.
+		hidePet   = false; -- hide pet portrait frame from inspect frame.
 		hideTips	= true; -- turn enhanced tooltips on for newbies
 		hideTracker = false; -- hide the roll tracker.
 		hideTypeTracker = false;
@@ -35,6 +36,7 @@ local DB_DEFAULTS = {
 		trackerScale  = 0.6;
 		trackerKeybind = nil;
 		showRaidRolls = false;
+		healthPos    = false;
 		dm3Imported   = false;
 		statusSerial  = 1;
 		traitSerials  = {};
@@ -67,9 +69,18 @@ local DB_DEFAULTS = {
 		};
 		health       = 5;
 		healthMax    = 5;
-		healthPos    = false;
 		armor        = 0;
 		traits       = {};
+		pet	= {
+			enable  = false;
+			name 	= "Pet Name";
+			type    = "Pet";
+			icon 	= "Interface/Icons/inv_misc_questionmark";
+			model 	= 0;
+			health       = 5;
+			healthMax    = 5;
+			armor        = 0;
+		};
 		buffs		 = {};
 		removebuffs  = {};
 		setdice      = {};
@@ -168,8 +179,22 @@ Me.configOptions = {
 			get = function( info ) return Me.db.global.hideStats end;
 		};
 		
-		hideTips = {
+		hidePet = {
 			order = 8;
+			name  = "Hide Pet Frame on Inspect Frame";
+			desc  = "Hide the Pet Portrait Frame from the Inspect Frame.";
+			type  = "toggle";
+			width = "double";
+			set = function( info, val )
+				Me.db.global.hidePet = val
+				Me.Inspect_Open( Me.inspectName )
+				-- refresh hidden status.
+			end;
+			get = function( info ) return Me.db.global.hidePet end;
+		};
+		
+		hideTips = {
+			order = 9;
 			name  = "Enable Enhanced Tooltips";
 			desc  = "Enable helpful DiceMaster term definitions next to trait tooltips.";
 			type  = "toggle";
@@ -246,7 +271,9 @@ Me.configOptions = {
 				DiceMasterInspectFrame:SetPoint("CENTER", 0, 0)
 				DiceMasterBuffFrame:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, 0)
 				DiceMasterInspectBuffFrame:SetPoint("BOTTOM", DiceMasterInspectFrame, "TOP", 0, 0)
+				DiceMasterInspectPetFrame:SetPoint("LEFT", DiceMasterInspectFrame, "RIGHT", 0, 0)
 				DiceMasterChargesFrame:SetPoint("CENTER", 0, 0)
+				DiceMasterPetChargesFrame:SetPoint("BOTTOM", DiceMasterChargesFrame, "TOP", 0, 0)
 				DiceMasterMoraleBar:SetPoint("TOP", DiceMasterPanel, "BOTTOM", 0, -20)
 				if IsAddOnLoaded("DiceMaster_UnitFrames") then
 					DiceMasterUnitsPanel:SetPoint("TOP", 0, -200)
@@ -336,10 +363,10 @@ Me.configOptionsCharges = {
 					width = "full";
 					type  = "toggle";
 					set = function( info, val ) 
-						Me.db.profile.healthPos = val
+						Me.db.char.healthPos = val
 						Me.Inspect_Open( UnitName( "target" ))
 					end;
-					get = function( info ) return Me.db.profile.healthPos end;
+					get = function( info ) return Me.db.char.healthPos end;
 				};
 			};
 		};
@@ -720,14 +747,12 @@ Me.configOptionsUF = {
 			type  = "toggle";
 			set   = function( info, val ) 
 				if IsAddOnLoaded("DiceMaster_UnitFrames") then
-					if Me.IsLeader( false ) then
-						if val then
-							Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames enabled.", "SYSTEM")
-						else
-							Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames disabled.", "SYSTEM")
-						end
-						Me.ShowUnitPanel( val )
+					if val then
+						Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames enabled.", "SYSTEM")
+					else
+						Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames disabled.", "SYSTEM")
 					end
+					Me.ShowUnitPanel( val )
 				else
 					Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t DiceMaster Unit Frames module not found. Enable the module from your AddOns list.", "SYSTEM")
 				end
@@ -868,6 +893,7 @@ function Me.ApplyConfig( onload )
 	Me.Inspect_ShareStatusWithParty()
 	
 	Me.ApplyUiScale()
+	Me.RefreshHealthbarFrame( DiceMasterChargesFrame.healthbar, Me.db.profile.health, Me.db.profile.healthMax, Me.db.profile.armor )
 	Me.RefreshChargesFrame( true, true )  
 	Me.TraitEditor_Refresh()
 	Me.UpdatePanelTraits()

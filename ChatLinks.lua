@@ -91,24 +91,51 @@ local function RefreshItemRef()
 	
 	local trait = Me.itemRefTrait
 	
-	local name = string.format( "|T%s:32\124t %s", trait.icon, trait.name )
+	if trait.icon then
+		-- icon with name
+		DiceMasterItemRefIcon.icon:SetTexture( trait.icon )
+		DiceMasterItemRefIcon:Show()
+		if Me.itemRefIndex == 5 then
+			DiceMasterItemRefIcon.elite:Show()
+		else
+			DiceMasterItemRefIcon.elite:Hide()
+		end
+	else
+		DiceMasterItemRefIcon:Hide()
+		DiceMasterItemRefIcon.approved:Hide()
+		DiceMasterItemRefIcon.elite:Hide()
+	end
 	
 	ItemRefTooltip:ClearLines();
-	ItemRefTooltip:AddLine( name, 1,1,1,1 )
+	ItemRefTooltip:AddLine( trait.name, 1,1,1,1 )
 	ItemRefTooltip:AddLine( Me.FormatUsage( trait.usage, Me.itemRefPlayer ), 1,1,1,1 )
 	
 	local desc = Me.FormatDescTooltip( trait.desc )
 	
-	if trait.approved == 2 then
-		DiceMasterItemRefApproved.icon:SetTexture("Interface/AddOns/DiceMaster/Texture/trait-approved-left")
-	elseif trait.approved == 1 then
-		DiceMasterItemRefApproved.icon:SetTexture("Interface/AddOns/DiceMaster/Texture/trait-unapproved-left")
+	if trait.approved and trait.approved > 0 and Me.PermittedUse() then
+		if trait.approved == 1 then
+			DiceMasterItemRefIcon.approved:SetTexCoord( 0, 0.5, 0.5, 1 )
+		elseif trait.approved == 2 then
+			DiceMasterItemRefIcon.approved:SetTexCoord( 0, 0.5, 0, 0.5 )
+		end
+		DiceMasterItemRefIcon.approved:Show()
 	else
-		DiceMasterItemRefApproved.icon:SetTexture(nil)
+		DiceMasterItemRefIcon.approved:Hide()
 	end
-	DiceMasterItemRefApproved:Show()
 	
-	ItemRefTooltip:AddLine( desc, 1,0.83,0.09,1 )
+	ItemRefTooltip:AddLine( desc, 1,0.82,0,1 )
+	
+	if trait.officers and Me.PermittedUse() then
+		local approval
+		if trait.officers[2] then
+			approval = "|TInterface/AddOns/DiceMaster/Texture/trait-approved:14:14:0:0:32:32:2:14:2:14|t Approved by " .. trait.officers[1] .. " and " .. trait.officers[2]
+			ItemRefTooltip:AddLine( approval, 0, 1, 0, true )
+		elseif trait.officers[1] then
+			approval = "|TInterface/AddOns/DiceMaster/Texture/trait-approved:14:14:0:0:32:32:2:14:18:30|t Approved by " .. trait.officers[1]
+			ItemRefTooltip:AddLine( approval, 1, 1, 0, true )
+		end
+	end
+	
 	ItemRefTooltip:Show();
 end
  
@@ -153,7 +180,9 @@ function ItemRefTooltip:SetHyperlink(link)
 		if Me.itemRefOpen and not IsModifiedClick("CHATLINK") then
 			Me.itemRefOpen = false
 			ItemRefTooltip:Hide()
-			DiceMasterItemRefApproved:Hide()
+			DiceMasterItemRefIcon:Hide()
+			DiceMasterItemRefIcon.approved:Hide()
+			DiceMasterItemRefIcon.elite:Hide()
 		end
         SetHyperlink(self, link)
     end

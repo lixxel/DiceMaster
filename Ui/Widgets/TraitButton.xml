@@ -32,32 +32,62 @@
 	</Scripts>
   </Frame>
   
-  <Frame name="DiceMasterTooltipApproved" frameStrata="TOOLTIP" hidden="true" parent="GameTooltip">
-	<Size x="64" y="64"/>
+  <Frame name="DiceMasterTooltipIcon" frameStrata="TOOLTIP" hidden="true" parent="GameTooltip">
+	<Size x="42" y="42"/>
 	<Layers>
 		<Layer level="ARTWORK">
-			<Texture parentKey="icon" setAllPoints="true" file="Interface/AddOns/DiceMaster/Texture/trait-unapproved">
+			<Texture parentKey="icon" setAllPoints="true" file="Interface/Icons/inv_misc_questionmark">
+			</Texture>
+		</Layer>
+		<Layer level="OVERLAY">
+			<Texture parentKey="approved" file="Interface/AddOns/DiceMaster/Texture/trait-approved">
+				<Size x="24" y="24"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="8" y="-8"/>
+				</Anchors>
+			</Texture>
+			<Texture parentKey="elite" file="Interface/Garrison/GarrisonMissionUI2" hidden="true">
+				<Size x="64" y="64"/>
+				<TexCoords left="0.994141" right="0.920898" top="0.233398" bottom="0.298828" />
+				<Anchors>
+					<Anchor point="CENTER" x="-8" y="0" />
+				</Anchors>
 			</Texture>
 		</Layer>
 	</Layers>
 	<Scripts>
 		<OnShow>
-			self:SetPoint("TOPRIGHT", GameTooltip, "TOPRIGHT", -1, -1)
+			self:SetPoint("TOPRIGHT", GameTooltip, "TOPLEFT", -2, -2)
 		</OnShow>
 	</Scripts>
   </Frame>
   
-  <Frame name="DiceMasterItemRefApproved" frameStrata="TOOLTIP" hidden="true" parent="ItemRefTooltip">
-	<Size x="64" y="64"/>
+  <Frame name="DiceMasterItemRefIcon" frameStrata="TOOLTIP" hidden="true" parent="ItemRefTooltip">
+	<Size x="42" y="42"/>
 	<Layers>
 		<Layer level="ARTWORK">
-			<Texture parentKey="icon" setAllPoints="true" file="Interface/AddOns/DiceMaster/Texture/trait-unapproved-left">
+			<Texture parentKey="icon" setAllPoints="true" file="Interface/Icons/inv_misc_questionmark">
+			</Texture>
+		</Layer>
+		<Layer level="OVERLAY">
+			<Texture parentKey="approved" file="Interface/AddOns/DiceMaster/Texture/trait-approved">
+				<Size x="24" y="24"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="8" y="-8"/>
+				</Anchors>
+			</Texture>
+			<Texture parentKey="elite" file="Interface/Garrison/GarrisonMissionUI2" hidden="true">
+				<Size x="64" y="64"/>
+				<TexCoords left="0.994141" right="0.920898" top="0.233398" bottom="0.298828" />
+				<Anchors>
+					<Anchor point="CENTER" x="-8" y="0" />
+				</Anchors>
 			</Texture>
 		</Layer>
 	</Layers>
 	<Scripts>
 		<OnShow>
-			self:SetPoint("TOPLEFT", ItemRefTooltip, "TOPLEFT", 1, -1)
+			self:SetPoint("TOPRIGHT", ItemRefTooltip, "TOPLEFT", -2, -2)
 		</OnShow>
 	</Scripts>
   </Frame>
@@ -104,6 +134,12 @@
         local qw, qh = self:GetWidth() * 1.4, self:GetHeight() * 1.4
         self.border:SetSize( qw, qh )
         self.highlight:SetSize( qw, qh )
+		-- Add the gold dragon border if this is the command trait.
+		if self.traitIndex == 5 then
+			self.border:SetTexture("Interface/AddOns/DiceMaster/Texture/elite-trait-border")
+			local bx, by = self:GetSize()
+			self.border:SetSize( bx*3 ,by*3 )
+		end
       </OnSizeChanged>
     </Scripts>
     

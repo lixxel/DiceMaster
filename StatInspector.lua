@@ -17,14 +17,18 @@ local StatsListEntries = { };
 --
 function Me.StatInspector_Update()
 
-	SetPortraitTexture( Me.statinspector.portrait, "target" )
-	Me.statinspector.TitleText:SetText( UnitName("target") )
-
-	if not Me.inspectName then
+	if Me.inspectName then
+		Me.statInspectName = Me.inspectName
+	end
+	
+	if not Me.statInspectName then
 		return
 	end
 	
-	local store = Me.inspectData[Me.inspectName]
+	SetPortraitTexture( Me.statinspector.portrait, "target" )
+	Me.statinspector.TitleText:SetText( UnitName("target") )
+	
+	local store = Me.inspectData[Me.statInspectName]
 	local stats = store.stats
 
 	if ( not Me.statinspector:IsShown() ) then
@@ -60,6 +64,32 @@ function Me.StatInspector_Update()
 	Me.statinspector.scrollFrame.numStatsListEntries = addButtonIndex;
 
 	Me.StatInspector_UpdateStats();
+	
+end
+
+-------------------------------------------------------------------------------
+-- Refresh the pet tab.
+--
+--
+function Me.StatInspector_UpdatePet()
+	
+	if Me.inspectName and Me.inspectData[Me.inspectName] and Me.inspectData[Me.inspectName].pet and Me.inspectData[Me.inspectName].pet.enable then
+		local pet = Me.inspectData[Me.inspectName].pet
+		Me.statinspector.petFrame.petIcon:SetTexture( pet.icon )
+		Me.statinspector.petFrame.petName:SetText( pet.name )
+		Me.statinspector.petFrame.levelText:SetText( pet.type )
+		Me.statinspector.petFrame.petModel:SetDisplayInfo( pet.model )
+		PanelTemplates_EnableTab(DiceMasterStatInspector, 2)
+	else
+		if PanelTemplates_GetSelectedTab(DiceMasterStatInspector) == 2 then
+			PanelTemplates_SetTab(DiceMasterStatInspector, 1);
+			DiceMasterStatInspectorStatsFrame:Show();
+			DiceMasterStatInspectorPetFrame:Hide();
+			PlaySound(841)
+		end
+		PanelTemplates_DisableTab(DiceMasterStatInspector, 2)
+	end
+	
 end
 
 -------------------------------------------------------------------------------
@@ -96,7 +126,7 @@ end
 function Me.StatInspector_UpdateStatButton(button)
 	local index = button.index;
 	button.id = StatsListEntries[index].id;
-	local stats = Me.inspectData[Me.inspectName].stats
+	local stats = Me.inspectData[Me.statInspectName].stats
 	local stat = stats[StatsListEntries[index].id]
 	
 	-- finish setting up button if it's not a header
@@ -109,7 +139,7 @@ function Me.StatInspector_UpdateStatButton(button)
 			button.value:Show()
 			button.value:SetText(stat.value);
 			
-			if Me.inspectName == UnitName("player") then
+			if Me.statInspectName == UnitName("player") then
 				local buffValue = Me.TraitEditor_AddStatisticsToValue( stat.name )
 				button.value:SetText(stat.value + buffValue);
 			end
@@ -118,16 +148,18 @@ function Me.StatInspector_UpdateStatButton(button)
 			
 			local skills = {}
 			
-			for k, v in pairs( Me.RollList ) do
-				for i = 1, #v do
-					if v[i].name == stat.name then
-						local desc = gsub( v[i].desc, "Roll", "An attempt" )
-						Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFFFFD100" .. desc .. "|n|cFF707070(Modified by the " .. v[i].stat .. " Statistic)|r" )
-						break
+			for i = 1, #stats do
+				if stat.attribute then
+					local desc = ""
+					if stat.desc then
+						desc = gsub( stat.desc, "Roll", "An attempt" )
+						Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFFFFD100" .. desc .. "|n|cFF707070(Modified by " .. stat.attribute .. ")|r" )
+					else
+						Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFF707070(Modified by " .. stat.attribute .. ")|r" )
 					end
-					if v[i].stat == stat.name then
-						tinsert( skills, v[i].name )
-					end
+				end
+				if stats[i].attribute and stats[i].attribute == stat.name then
+					tinsert( skills, stats[i].name )
 				end
 			end
 			
@@ -195,14 +227,14 @@ end
 -------------------------------------------------------------------------------
 -- Show the stat inspector.
 --
-function Me.StatInspector_Open()
+function Me.StatInspector_Open()	
+	--SetPortraitTexture( Me.statinspector.portrait, "target" )
 	
-	SetPortraitTexture( Me.statinspector.portrait, "target" )
-	
-	Me.statinspector.TitleText:SetText( UnitName( "target" ) )
+	--Me.statinspector.TitleText:SetText( UnitName( "target" ) )
 	
 	Me.statinspector.CloseButton:SetScript("OnClick",Me.StatInspector_OnCloseClicked)
 
 	Me.StatInspector_Update()
+	Me.StatInspector_UpdatePet()
 	Me.statinspector:Show()
 end

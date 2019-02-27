@@ -8,8 +8,7 @@
 DiceMaster_UnitFrames.lua
 
 Comm.lua
-UnitPicker.lua
-IconPicker.lua
+AnimationList.lua
 AffixEditor.lua
 Buffs.lua
 

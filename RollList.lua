@@ -32,14 +32,20 @@ DiceMaster4.RollList = {
 			name = "Spell Attack",
 			subName = "Spell Attack[s]*",
 			wheelName = "Spell|nAttack",
-			desc = "Roll to cast a spell upon an enemy.", 
+			desc = "Roll to cast an spell upon an enemy.", 
 			stat = "Intelligence",
 		},
 		{
 			name = "Defence",
-			subName = "Defen[cs]e[s]*",
+			subName = "[Spell]*%s?Defen[cs]e[s]*",
 			desc = "Roll to defend yourself from enemy damage.",
-			stat = "Defence",
+			stat = "Constitution",
+		},
+		{
+			name = "Spell Defence",
+			subName = "Spell Defen[cs]e[s]*",
+			desc = "Roll to defend yourself from enemy spell damage.",
+			stat = "Intelligence",
 		},
 	},
 	["Skills"] = {
@@ -47,7 +53,7 @@ DiceMaster4.RollList = {
 			name = "Athletics",
 			subName = "Athletics",
 			wheelName = "Athle.",
-			desc = "Roll to flee from combat or outrun someone.", 
+			desc = "Roll to swim, climb, flee, fly, or outrun someone.", 
 			stat = "Strength",
 		},
 		{
@@ -55,12 +61,6 @@ DiceMaster4.RollList = {
 			subName = "Bluff",
 			desc = "Roll to deceive, trick, or lie to someone.", 
 			stat = "Charisma",
-		},
-		{
-			name = "Craft",
-			subName = "Craft",
-			desc = "Roll to create an item that requires a specific skill.", 
-			stat = "Intelligence",
 		},
 		{
 			name = "Diplomacy",
@@ -83,8 +83,8 @@ DiceMaster4.RollList = {
 			stat = "Charisma",
 		},
 		{
-			name = "Escape Artist",
-			subName = "Escape Artist",
+			name = "Escape",
+			subName = "Escape",
 			wheelName = "Escape",
 			desc = "Roll to slip bonds and escape from grapples.", 
 			stat = "Dexterity",
@@ -92,12 +92,12 @@ DiceMaster4.RollList = {
 		{
 			name = "Grapple",
 			subName = "Grapple[s]*",
-			desc = "Roll to incapacitate or disable someone.", 
+			desc = "Roll to disarm or disable an enemy.", 
 			stat = "Strength",
 		},
 		{
 			name = "Healing",
-			subName = "Heal[sing]*",
+			subName = "Heal[sing]*%A",
 			wheelName = "Heal",
 			desc = "Roll to mend wounds or restore health to someone.", 
 			stat = "Wisdom",
@@ -111,7 +111,7 @@ DiceMaster4.RollList = {
 		},
 		{
 			name = "Intimidation",
-			subName = "Intimidat[eion]*",
+			subName = "Intimidat[esion]*%A",
 			wheelName = "Coerce",
 			desc = "Roll to taunt, coerce, or frighten someone.", 
 			stat = "Charisma",
@@ -137,16 +137,9 @@ DiceMaster4.RollList = {
 			stat = "Charisma",
 		},
 		{
-			name = "Sleight of Hand",
-			subName = "Sleight of Hand",
-			wheelName = "Sleight|nof Hand",
-			desc = "Roll to take or conceal an item on your person without being noticed.", 
-			stat = "Dexterity",
-		},
-		{
 			name = "Spellcraft",
 			subName = "Spellcraft[ing]*",
-			desc = "Roll to cast or identify spells and magic items.", 
+			desc = "Roll to sense or identify spells and magic items.", 
 			stat = "Intelligence",
 		},
 		{
@@ -167,21 +160,21 @@ DiceMaster4.RollList = {
 	["Saving Throws"] = {
 		{
 			name = "Fortitude Save",
-			subName = "Fortitude%s?[Saves]*",
+			subName = "Fortitude%s?",
 			wheelName = "Fort.|nSave",
 			desc = "Roll to resist physical punishment or pain.", 
 			stat = "Constitution",
 		},
 		{
 			name = "Reflex Save",
-			subName = "Reflex%s?[Saves]*",
+			subName = "Reflex%s?",
 			wheelName = "Reflex|nSave",
 			desc = "Roll to avoid or prevent an unexpected action.", 
 			stat = "Dexterity",
 		},
 		{
 			name = "Will Save",
-			subName = "Will%s?[Saves]*",
+			subName = "Will%s?",
 			wheelName = "Will|nSave",
 			desc = "Roll to resist mental influence.", 
 			stat = "Wisdom",

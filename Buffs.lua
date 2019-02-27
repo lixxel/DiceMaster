@@ -758,7 +758,7 @@ function Me.BuffFrame_RollDice( traitIndex )
 		
 		for i = 1,#Profile.buffsActive do
 			if Profile.buffsActive[i].statistic and Profile.buffsActive[i].statistic == setdice.stat then
-				modifier = modifier + Profile.buffsActive[i].statAmount;
+				modifier = modifier + ( Profile.buffsActive[i].statAmount * Profile.buffsActive[i].count );
 			end
 		end
 	end

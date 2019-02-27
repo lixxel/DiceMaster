@@ -79,10 +79,20 @@ local Me      = DiceMaster4
 local Profile = Me.Profile
 
 Me.editing_trait = 1
+Me.statType = nil
+
 local StatsListEntries = { };
 
+local function FindStatByName( name )
+	for i = 1, #Profile.stats do
+		if Profile.stats[i].name == name then
+			return true
+		end
+	end
+end
+
 StaticPopupDialogs["DICEMASTER4_CREATESTAT"] = {
-  text = "Enter a name:",
+  text = "Create New Statistic",
   button1 = "Create Statistic",
   button2 = "Cancel",
   button3 = "Create Header",
@@ -92,28 +102,48 @@ StaticPopupDialogs["DICEMASTER4_CREATESTAT"] = {
 	self.editBox:SetFocus()
   end,
   OnAccept = function (self, data)
-	local name = UnitName("player")
     local text = self.editBox:GetText()
+	local attribute = Me.statType
 	if text == "" then
 		UIErrorsFrame:AddMessage( "Invalid name: too short.", 1.0, 0.0, 0.0, 53, 5 );
 	elseif strlen(text) > 20 then
 		UIErrorsFrame:AddMessage( "Invalid name: too long.", 1.0, 0.0, 0.0, 53, 5 );
+	elseif FindStatByName( text ) then
+		UIErrorsFrame:AddMessage( "\"".. text .."\" already exists.", 1.0, 0.0, 0.0, 53, 5 );
 	else
-		Me.TraitEditor_StatsList_Add( data, text, true )
+		Me.TraitEditor_StatsList_Add( data, text, true, attribute )
 	end
   end,
   OnAlt = function (self, data)
-	local name = UnitName("player")
     local text = self.editBox:GetText()
 	if text == "" then
 		UIErrorsFrame:AddMessage( "Invalid name: too short.", 1.0, 0.0, 0.0, 53, 5 );
 	elseif strlen(text) > 20 then
 		UIErrorsFrame:AddMessage( "Invalid name: too long.", 1.0, 0.0, 0.0, 53, 5 );
+	elseif FindStatByName( text ) then
+		UIErrorsFrame:AddMessage( "\"".. text .."\" already exists.", 1.0, 0.0, 0.0, 53, 5 );
 	else
 		Me.TraitEditor_StatsList_Add( data, text, false )
 	end
   end,
   hasEditBox = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+StaticPopupDialogs["DICEMASTER4_DELETETRAITDESCRIPTION"] = {
+  text = "Are you sure you want to reset this trait?",
+  button1 = "Yes",
+  button2 = "No",
+  OnAccept = function (self, data)
+	Me.TraitEditor_SelectIcon( "Interface/Icons/inv_misc_questionmark" )
+    Me.editor.scrollFrame.Container.traitName:SetText("Trait Name")
+	Me.editor.scrollFrame.Container.descEditor:SetText("")
+	Me.TraitEditor_SaveName()
+	Me.TraitEditor_SaveDescription()
+  end,
   timeout = 0,
   whileDead = true,
   hideOnEscape = true,
@@ -215,7 +245,7 @@ function Me.TraitEditor_AddStatisticsToValue( stat )
 	
 	for i = 1,#Profile.buffsActive do
 		if Profile.buffsActive[i].statistic and Profile.buffsActive[i].statistic == stat then
-			value = value + Profile.buffsActive[i].statAmount;
+			value = value + ( Profile.buffsActive[i].statAmount * Profile.buffsActive[i].count );
 		end
 	end
 	
@@ -227,7 +257,7 @@ function Me.TraitEditor_StatsFrame_UpdateStatButton(button)
 	button.id = StatsListEntries[index].id;
 	local stat = Profile.stats[StatsListEntries[index].id]
 	
-	-- finish setting up button if it's not a header
+	-- finish setting up button
 	if ( stat ) then
 		
 		if stat.value then
@@ -240,22 +270,23 @@ function Me.TraitEditor_StatsFrame_UpdateStatButton(button)
 			
 			Me.SetupTooltip( button, nil, stat.name )
 			
-			local skills = {}
-			
-			for k, v in pairs( Me.RollList ) do
-				for i = 1, #v do
-					if v[i].name == stat.name then
-						local desc = gsub( v[i].desc, "Roll", "An attempt" )
-						Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFFFFD100" .. desc .. "|n|cFF707070(Modified by " .. v[i].stat .. ")|r" )
-						break
-					end
-					if v[i].stat == stat.name then
-						tinsert( skills, v[i].name )
-					end
+			if stat.attribute then
+				if stat.desc then
+					local desc = gsub( stat.desc, "Roll", "An attempt" )
+					Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFFFFD100" .. desc .. "|n|cFF707070(Modified by " .. stat.attribute .. ")|r" )
+				else
+					Me.SetupTooltip( button, nil, stat.name, nil, nil, "|cFF707070(Modified by " .. stat.attribute .. ")|r" )
 				end
 			end
 			
+			local skills = {}
+			
 			if Me.AttributeList[ stat.name ] then
+				for i = 1, #Profile.stats do
+					if Profile.stats[i].attribute and Profile.stats[i].attribute == stat.name then
+						tinsert( skills, Profile.stats[i].name )
+					end
+				end
 				local skillsList = "|n|cFF707070(Modifies "
 				for i = 1, #skills do
 					if i > 1 and i == #skills then
@@ -325,16 +356,31 @@ end
 -- Add a new stat.
 -- 
 --
-function Me.TraitEditor_StatsList_Add( button, name, statistic )
+function Me.TraitEditor_StatsList_Add( button, name, statistic, attribute )
 	local index = 0
 	if button then 
 		index = button.index
+	end
+	if attribute == "(None)" then
+		attribute = nil
 	end
 	local stat = {
 		name = name;
 	}
 	
-	if statistic then stat.value = 0 end
+	if statistic then 
+		stat.value = 0
+		stat.attribute = attribute
+	end
+	
+	for k, v in pairs( Me.RollList ) do
+		for i = 1, #v do
+			if v[i].name == name then
+				stat.desc = gsub( v[i].desc, "Roll", "An attempt" )
+				break
+			end
+		end
+	end
 	
 	tinsert(Profile.stats, index + 1, stat)
 	
@@ -348,29 +394,22 @@ end
 --
 function Me.TraitEditor_StatsList_Roll( button )
 	local dice = DiceMasterPanelDice:GetText()
-	local name = gsub( button:GetParent().name:GetText(), ":", "" )
-	local modifier = button:GetParent().value:GetText()
-	local stat = nil
+	local index = button.index;
+	button.id = StatsListEntries[index].id;
+	local stat = Profile.stats[StatsListEntries[index].id]
 	
-	for k, v in pairs( Me.RollList ) do
-		for i = 1, #v do
-			if v[i].name == name then
-				stat = v[i].stat
-			end
-		end
-	end
+	local modifier = stat.value
 	
-	if stat then
-		for i = 1,#Profile.stats do
-			if Profile.stats[i] and Profile.stats[i].name == stat then
-				modifier = modifier + Profile.stats[i].value
-			end
+	for i = 1, #Profile.stats do
+		if Profile.stats[i].name == stat.attribute then
+			modifier = modifier + Profile.stats[i].value;
+			break;
 		end
 	end
 	
 	dice = Me.FormatDiceString( dice, modifier )
 	
-	Me.Roll( dice )
+	Me.Roll( dice, name )
 end
 
 -------------------------------------------------------------------------------
@@ -400,6 +439,8 @@ function Me.TraitEditor_StatsList_CreateDefaults()
 		for i = 1, #v do
 			local stat = {
 				name = v[i].name;
+				desc = v[i].desc;
+				attribute = v[i].stat;
 				value = 0;
 			}
 			tinsert(Profile.stats, stat)
@@ -425,6 +466,142 @@ function Me.TraitEditor_StatsList_SaveStat( self )
 	
 	stat.value = self:GetText()
 	Me.Inspect_SendStats( "RAID" )
+end
+
+-------------------------------------------------------------------------------
+-- Dropdown handlers for the Create Stats menu.
+--
+function Me.TraitEditor_StatsList_OnClick(self, arg1, arg2, checked)
+	UIDropDownMenu_SetText(DiceMasterStatButtonOptionsDropdown, self:GetText())
+	Me.statType = self:GetText()
+end
+
+function Me.TraitEditor_StatsList_OnLoad()
+	local info      = UIDropDownMenu_CreateInfo();
+    info.text       = "Attribute";
+	info.isTitle	= true;
+    info.notCheckable = true;
+    UIDropDownMenu_AddButton(info);
+	   
+	local options = Me.AttributeList
+	
+	for k,v in pairs(options) do
+       local info      = UIDropDownMenu_CreateInfo();
+       info.text       = k;
+	   info.isTitle	   = false;
+       info.func       = Me.TraitEditor_StatsList_OnClick;
+	   info.notCheckable = false;
+	   info.checked    = Me.statType == k;
+       UIDropDownMenu_AddButton(info); 
+	end
+	
+	local info      = UIDropDownMenu_CreateInfo();
+    info.text       = "(None)";
+	info.func       = Me.TraitEditor_StatsList_OnClick;
+    info.checked    = Me.statType == "(None)" or nil;
+    UIDropDownMenu_AddButton(info);
+end
+
+-------------------------------------------------------------------------------
+-- Reload pet data and update the UI.
+--
+function Me.PetEditor_Refresh()
+	DiceMasterPetFrame.petIcon:SetTexture( Profile.pet.icon )
+	DiceMasterPetFrame.petName:SetText( Profile.pet.name )
+	DiceMasterPetFrame.petType:SetText( Profile.pet.type )
+	DiceMasterPetFrame.petModel:SetDisplayInfo( Profile.pet.model )
+	DiceMasterPetFrame.enable:SetChecked( Profile.pet.enable )
+end
+
+-------------------------------------------------------------------------------
+-- Set the icon texture of the pet.
+--
+-- @param texture Path to texture file to use for the pet.
+--
+function Me.PetEditor_SelectIcon( texture )
+	Profile.pet.icon = texture or "Interface/Icons/inv_misc_questionmark"
+	DiceMasterPetFrame.petIcon:SetTexture( texture )
+	Me.RefreshPetFrame()
+end
+
+-------------------------------------------------------------------------------
+-- Handler for when the name editor loses focus.
+--
+function Me.PetEditor_SaveName()
+	Profile.pet.name = DiceMasterPetFrame.petName:GetText()
+	Me.RefreshPetFrame()
+end
+
+-------------------------------------------------------------------------------
+-- Handler for when the type editor loses focus.
+--
+function Me.PetEditor_SaveType()
+	Profile.pet.type = DiceMasterPetFrame.petType:GetText()
+	Me.RefreshPetFrame()
+end
+
+-------------------------------------------------------------------------------
+-- Handler for when the model has been updated.
+--
+function Me.PetEditor_SaveModel()
+	Profile.pet.model = DiceMasterPetFrame.petModel:GetDisplayInfo()
+	Me.RefreshPetFrame()
+end
+
+-------------------------------------------------------------------------------
+-- Effects dropdown list.
+--
+--
+
+local function GetHighlightedText( editbox )
+
+	if not editbox then 
+		return nil 
+	end
+	
+	local origText = editbox:GetText();
+	if not (origText) then return nil end
+
+	local cPos = editbox:GetCursorPosition();
+
+	editbox:Insert("\127");
+	local a = string.find(editbox:GetText(), "\127");
+	local dLen = math.max(0,string.len(origText)-(string.len(editbox:GetText())-1));
+	editbox:SetText(origText);
+
+	editbox:SetCursorPosition(cPos);
+	local hs, he = a - 1, a + dLen - 1;
+	if hs < he then
+		editbox:HighlightText(hs, he);
+		return hs, he;
+	end
+	
+end
+
+function Me.TraitEditor_Insert( text )
+
+	local editbox = Me.editor.scrollFrame.Container.descEditor;
+	editbox:Insert( text );
+	
+end
+
+function Me.TraitEditor_InsertTag( tag, tag2 )
+
+	local editbox = Me.editor.scrollFrame.Container.descEditor;
+	local hi1, hi2 = GetHighlightedText( editbox );
+	local s;
+
+	local inner = "";
+	if hi1 and hi2 then
+		inner = string.sub(editbox:GetText(), hi1 + 1, hi2);
+	end
+	if tag2 then
+		s = string.format("<%s>%s</%s>", tag, inner, tag2);
+	else
+		s = string.format("<%s>%s</%s>", tag, inner, tag);
+	end
+	editbox:Insert(s);
+	
 end
 
 -------------------------------------------------------------------------------
@@ -496,6 +673,8 @@ end
 function Me.TraitEditor_OnCloseClicked() 
 	PlaySound(840); 
 	Me.IconPicker_Close()
+	Me.ModelPicker_Close()
+	Me.ColourPicker_Close()
 	Me.editor:Hide()
 	Me.buffeditor:Hide()
 	Me.removebuffeditor:Hide()
@@ -588,6 +767,7 @@ function Me.TraitEditor_Refresh()
 	Me.editor.scrollFrame.Container.traitIcon:SetTexture( trait.icon )
 	Me.editor.scrollFrame.Container.traitName:SetText( trait.name )
 	Me.editor.scrollFrame.Container.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
+	Me.editor.scrollFrame.Container.traitUsage:SetWidth(Me.editor.scrollFrame.Container.traitUsage.text:GetStringWidth())
 	Me.editor.scrollFrame.Container.descEditor:SetText( trait.desc )
 	
 	local buff = Me.Profile.buffs[Me.editing_trait] or nil
@@ -739,38 +919,6 @@ function Me.TraitEditor_SaveDescription()
 end
 
 -------------------------------------------------------------------------------
--- Load the help tooltip text.
---
-function Me.TraitEditor_HelpTooltipLoad()
-	--get name, race, class
-	local charName, charRace, charClass, charColor = Me.GetCharInfo()
-	local tooltip = DiceMasterTraitEditorHelpTooltip
-
-	DiceMasterTraitEditorHelpTooltip.Text:SetText( TRAIT_RULES[tooltip.rulesid]:gsub("charName",charName))
-	DiceMasterTraitEditorHelpTooltip:SetHeight(DiceMasterTraitEditorHelpTooltip.Text:GetHeight()+60);
-end
-
--------------------------------------------------------------------------------
--- Change the help tooltip page.
---
-function Me.TraitEditor_ChangePage( self, delta )
-	--get name, race, class
-	local charName, charRace, charClass, charColor = Me.GetCharInfo()
-	local tooltip = DiceMasterTraitEditorHelpTooltip
-	tooltip.rulesid = tooltip.rulesid + 1*delta
-	tooltip.Text:SetText(TRAIT_RULES[tooltip.rulesid]:gsub("charName",charName))
-	tooltip:SetHeight(tooltip.Text:GetHeight()+60);
-	if tooltip.rulesid == 1 then
-		tooltip.PrevPageButton:Disable()
-	elseif tooltip.rulesid == #TRAIT_RULES then
-		tooltip.NextPageButton:Disable()
-	else
-		tooltip.PrevPageButton:Enable()
-		tooltip.NextPageButton:Enable()
-	end
-end
-
--------------------------------------------------------------------------------
 -- Show the trait editor.
 --
 function Me.TraitEditor_Open()
@@ -798,9 +946,7 @@ function Me.TraitEditor_Open()
 	end
    
 	Me.TraitEditor_Refresh()
-	if not Me.PermittedUse() then
-		DiceMasterTraitEditorHelpPlateButton:Hide()
-	end
+	Me.PetEditor_Refresh()
 	Me.editor:Show()
 end
  

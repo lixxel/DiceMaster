@@ -105,6 +105,10 @@ function Me.FormatDiceString( dice, modifier )
 		mod = mod + modifier
 	end
 	
+	if Me.PermittedUse() and mod > 5 then
+		mod = 5
+	end
+	
 	return Me.FormatDiceType( count, sides, mod )
 end
 
@@ -135,13 +139,15 @@ end
 -------------------------------------------------------------------------------
 -- Version 2 with natural amounts and color codes for crits.
 --
-local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls, rollType )
+local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls, rollType, logRoll )
 	local sum = 0
 	for k,v in pairs( rolls ) do 
 		sum = sum + v
 	end
 	
-	Me.OnRollMessage( name, you, count, sides, mod, sum, rollType ) 
+	if logRoll then
+		Me.OnRollMessage( name, you, count, sides, mod, sum, rollType )
+	end
 	
 	local rollstring = ""
 	if count == 1 then
@@ -190,8 +196,8 @@ local function FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls, rol
 	end
 end
 
-local function FormatDiceMasterRoll( name, you, count, sides, mod, rolls, rollType )
-	return FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls, rollType )
+local function FormatDiceMasterRoll( name, you, count, sides, mod, rolls, rollType, logRoll )
+	return FormatDiceMasterRoll_v2( name, you, count, sides, mod, rolls, rollType, logRoll )
 end
 
 -------------------------------------------------------------------------------
@@ -227,13 +233,13 @@ local function PrintDiceMasterRoll( name, count, sides, mod, rolls, rollType, br
 			SendChatMessage( "<DiceMaster> " .. StripMessage(message), chatType, language )
 		end
 		
-		local msg = FormatDiceMasterRoll( name, false, count, sides, mod, rolls, rollType )
+		local msg = FormatDiceMasterRoll( name, false, count, sides, mod, rolls, rollType, true )
 		
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
 		
 	else
-		local msg = FormatDiceMasterRoll( name, true, count, sides, mod, rolls, rollType )
+		local msg = FormatDiceMasterRoll( name, true, count, sides, mod, rolls, rollType, true )
 		PrintSystemMessage( msg )
 		Me:SendMessage( "DiceMaster4_Roll", name, msg )
 		Me.OnRollMessage( name, you, count, sides, mod, sum, rollType ) 

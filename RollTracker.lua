@@ -15,23 +15,27 @@ end
 Me.HistoryRolls = {}
 
 local ROLL_ROUND_TYPES = {
-	["Attack"] = "Roll to attempt a combat action of your choosing.",
+	["Athletic"] = "Roll to swim, climb, flee, fly, or outrun someone.",
+	["Attack"] = "Roll to strike an enemy with an attack.",
 	["Bluff"] = "Roll to deceive, trick, or lie to someone.",
 	["Defence"] = "Roll to defend yourself from enemy damage.",
 	["Defense"] = "Roll to defend yourself from enemy damage.",
 	-- You're welcome, America.
 	["Diplomacy"] = "Roll to persuade or win favour with someone.",
+	["Disable Device"] = "Roll to disarm a trap or disable a lock.",
+	["Disguise"] = "Roll to change your appearance.",
+	["Escape"] = "Roll to slip bonds and escape from grapples.",
 	["Fortitude"] = "Roll to resist physical punishment or pain.",
+	["Grapple"] = "Roll to disarm or disable an enemy.",
 	["Heal"] = "Roll to restore health to yourself or others.",
-	["Insight"] = "Roll to discern intent and decipher body language during social interactions.",
-	["Intimidat"] = "Roll to coerce or frighten someone.",
+	["Insight"] = "Roll to discern intent or decipher body language.",
+	["Intimidat"] = "Roll to taunt, coerce, or frighten someone.",
 	-- Matches "Intimidate" and "Intimidation"
-	["Magical Perception"] = "Roll to detect magic in the area.",
-	-- Magical Perception has to go first to satisfy the str:find function.
-	["Perception"] = "Roll to gain information about the area.",
+	["Knowledge"] = "Roll to determine your education or understanding of a particular topic.",
+	["Perception"] = "Roll to notice fine details and alert yourself to danger.",
+	["Perform"] = "Roll to impress an audience with your talent and skill.",
 	["Reflex"] = "Roll to avoid or prevent an unexpected action.",
-	["Research"] = "Roll to gather information about a topic.",
-	["Sleight of Hand"] = "Roll to plant an object on someone or conceal an object on your person.",
+	["Spellcraft"] = "Roll to sense or identify spells and magic items.",
 	["Stealth"] = "Roll to conceal yourself from detection.",
 	["Surviv"] = "Roll to keep yourself safe and fed in the wild.",
 	-- Matches "Survival" and "Survive"
@@ -50,7 +54,7 @@ local WORLD_MARKER_NAMES = {
 }
 
 StaticPopupDialogs["DICEMASTER4_ROLLBANNER"] = {
-  text = "Enter a title for the banner, or use one of the default prompts below:|n|n|cFFFFD100Attack|r, |cFFFFD100Bluff|r, |cFFFFD100Defence|r, |cFFFFD100Diplomacy|r, |cFFFFD100Fortitude Save|r, |cFFFFD100Healing|r, |cFFFFD100Intimidation|r, |cFFFFD100Insight|r, |cFFFFD100Perception|r, |cFFFFD100Magical Perception|r, |cFFFFD100Reflex Save|r, |cFFFFD100Research|r, |cFFFFD100Sleight of Hand|r, |cFFFFD100Stealth|r, |cFFFFD100Survival|r, |cFFFFD100Will Save|r",
+  text = "Enter a title for the banner:",
   button1 = "Accept",
   button2 = "Cancel",
   OnShow = function (self, data)
@@ -226,7 +230,7 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 	f:SetScript( "OnEvent", function( self, event, msg, sender )
 		if event:match("CHAT_MSG_") then
 			Me.OnChatMessage( msg, sender )
-		elseif event == "GROUP_ROSTER_UPDATE" then
+		elseif event == "GROUP_ROSTER_UPDATE" and IsInGroup(1) then
 			DiceMasterDMNotesAllowAssistants:Hide()
 			DiceMasterDMNotesDMNotes.EditBox:Disable()
 			if Me.IsLeader() then
@@ -279,7 +283,17 @@ function Me.RollTargetDropDown_OnClick(self, arg1)
 	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 	
 	if not IsInGroup(1) then
-		Me.OnChatMessage( "{rt"..arg1.."}", UnitName("player") ) 
+		if arg1 > 0 then 
+			Me.OnChatMessage( "{rt"..arg1.."}", UnitName("player") ) 
+		else
+			for i=1,#Me.SavedRolls do
+				if Me.SavedRolls[i].name == UnitName("player") then
+					Me.SavedRolls[i].target = 0
+					Me.DiceMasterRollFrame_Update()
+					break
+				end
+			end
+		end
 	end
 end
 
@@ -382,11 +396,6 @@ function Me.DiceMasterRollFrame_Update()
 	
 	local rollOffset = FauxScrollFrame_GetOffset(DiceMasterRollTrackerScrollFrame);
 	
-	local showScrollBar = nil;
-	if ( #Me.SavedRolls > 17 ) then
-		showScrollBar = 1;
-	end
-	
 	for i=1,17,1 do
 		rollIndex = rollOffset + i;
 		local button = _G["DiceMasterRollTrackerButton"..i];
@@ -402,6 +411,11 @@ function Me.DiceMasterRollFrame_Update()
 		end
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Name"];
 		buttonText:SetText(name)
+		if name and UnitClass(name) then
+			className, classFile, classID = UnitClass(name)
+			buttonText:SetText("|TInterface/Icons/ClassIcon_"..classFile..":16|t "..name)
+			buttonText:SetTextColor(RAID_CLASS_COLORS[classFile].r, RAID_CLASS_COLORS[classFile].g, RAID_CLASS_COLORS[classFile].b)
+		end
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Roll"];
 		buttonText:SetText(roll or "--")
 		buttonText:SetTextColor(Me.ColourRolls( roll ))
@@ -433,19 +447,13 @@ function Me.DiceMasterRollFrame_Update()
 			button:Show();
 		end
 		
-		-- If need scrollbar resize columns
-		if ( showScrollBar ) then
-			Me.RollTrackerColumn_SetWidth(i, 225);
-		else
-			Me.RollTrackerColumn_SetWidth(i, 256);
-		end
 	end
 	
 	if DiceMasterRollTracker.selected then
 		DiceMasterRollTracker.selectedName = Me.SavedRolls[DiceMasterRollTracker.selected].name;
 	end
 	
-	FauxScrollFrame_Update(DiceMasterRollTrackerScrollFrame, #Me.SavedRolls, 17, 16 );
+	FauxScrollFrame_Update(DiceMasterRollTrackerScrollFrame, #Me.SavedRolls, 17, 16, nil, nil, nil, nil, nil, nil, true );
 end
 
 function Me.RollTrackerColumn_SetWidth(index, width)
@@ -463,6 +471,11 @@ function Me.DiceMasterRollDetailFrame_Update()
 	else
 		frame.ListInset.Totals:Show()
 		frame.ListInset.Totals:SetText("No Recent Rolls")
+		for i=1,9,1 do
+			local button = _G["DiceMasterRollTrackerHistoryButton"..i];
+			button:Hide()
+		end
+		return
 	end
 	
 	local rollOffset = FauxScrollFrame_GetOffset(DiceMasterRollFrameDetailScrollFrame);
@@ -512,9 +525,9 @@ function Me.DiceMasterRollDetailFrame_Update()
 		
 		-- If need scrollbar resize columns
 		if ( showScrollBar ) then
-			buttonText:SetWidth(40);
+			buttonText:SetWidth(65);
 		else
-			buttonText:SetWidth(50);
+			buttonText:SetWidth(90);
 		end
 		
 		if ( rollIndex > #Me.HistoryRolls[name] ) then
@@ -535,7 +548,11 @@ function Me.DMExperienceButton_OnClick(self, all)
 	if self:GetChecked() then
 		if all then
 			for i = 1, 40 do
-				tinsert(DiceMasterDMExp.selected, i)
+				local name, rank, subgroup, level, class, fileName, 
+					zone, online = GetRaidRosterInfo(i)
+				if name and online and name ~= UnitName("player") then
+					tinsert(DiceMasterDMExp.selected, i)
+				end
 			end
 			Me.DMExperienceFrame_Update()
 		else
@@ -578,11 +595,6 @@ function Me.DMExperienceFrame_Update()
 	
 	local entryOffset = FauxScrollFrame_GetOffset(DiceMasterDMExpScrollFrame);
 	
-	local showScrollBar = nil;
-	if ( numGroupMembers > 13 ) then
-		showScrollBar = 1;
-	end
-	
 	for i=1,13,1 do
 		entryIndex = entryOffset + i;
 		local button = _G["DiceMasterDMExpButton"..i];
@@ -623,16 +635,9 @@ function Me.DMExperienceFrame_Update()
 			checkBox:SetChecked( found )
 			checkBox:Enable()
 		end			
-		
-		-- If need scrollbar resize columns
-		if ( showScrollBar ) then
-			button:SetWidth(220);
-		else
-			button:SetWidth(240);
-		end
 	end
 	
-	FauxScrollFrame_Update(DiceMasterDMExpScrollFrame, numGroupMembers, 13, 16 );
+	FauxScrollFrame_Update(DiceMasterDMExpScrollFrame, numGroupMembers, 13, 16, nil, nil, nil, nil, nil, nil, true);
 end
 
 function Me.DiceMasterRollFrameDisplayDetail( rollIndex )
@@ -643,7 +648,15 @@ function Me.DiceMasterRollFrameDisplayDetail( rollIndex )
 		return;
 	end
 	
-	frame.Name:SetText(Me.SavedRolls[rollIndex].name);
+	local name = Me.SavedRolls[rollIndex].name
+	frame.name = name
+	
+	frame.Name:SetText(name);
+	if name and UnitClass(name) then
+		className, classFile, classID = UnitClass(name)
+		frame.Name:SetText("|TInterface/Icons/ClassIcon_"..classFile..":16|t "..name)
+		frame.Name:SetTextColor(RAID_CLASS_COLORS[classFile].r, RAID_CLASS_COLORS[classFile].g, RAID_CLASS_COLORS[classFile].b)
+	end
 	
 	Me.DiceMasterRollDetailFrame_Update()
 	frame:Show()
@@ -675,6 +688,30 @@ function DiceMasterNotesEditBox_OnTextChanged(self, userInput)
 	if not userInput and not self:HasFocus() then
 		DiceMasterNotesEditBox_OnEditFocusLost(self)
 	end
+end
+
+-------------------------------------------------------------------------------
+-- Roll Banners.
+--
+
+function Me.RollBanner_OnLoad( self )
+	self:SetScale( 0.8 )	
+end
+
+function Me.RollBanner_OnMouseEnter( self, button )
+	
+	if DiceMasterRollBanner.AnimOut:IsPlaying() then
+		DiceMasterRollBanner.AnimOut:Stop()
+	end
+	
+end
+
+function Me.RollBanner_OnMouseLeave( self, button )
+	
+	if DiceMasterRollBanner:IsShown() and not ( DiceMasterRollBanner.AnimIn:IsPlaying() or DiceMasterRollBanner.AnimOut:IsPlaying() ) then
+		DiceMasterRollBanner.AnimOut:Play()
+	end
+	
 end
 
 -------------------------------------------------------------------------------
@@ -850,8 +887,8 @@ function Me.OnChatMessage( message, sender )
 		local exists = false;
 		for i=1,#Me.SavedRolls do
 			if Me.SavedRolls[i].name == sender then
-				Me.SavedRolls[i].time = date("%H%M%S")
-				Me.SavedRolls[i].timestamp = date("%H:%M:%S")
+				--Me.SavedRolls[i].time = date("%H%M%S")
+				--Me.SavedRolls[i].timestamp = date("%H:%M:%S")
 				Me.SavedRolls[i].target = icon
 				exists = true;
 			end
@@ -865,7 +902,14 @@ function Me.OnChatMessage( message, sender )
 			data.target = icon
 			tinsert(Me.SavedRolls, data)
 		end
+		
+		if sender == UnitName("player") then
+			UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "|TInterface/TARGETINGFRAME/UI-RaidTargetingIcon_"..icon..":16|t")
+		end
+	
 		Me.DiceMasterRollFrame_Update()
+	elseif sender == UnitName("player") then
+		UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "") 
 	end
 end
 
@@ -946,8 +990,8 @@ function Me.RollTracker_OnTargetMessage( data, dist, sender )
 	local exists = false;
 	for i=1,#Me.SavedRolls do
 		if Me.SavedRolls[i].name == sender then
-			Me.SavedRolls[i].time = date("%H%M%S")
-			Me.SavedRolls[i].timestamp = date("%H:%M:%S")
+			--Me.SavedRolls[i].time = date("%H%M%S")
+			--Me.SavedRolls[i].timestamp = date("%H:%M:%S")
 			Me.SavedRolls[i].target = icon
 			exists = true;
 		end
@@ -1013,9 +1057,9 @@ function Me.RollTracker_OnBanner( data, dist, sender )
 		end
 		
 		DiceMasterRollBanner.AnimIn:Play()
-		local timer = C_Timer.NewTimer(5, function()
-			if DiceMasterRollBanner:IsShown() then
-				DiceMasterRollBanner.AnimOut:Play()
+		local timer = C_Timer.NewTimer(8, function()
+			if DiceMasterRollBanner:IsShown() and not MouseIsOver( DiceMasterRollBanner ) then
+				Me.RollBanner_OnMouseLeave( self, button )
 			end
 		end)
 		

@@ -8,53 +8,15 @@
 
 local Me = DiceMaster4
 
+Me.talkingHeadTextureKit = "Normal"
 Me.soundKitID = nil
 
-function Me.DMSAY_Init()
-	SLASH_DMSAY1       = '/dmsay';
-	SLASH_DMSOUND1	   = '/dmsound';
-end
-
--------------------------------------------------------------------------------
--- /dmsay
---
-function SlashCmdList.DMSAY( msg, editBox )
-	
-	if msg == "" then
-		-- show usage
-		Me.PrintMessage("/dmsay (message)", "SYSTEM")
-		Me.PrintMessage("Ctrl+Left Click a unit to choose who is talking. Then use the '/dmsay' command to make them speak.", "SYSTEM")
-		return
-	end
-	
-	if Me.IsLeader( true ) then
-		DiceMasterTalkingHeadFrame_Init( msg )
-	end
-end 
-
--------------------------------------------------------------------------------
--- /dmsound
---
-function SlashCmdList.DMSOUND( msg, editBox )
-	
-	if msg == "" then
-		-- show usage
-		Me.PrintMessage("/dmsound (soundKitID)", "SYSTEM")
-		Me.PrintMessage("/dmsound clear", "SYSTEM")
-		Me.PrintMessage("Assign a sound kit to play when the '/dmsay' command is used.", "SYSTEM")
-		return
-	end
-	
-	if DiceMaster4.IsLeader( false ) then
-		if msg == "clear" then
-			Me.PrintMessage("Sound kit cleared.", "SYSTEM")
-			Me.soundKitID = nil
-		else
-			Me.PrintMessage("Sound kit loaded: |cFFFFFFFF" .. msg, "SYSTEM")
-			Me.soundKitID = tonumber(msg)
-		end
-	end
-end 
+local talkingHeadFontColor = {
+	["Horde"] = {Name = CreateColor(0.28, 0.02, 0.02), Text = CreateColor(0.0, 0.0, 0.0), Shadow = CreateColor(0.0, 0.0, 0.0, 0.0)},
+	["Alliance"] = {Name = CreateColor(0.02, 0.17, 0.33), Text = CreateColor(0.0, 0.0, 0.0), Shadow = CreateColor(0.0, 0.0, 0.0, 0.0)},
+	["Neutral"] = {Name = CreateColor(0.33, 0.16, 0.02), Text = CreateColor(0.0, 0.0, 0.0), Shadow = CreateColor(0.0, 0.0, 0.0, 0.0)},
+	["Normal"] = {Name = CreateColor(1, 0.82, 0.02), Text = CreateColor(1, 1, 1), Shadow = CreateColor(0.0, 0.0, 0.0, 1.0)},
+}
 
 function DiceMasterTalkingHeadFrame_OnLoad(self)
 	self:SetClampedToScreen( true )
@@ -69,6 +31,8 @@ function DiceMasterTalkingHeadFrame_OnLoad(self)
 
 	self.NameFrame.Name:SetPoint("TOPLEFT", self.PortraitFrame.Portrait, "TOPRIGHT", 2, -19);
 	self.TextFrame.Text:SetFontObjectsToTry(SystemFont_Shadow_Large, SystemFont_Shadow_Med2, SystemFont_Shadow_Med1);
+	
+	self.TextFrame.Text:SetShadowColor( 0, 0, 0, 0 )
 	
 	local alertSystem = AlertFrame:AddExternallyAnchoredSubSystem(self);
 	AlertFrame:SetSubSystemAnchorPriority(alertSystem, 0);
@@ -147,7 +111,7 @@ function DiceMasterTalkingHeadFrame_Reset(frame, text, name)
 	frame.TextFrame.Text:SetText(text);
 end
 
-function DiceMasterTalkingHeadFrame_SetUnit(modelID, name, sound)
+function DiceMasterTalkingHeadFrame_SetUnit(modelID, name, textureKit, sound)
 	local frame = DiceMasterTalkingHeadFrame;
 	local model = frame.MainFrame.Model;
 	model.PortraitImage:Hide()
@@ -162,6 +126,22 @@ function DiceMasterTalkingHeadFrame_SetUnit(modelID, name, sound)
 	end
 	frame.soundKitID = sound or nil;
 	frame.NameFrame.Name:SetText(name or "Unknown")
+	
+	if textureKit == "Normal" then
+		frame.BackgroundFrame.TextBackground:SetAtlas("TalkingHeads-TextBackground")
+		frame.PortraitFrame.Portrait:SetAtlas("TalkingHeads-PortraitFrame")
+	else
+		frame.BackgroundFrame.TextBackground:SetAtlas("TalkingHeads-"..textureKit.."-TextBackground")
+		frame.PortraitFrame.Portrait:SetAtlas("TalkingHeads-"..textureKit.."-PortraitFrame")
+	end
+	
+	local nameColor = talkingHeadFontColor[textureKit].Name;
+	local textColor = talkingHeadFontColor[textureKit].Text;
+	local shadowColor = talkingHeadFontColor[textureKit].Shadow;
+	frame.NameFrame.Name:SetTextColor(nameColor:GetRGB());
+	frame.NameFrame.Name:SetShadowColor(shadowColor:GetRGBA());
+	frame.TextFrame.Text:SetTextColor(textColor:GetRGB());
+	frame.TextFrame.Text:SetShadowColor(shadowColor:GetRGBA());
 end
 
 function DiceMasterTalkingHeadFrame_PlayCurrent(message)
@@ -203,28 +183,21 @@ function DiceMasterTalkingHeadFrame_PlayCurrent(message)
 	end
 end
 
-function DiceMasterTalkingHeadFrame_Init(message)
-	local unitframes = DiceMasterUnitsPanel.unitframes; 
+function DiceMasterTalkingHeadFrame_Init( message, textureKit )
+	local model = DiceMasterAffixEditor.Model:GetDisplayInfo()
+	local name = DiceMasterAffixEditor.unitName:GetText()
+	if name == "" then name = "Unknown" end
+	local sound = Me.soundKitID
+	DiceMasterTalkingHeadFrame_SetUnit(model, name, textureKit, sound);
+	DiceMasterTalkingHeadFrame_PlayCurrent(message)
 	
-	for i=1,#unitframes do
-		if unitframes[i].speaker then
-			local framedata = unitframes[i]:GetData()
-			local model = framedata.model
-			if framedata.name=="" then framedata.name = "Unknown" end;
-			local name = framedata.name
-			local sound = Me.soundKitID
-			DiceMasterTalkingHeadFrame_SetUnit(model, name, sound);
-			DiceMasterTalkingHeadFrame_PlayCurrent(message)
-			
-			local msg = Me:Serialize( "DMSAY", {
-				na = tostring( name );
-				md = tonumber( model );
-				ms = tostring( message );
-				so = tonumber( sound );
-			})
-			
-			Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
-			break
-		end
-	end
+	local msg = Me:Serialize( "DMSAY", {
+		na = tostring( name );
+		md = tonumber( model );
+		ms = tostring( message );
+		tk = tostring( textureKit );
+		so = tonumber( sound );
+	})
+	
+	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 end

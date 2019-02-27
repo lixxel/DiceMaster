@@ -10,15 +10,16 @@ local DICEMASTER_TERMS = {
 	{ "Control[sleding]*", "Control", "Allows the character to take command of a target until the effect expires." },
 	{ "Disadvantage", "Disadvantage", "Allows the character to roll the same dice twice, and take the lesser of the two resulting numbers." },
 	{ "Double or Nothing", "Double or Nothing", "An unmodified D40 roll. If the roll succeeds, the character is rewarded with a critical success; however, if the roll fails, the character suffers critically failure." },
-	{ "Immunity", "Immunity", "Prevents a character from suffering the effects of a failure this round." },
+	{ "Immunity", "Immunity", "Prevents a character from suffering any damage from a failure this turn." },
+	{ "Intercept[edsing]*", "Intercept", "Intercepts another character's failure, taking the full amount of damage." },
 	{ "NAT1", "Natural 1", "A roll of 1 that is achieved before dice modifiers are applied that results in critical failure." },
 	{ "NAT20", "Natural 20", "A roll of 20 that is achieved before dice modifiers are applied that results in critical success." },
-	{ "Poison[seding]*", "Poison", "Causes additional damage to a target each round." },
+	{ "Poison[seding]*", "Poison", "Causes additional damage to a target each turn." },
 	{ "Reload[edsing]*", "Reload", "Grants the character's active trait another use." },
 	{ "Reviv[desing]*", "Revive", "Allows a character with |cFFFFFFFF0|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t|cFFffd100 remaining to return to battle with diminished health." },
-	{ "Stun[snedig]*", "Stun", "Incapacitates a target, preventing them from performing any action next round." },
+	{ "Stun[snedig]*", "Stun", "Incapacitates a target, preventing them from performing any action next turn." },
 	-- Icons
-	{ "Armo[u]*r", "Armour (|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t)", "Extends a character's Health beyond the maximum amount by a certain value. Damage taken will always be deducted from Armour before Health." },
+	{ "Armo[u]*r", "Armour (|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t)", "Extends a character's Health beyond the maximum amount by a certain value. Damage taken will usually be deducted from Armour before Health unless otherwise specified." },
 	{ "Health", "Health (|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t)", "A measure of a character's health or an object's integrity. Damage taken decreases Health, and healing restores Health." },
 }
 
@@ -30,28 +31,41 @@ Me.playerTraitTooltipIndex = nil
 -------------------------------------------------------------------------------
 
 function Me.CheckTooltipForTerms( text )
-	local termsString = ""
-	for i=1,#DICEMASTER_TERMS do
-		if string.match( text, DICEMASTER_TERMS[i][1] ) then
-			if termsString~="" then 
-				termsString = termsString .. "|n|n"
-			end
-			termsString = termsString .. "|cFFFFFFFF" .. DICEMASTER_TERMS[i][2] .. "|r|n|cFFffd100" .. DICEMASTER_TERMS[i][3] .. "|r"
-		end
-	end
+	local termsTable = {}
 	for k, v in pairs( Me.RollList ) do
 		for i = 1, #v do
-			if string.match( text, v[i].subName ) then
-				if termsString~="" then 
-					termsString = termsString .. "|n|n"
-				end
+			local matchFound = string.match( text, v[i].subName )
+			if matchFound then
+
 				local desc = gsub( v[i].desc, "Roll", "An attempt" )
-				termsString = termsString .. "|cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. desc .. "|r|n|cFF707070(Modified by " .. v[i].stat .. " + " .. v[i].name .. ")|r"
+				local termsString = "|cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. desc .. "|r|n|cFF707070(Modified by " .. v[i].stat .. " + " .. v[i].name .. ")|r"
+				
+				-- Special handler for "Spell Defence"
+				if matchFound == "Spell Defence" then
+					termsString = "|cFFFFFFFFSpell Defence|r|n|cFFffd100An attempt to defend yourself from enemy spell damage.|r|n|cFF707070(Modified by Intelligence + Spell Defence)|r"
+				end
+				
+				if not tContains( termsTable, termsString ) then
+					tinsert( termsTable, termsString )
+				end
 			end
 		end
 	end
-	if termsString~="" then
-		DiceMasterTooltip.TextLeft1:SetText( termsString )
+	for i=1,#DICEMASTER_TERMS do
+		if string.match( text, DICEMASTER_TERMS[i][1] ) then
+			local termsString = "|cFFFFFFFF" .. DICEMASTER_TERMS[i][2] .. "|r|n|cFFffd100" .. DICEMASTER_TERMS[i][3] .. "|r"
+			if not tContains( termsTable, termsString ) then
+				tinsert( termsTable, termsString )
+			end
+		end
+	end
+	if #termsTable > 0 then
+		table.sort( termsTable )
+		local tooltip = termsTable[1]
+		for i = 2, #termsTable do
+			tooltip = tooltip .. "|n|n" .. termsTable[i]
+		end
+		DiceMasterTooltip.TextLeft1:SetText( tooltip )
 		DiceMasterTooltip:Show()
 	end
 end
@@ -86,13 +100,21 @@ function Me.OpenTraitTooltip( owner, trait, index )
 	
 	GameTooltip:ClearLines()
 	
-	if trait.name then
+	if trait.name then		
 		if trait.icon then
 			-- icon with name
-			GameTooltip:AddLine( "|T"..trait.icon..":32|t "..trait.name, 1, 1, 1, true )
+			DiceMasterTooltipIcon.icon:SetTexture( trait.icon )
+			DiceMasterTooltipIcon:Show()
+			if index == 5 then
+				DiceMasterTooltipIcon.elite:Show()
+			else
+				DiceMasterTooltipIcon.elite:Hide()
+			end
 		else
-			GameTooltip:AddLine( trait.name, 1, 1, 1, true )
+			DiceMasterTooltipIcon:Hide()
+			DiceMasterTooltipIcon.elite:Hide()
 		end
+		GameTooltip:AddLine( trait.name, 1, 1, 1, true )
 	end
 	 
 	if trait.usage then
@@ -102,11 +124,11 @@ function Me.OpenTraitTooltip( owner, trait, index )
 	
 	if trait.approved and trait.approved > 0 and Me.PermittedUse() then
 		if trait.approved == 1 then
-			DiceMasterTooltipApproved.icon:SetTexture("Interface/AddOns/DiceMaster/Texture/trait-unapproved")
+			DiceMasterTooltipIcon.approved:SetTexCoord( 0, 0.5, 0.5, 1 )
 		elseif trait.approved == 2 then
-			DiceMasterTooltipApproved.icon:SetTexture("Interface/AddOns/DiceMaster/Texture/trait-approved")
+			DiceMasterTooltipIcon.approved:SetTexCoord( 0, 0.5, 0, 0.5 )
 		end
-		DiceMasterTooltipApproved:Show()
+		DiceMasterTooltipIcon.approved:Show()
 	end
 	 
     GameTooltip:AddLine( nil, 1, 1, 1, true )
@@ -116,7 +138,7 @@ function Me.OpenTraitTooltip( owner, trait, index )
 			Me.CheckTooltipForTerms( trait.desc )
 		end
 		local desc = Me.FormatDescTooltip( trait.desc )
-		GameTooltip:AddLine( desc, 1, 0.81, 0, true )
+		GameTooltip:AddLine( desc, 1, 0.82, 0, true )
 	end
 	
 	local usable = ""
@@ -159,6 +181,17 @@ function Me.OpenTraitTooltip( owner, trait, index )
 	end
 	GameTooltip:AddLine( usable .. "<Shift+Click to Link to Chat>", 0.44, 0.44, 0.44, true )
 	
+	if trait.officers and Me.PermittedUse() then
+		local approval
+		if trait.officers[2] then
+			approval = "|TInterface/AddOns/DiceMaster/Texture/trait-approved:14:14:0:0:32:32:2:14:2:14|t Approved by " .. trait.officers[1] .. " and " .. trait.officers[2]
+			GameTooltip:AddLine( approval, 0, 1, 0, true )
+		elseif trait.officers[1] then
+			approval = "|TInterface/AddOns/DiceMaster/Texture/trait-approved:14:14:0:0:32:32:2:14:18:30|t Approved by " .. trait.officers[1]
+			GameTooltip:AddLine( approval, 1, 1, 0, true )
+		end
+	end
+	
     GameTooltip:Show()
 end
 
@@ -166,7 +199,9 @@ end
 function Me.CloseTraitTooltip()
 	Me.playerTraitTooltipOpen = false
     GameTooltip:Hide()
-	DiceMasterTooltipApproved:Hide()
+	DiceMasterTooltipIcon:Hide()
+	DiceMasterTooltipIcon.approved:Hide()
+	DiceMasterTooltipIcon.elite:Hide()
 	DiceMasterTooltip:Hide()
 end
 
@@ -205,7 +240,9 @@ local function OnLeave( self )
 		Me.playerTraitTooltipOpen = false
 	end
     GameTooltip:Hide()
-	DiceMasterTooltipApproved:Hide()
+	DiceMasterTooltipIcon:Hide()
+	DiceMasterTooltipIcon.approved:Hide()
+	DiceMasterTooltipIcon.elite:Hide()
 	DiceMasterTooltip:Hide()
 end
 

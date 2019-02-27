@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
   
   <Button name="DiceMasterRollTrackerButtonTemplate" virtual="true">
-		<Size x="256" y="16"/>
+		<Size x="276" y="16"/>
 		<Layers>
 			<Layer level="BORDER">
 				<FontString name="$parentName" inherits="GameFontNormalSmall" justifyH="LEFT">
@@ -17,7 +17,7 @@
 					</Anchors>
 				</FontString>
 				<FontString name="$parentRollType" inherits="GameFontHighlightSmall" justifyH="CENTER">
-					<Size x="50" y="14"/>
+					<Size x="60" y="14"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentRoll" relativePoint="RIGHT" x="0" y="0"/>
 					</Anchors>
@@ -29,7 +29,7 @@
 					</Anchors>
 				</FontString>
 				<FontString name="$parentTarget" inherits="GameFontHighlightSmall" justifyH="CENTER">
-					<Size x="32" y="8"/>
+					<Size x="22" y="8"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentTimestamp" relativePoint="RIGHT" x="0" y="0"/>
 					</Anchors>
@@ -46,7 +46,7 @@
 			</OnClick>
 		</Scripts>
 		<HighlightTexture name="$parentHighlight" file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">
-			<Size x="256" y="16"/>
+			<Size x="276" y="16"/>
 			<Anchors>
 				<Anchor point="TOPLEFT" x="5" y="-2"/>
 			</Anchors>
@@ -54,11 +54,11 @@
 	</Button>
 	
 	<Button name="DiceMasterRollTrackerHistoryButtonTemplate" virtual="true">
-		<Size x="150" y="16"/>
+		<Size x="220" y="16"/>
 		<Layers>
 			<Layer level="BORDER">
 				<FontString name="$parentRoll" inherits="GameFontHighlightSmall" justifyH="LEFT">
-					<Size x="50" y="14"/>
+					<Size x="60" y="14"/>
 					<Anchors>
 						<Anchor point="TOPLEFT" x="10" y="-3"/>
 					</Anchors>
@@ -70,7 +70,7 @@
 					</Anchors>
 				</FontString>
 				<FontString name="$parentType" inherits="GameFontHighlightSmall" justifyH="LEFT">
-					<Size x="55" y="8"/>
+					<Size x="150" y="8"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentTimestamp" relativePoint="RIGHT" x="0" y="0"/>
 					</Anchors>
@@ -80,15 +80,15 @@
 		<Scripts>
 		</Scripts>
 		<HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">
-			<Size x="150" y="16"/>
+			<Size x="220" y="16"/>
 			<Anchors>
-				<Anchor point="TOP" x="5" y="-2"/>
+				<Anchor point="LEFT" x="5" y="-2"/>
 			</Anchors>
 		</HighlightTexture>
 	</Button>
 	
 	<Frame name="DiceMasterRollTrackerDetailFrameTemplate" toplevel="true" enableMouse="true" virtual="true">
-		<Size x="212" y="280"/>
+		<Size x="250" y="280"/>
 		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background-Dark" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
 			<BackgroundInsets>
 				<AbsInset left="11" right="11" top="11" bottom="11"/>
@@ -135,7 +135,7 @@
 				</FontString>
 				<FontString parentKey="TimestampHistoryLabel" inherits="GameFontNormalSmall" text="Time">
 					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.RollHistoryLabel" relativePoint="RIGHT" x="38" y="0"/>
+						<Anchor point="LEFT" relativeKey="$parent.RollHistoryLabel" relativePoint="RIGHT" x="50" y="0"/>
 					</Anchors>
 				</FontString>
 				<FontString parentKey="TypeHistoryLabel" inherits="GameFontNormalSmall" text="Type">
@@ -211,13 +211,13 @@
 				</Layers>
 			</ScrollFrame>
 			<Button parentKey="RemoveButton" inherits="UIPanelButtonTemplate" text="Clear">
-				<Size x="96" y="22"/>
+				<Size x="110" y="22"/>
 				<Anchors>
-					<Anchor point="BOTTOMLEFT" x="10" y="32"/>
+					<Anchor point="BOTTOMLEFT" x="15" y="32"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						DiceMaster4.HistoryRolls[self:GetParent().Name:GetText()] = {}
+						DiceMaster4.HistoryRolls[DiceMasterRollFrame.DetailFrame.name] = {}
 						DiceMaster4.DiceMasterRollDetailFrame_Update()
 						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 					</OnClick>
@@ -227,7 +227,7 @@
 				<DisabledFont style="GameFontDisableSmall"/>
 			</Button>
 			<Button parentKey="MessageButton" inherits="UIPanelButtonTemplate" text="Send Message">
-				<Size x="96" y="22"/>
+				<Size x="110" y="22"/>
 				<Anchors>
 					<Anchor point="LEFT" relativeKey="$parent.RemoveButton" relativePoint="RIGHT" x="1" y="0"/>
 				</Anchors>
@@ -242,7 +242,7 @@
 				<DisabledFont style="GameFontDisableSmall"/>
 			</Button>
 			<Button parentKey="ExperienceButton" inherits="UIPanelButtonTemplate" text="Send Personal Banner...">
-				<Size x="192" y="22"/>
+				<Size x="220" y="22"/>
 				<Anchors>
 					<Anchor point="BOTTOM" x="0" y="12"/>
 				</Anchors>
@@ -330,7 +330,7 @@
 				<Layers>
 					<Layer level="ARTWORK">
 						<Texture name="$parentLeftTexture" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar">
-							<Size x="62" y="21"/>
+							<Size x="60" y="21"/>
 							<Anchors>
 								<Anchor point="LEFT" x="0" y="0"/>
 							</Anchors>
@@ -393,7 +393,7 @@
 	</Button>
 	
   <Frame name="DiceMasterRollBanner" parent="UIParent" hidden="true" framestrata="DIALOG" alpha="1">
-	<Size x="128" y="156"/>
+	<Size x="128" y="180"/>
 	<Anchors>
 		<Anchor point="TOP" x="0" y="-120"/>
 	</Anchors>
@@ -467,7 +467,7 @@
 			</FontString>
 			<FontString parentKey="SubTitle" inherits="GameFontNormalLarge">
 				<Anchors>
-					<Anchor point="BOTTOM" relativeKey="$parent.BannerBottom" relativePoint="BOTTOM" x="0" y="0"/>
+					<Anchor point="TOP" relativeKey="$parent.Title" relativePoint="BOTTOM" x="0" y="0"/>
 				</Anchors>
 				<Color r="1" g="1" b="1" a="0"/>
 			</FontString>
@@ -571,7 +571,7 @@
 			<Alpha childKey="SubTitle" duration="0.25" order="1" fromAlpha="1" toAlpha="0"/>	
 		</AnimationGroup>
 		<AnimationGroup parentKey="AnimOut">
-			<Alpha duration="0.5" order="1" fromAlpha="1" toAlpha="0"/>
+			<Alpha duration="1" order="1" fromAlpha="1" toAlpha="0"/>
 			<Scripts>
 				<OnFinished>
 					local banner = self:GetParent();
@@ -593,13 +593,20 @@
 	<Scripts>
 		<OnLoad>
 			self.baseHeight = self:GetHeight();
+			DiceMaster4.RollBanner_OnLoad( self )
 		</OnLoad>
+		<OnEnter>
+			DiceMaster4.RollBanner_OnMouseEnter( self, button )
+		</OnEnter>
+		<OnLeave>
+			DiceMaster4.RollBanner_OnMouseLeave( self, button )
+		</OnLeave>
 		<OnUpdate function="BossBanner_OnUpdate"/>
 	</Scripts>
 </Frame>
   
   <Frame name="DiceMasterRollFrame" parent="UIParent" inherits="PortraitFrameTemplate" hidden="true" framestrata="HIGH">
-    <Size x="265" y="384" />
+    <Size x="285" y="384" />
     <Anchors>
       <Anchor point="LEFT" x="300" y="100" />
     </Anchors>
@@ -729,7 +736,7 @@
 					</Anchors>
 					<Scripts>
 						<OnLoad>
-							WhoFrameColumn_SetWidth(self, 50);
+							WhoFrameColumn_SetWidth(self, 60);
 							self.sortType = "rollType";
 							self.reversed = false;
 						</OnLoad>
@@ -757,13 +764,13 @@
 					</Scripts>
 				</Button>
 				
-				<Button name="RollTrackerColumnHeader5" inherits="WhoFrameColumnHeaderTemplate" text="Target">
+				<Button name="RollTrackerColumnHeader5" inherits="WhoFrameColumnHeaderTemplate" text="">
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="RollTrackerColumnHeader4" relativePoint="RIGHT" x="-2" y="0"/>
 					</Anchors>
 					<Scripts>
 						<OnLoad>
-							WhoFrameColumn_SetWidth(self, 42);
+							WhoFrameColumn_SetWidth(self, 32);
 							self.sortType = "target";
 							self.reversed = false;
 						</OnLoad>
@@ -780,8 +787,8 @@
 						</Anchors>
 				</Button>
 				
-				<Button name="$parentBannerButton" inherits="UIPanelButtonTemplate" text="Banner...">
-					<Size x="85" y="22"/>
+				<Button name="$parentBannerButton" inherits="UIPanelButtonTemplate" text="Send Banner...">
+					<Size x="150" y="22"/>
 					<Anchors>
 						<Anchor point="BOTTOMRIGHT" x="-6" y="4"/>
 					</Anchors>
@@ -909,7 +916,7 @@
 					</Scripts>
 					<ScrollChild>
 					  <EditBox parentKey="EditBox" multiLine="true" font="GameFontHighlightSmall2">
-						<Size x="220" y="12"/>
+						<Size x="240" y="12"/>
 						<Anchors>
 						  <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="5" y="5"/>  
 						</Anchors>
@@ -1055,7 +1062,7 @@
 				</ScrollFrame>
 				
 				<Button name="$parentGrantExpButton" inherits="UIPanelButtonTemplate" text="Grant XP...">
-					<Size x="85" y="22"/>
+					<Size x="92" y="22"/>
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" x="6" y="4"/>
 					</Anchors>
@@ -1074,7 +1081,7 @@
 				</Button>
 				
 				<Button name="$parentGrantLevelButton" inherits="UIPanelButtonTemplate" text="Grant Level...">
-					<Size x="85" y="22"/>
+					<Size x="92" y="22"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentGrantExpButton" relativePoint="RIGHT" x="-2" y="0"/>
 					</Anchors>
@@ -1093,7 +1100,7 @@
 				</Button>
 				
 				<Button name="$parentResetLevelButton" inherits="UIPanelButtonTemplate" text="Reset Level">
-					<Size x="85" y="22"/>
+					<Size x="92" y="22"/>
 					<Anchors>
 						<Anchor point="LEFT" relativeTo="$parentGrantLevelButton" relativePoint="RIGHT" x="-2" y="0"/>
 					</Anchors>

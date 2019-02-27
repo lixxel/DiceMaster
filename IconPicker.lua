@@ -16,10 +16,17 @@ local filteredList = nil
 --
 function Me.IconPickerButton_OnClick( self )
 	-- Apply the icon to the edited trait and close the picker. 
-	if self:GetParent():GetParent():GetParent() == DiceMasterBuffEditor then
-		Me.BuffEditor_SelectIcon( self:GetNormalTexture():GetTexture() ) 
+	if DiceMasterIconPicker.parent == DiceMasterBuffEditor then
+		Me.BuffEditor_SelectIcon( self:GetNormalTexture():GetTexture() )
+	elseif DiceMasterIconPicker.parent == DiceMasterUnitFramesBuffEditor then
+		Me.UnitFramesBuffEditor_SelectIcon( self:GetNormalTexture():GetTexture() )	
+	elseif DiceMasterIconPicker.parent == Me.editor then
+		Me.TraitEditor_SelectIcon( self:GetNormalTexture():GetTexture() )
+	elseif DiceMasterIconPicker.parent == DiceMasterPetFrame then
+		Me.PetEditor_SelectIcon( self:GetNormalTexture():GetTexture() ) 
 	else
-		Me.TraitEditor_SelectIcon( self:GetNormalTexture():GetTexture() ) 
+		Me.TraitEditor_Insert( "<img>"..self:GetNormalTexture():GetTexture().."</img>" )
+		Me.TraitEditor_SaveDescription()
 	end
 	PlaySound(54129)
 	Me.IconPicker_Close()
@@ -53,7 +60,7 @@ end
 function Me.IconPicker_ScrollChanged( value )
 	
 	-- Our "step" is 6 icons, which is one line.
-	startOffset = math.floor(value) * 6
+	startOffset = math.floor(value) * 7
 	Me.IconPicker_RefreshGrid()
 end
 
@@ -113,7 +120,7 @@ end
 --
 function Me.IconPicker_RefreshScroll( reset )
 	local list = filteredList or Me.iconList 
-	local max = math.floor((#list - 24) / 6)
+	local max = math.floor((#list - 42) / 7)
 	if max < 0 then max = 0 end
 	DiceMasterIconPicker.selectorFrame.scroller:SetMinMaxValues( 0, max )
 	
@@ -140,14 +147,20 @@ end
 -- Open the icon picker window.
 --
 function Me.IconPicker_Open( parent )
-	DiceMasterIconPicker:SetParent( parent )
-	DiceMasterIconPicker:SetPoint("TOPRIGHT", parent, "TOPLEFT", -48, -60)
-	if parent == Me.editor then
-		parent.scrollFrame.Container.traitIcon:Select( true )
+	if parent then
+		DiceMasterIconPicker.parent = parent
+		
+		if DiceMasterIconPicker.parent == Me.editor then
+			DiceMasterIconPicker.parent.scrollFrame.Container.traitIcon:Select( true )
+		elseif DiceMasterIconPicker.parent.buffIcon then
+			DiceMasterIconPicker.parent.buffIcon:Select( true )
+		end
 	else
-		parent.buffIcon:Select( true )
+		DiceMasterIconPicker.parent = nil
 	end
 	filteredList = nil
+	
+	DiceMasterIconPicker.CloseButton:SetScript("OnClick",Me.IconPicker_Close)
 	
 	Me.IconPicker_RefreshScroll( true )
 	DiceMasterIconPicker.search:SetText("")

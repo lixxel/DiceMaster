@@ -9,12 +9,216 @@
 local Me = DiceMaster4
 local Profile = Me.Profile
 
+local BUFF_DURATION_AMOUNTS = {
+	{name = "15 sec", time = 15},
+	{name = "30 sec", time = 30},
+	{name = "45 sec", time = 45},
+	{name = "1 min", time = 60},
+	{name = "2 min", time = 120},
+	{name = "5 min", time = 300},
+	{name = "10 min", time = 600},
+	{name = "15 min", time = 900},
+	{name = "30 min", time = 1800},
+	{name = "45 min", time = 2700},
+	{name = "1 hour", time = 3600},
+	{name = "2 hours", time = 7200},
+	{name = "3 hours", time = 10800},
+}
+
+-------------------------------------------------------------------------------
+-- StaticPopupDialogs
+--
+
+StaticPopupDialogs["DICEMASTER4_OVERWRITEBUFF"] = {
+  text = "A buff with this name already exists. Are you sure you want to overwrite it?",
+  button1 = "Yes",
+  button2 = "No",
+  OnAccept = function (self)
+	Me.UnitFramesBuffEditor_SaveBuff()
+  end,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+StaticPopupDialogs["DICEMASTER4_DELETEBUFF"] = {
+  text = "Are you sure you want to delete this buff?",
+  button1 = "Yes",
+  button2 = "No",
+  OnAccept = function (self, data)
+	Me.UnitFramesBuffEditor_DeleteBuff( data )
+  end,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+-------------------------------------------------------------------------------
+-- Apply Buff Editor
+--
+
+function Me.UnitFramesBuffEditor_SaveBuff()
+	local editor = DiceMasterUnitFramesBuffEditor
+	if not editor.buffIcon.icon:GetTexture() then return end
+
+	local icon = editor.buffIcon.icon:GetTexture()
+	local name = editor.buffName:GetText()
+	local desc = editor.buffDesc.EditBox:GetText()
+	local duration = 0
+	if not editor.buffCancelable:GetChecked() then
+		duration = editor.buffDuration:GetValue()
+	end
+	local stackable = editor.buffStackable:GetChecked()
+	
+	if name~="" then
+		DiceMaster4UF_Saved.FavouriteAffixes[name] = {}
+		DiceMaster4UF_Saved.FavouriteAffixes[name].icon = icon
+		DiceMaster4UF_Saved.FavouriteAffixes[name].name = name
+		DiceMaster4UF_Saved.FavouriteAffixes[name].desc = desc
+		DiceMaster4UF_Saved.FavouriteAffixes[name].duration = duration
+		DiceMaster4UF_Saved.FavouriteAffixes[name].stackable = stackable
+		Me.PrintMessage("|T"..icon..":16|t "..name.." saved.", "SYSTEM");
+	end
+end
+
+function Me.UnitFramesBuffEditor_DeleteBuff( affix )
+	local editor = DiceMasterUnitFramesBuffEditor
+	editor.buffIcon:SetTexture("Interface/Icons/inv_misc_questionmark")
+	editor.buffName:SetText("")
+	editor.buffDesc.EditBox:SetText("")
+	editor.buffCancelable:SetChecked( false )
+	editor.buffDuration:SetValue( 1 )
+	editor.buffDuration:Show()
+	editor.buffStackable:SetChecked( false )
+	if DiceMaster4UF_Saved.FavouriteAffixes[affix] then
+		Me.PrintMessage("|T"..DiceMaster4UF_Saved.FavouriteAffixes[affix].icon..":16|t "..affix.." deleted.", "SYSTEM");
+		DiceMaster4UF_Saved.FavouriteAffixes[affix] = nil;
+	end
+end
+
+function Me.UnitFramesBuffEditor_ApplyBuff( self )
+	local editor = DiceMasterUnitFramesBuffEditor
+	local unitframe = Me.UnitEditing
+
+	if not editor.buffIcon.icon:GetTexture() then return end
+	
+	local icon = editor.buffIcon.icon:GetTexture()
+	local name = editor.buffName:GetText() or nil
+	local desc = editor.buffDesc.EditBox:GetText() or nil
+	local duration = 0
+	if not editor.buffCancelable:GetChecked() then
+		duration = BUFF_DURATION_AMOUNTS[editor.buffDuration:GetValue()].time or 0
+	end
+	local stackable = editor.buffStackable:GetChecked()
+	
+	if name == "" or not icon or desc == "" or not duration then
+		return
+	end	
+	
+	-- search for duplicates
+	local found = false
+	for i = 1, #unitframe.buffsActive do
+		local buff = unitframe.buffsActive[i]
+		if buff.name == name and buff.sender == UnitName("player") then
+			if not stackable then
+				tremove( unitframe.buffsActive, i )
+			else
+				found = true
+				buff.count = buff.count + 1
+				buff.expirationTime = (GetTime() + tonumber( duration ))
+			end
+			break
+		end		
+	end
+	
+	-- if buff doesn't exist and we have less than 15, apply it
+	if not found and #unitframe.buffsActive < 15 then
+		local buff = {
+			name = tostring(name),
+			icon = tostring(icon),
+			description = tostring(desc),
+			count = 1,
+			duration = 0,
+			sender = UnitName("player"),
+		}
+		if duration then
+			buff.duration = tonumber(duration)
+			buff.expirationTime = (GetTime() + tonumber( duration ))
+		end
+		tinsert( unitframe.buffsActive, buff )
+	end
+	for i = 1, #unitframe.buffs do
+		Me.UnitFrames_UpdateBuffButton( unitframe, i)
+	end
+	unitframe.buffFrame:Show()
+	Me.UpdateUnitFrames()
+end
+
+function Me.UnitFramesBuffEditor_SelectIcon( texture )
+	DiceMasterUnitFramesBuffEditor.buffIcon:SetTexture( texture )
+	DiceMasterUnitFramesBuffEditor.buffIcon:Select( false )
+end
+
+function Me.UnitFramesBuffEditor_OnCloseClicked()
+	PlaySound(840); 
+	Me.IconPicker_Close()
+	DiceMasterUnitFramesBuffEditor:Hide()
+end
+
+function Me.UnitFramesBuffEditor_Open()
+	
+	SetPortraitToTexture( DiceMasterUnitFramesBuffEditor.portrait, "Interface/Icons/Spell_Holy_WordFortitude" )
+	DiceMasterUnitFramesBuffEditor.CloseButton:SetScript("OnClick",Me.UnitFramesBuffEditor_OnCloseClicked)
+	
+	DiceMaster4UF_Saved.FavouriteAffixes = DiceMaster4UF_Saved.FavouriteAffixes or {}
+   
+	DiceMasterUnitFramesBuffEditor:Show()
+end
+
+-------------------------------------------------------------------------------
+-- Dropdown handlers for the load buffs menu.
+--
+function Me.UnitFramesBuffEditorDropDown_OnClick(self, arg1, arg2, checked)
+	local duration = arg1.duration or 0
+	local stackable = arg1.stackable or false
+	local editor = DiceMasterUnitFramesBuffEditor
+	
+	editor.buffIcon:SetTexture( arg1.icon )
+	editor.buffName:SetText( arg1.name )
+	editor.buffDesc.EditBox:SetText( arg1.desc )
+	if duration > 0 then
+		editor.buffCancelable:SetChecked( false )
+		editor.buffDuration:SetValue( duration )
+		editor.buffDuration:Show()
+	else
+		editor.buffCancelable:SetChecked( true )
+		editor.buffDuration:Hide()
+	end
+	editor.buffStackable:SetChecked( stackable )
+end
+
+function Me.UnitFramesBuffEditorDropDown_OnLoad()
+	for k,v in pairs(DiceMaster4UF_Saved.FavouriteAffixes) do
+       local info      = UIDropDownMenu_CreateInfo();
+	   info.checked	   = false;
+	   info.icon	   = v.icon or "Interface/Icons/inv_misc_questionmark";
+	   info.tooltipTitle = k;
+	   info.tooltipText = v.desc;
+	   info.tooltipOnButton = true;
+       info.text       = k;
+       info.value      = 1;
+	   info.notCheckable = true;
+	   info.arg1	   = v;
+       info.func       = Me.UnitFramesBuffEditorDropDown_OnClick;
+       UIDropDownMenu_AddButton(info); 
+	end
+end
+
 ------------------------------------------------------------
 
 function Me.UnitFrames_UpdateBuffButton(button, index)
-	if not button or not button.buffsActive then
-		return
-	end
 
 	local data = button.buffsActive[index] or nil
 	local name, icon, description, count, duration, expirationTime, sender

@@ -1,3 +1,31 @@
+### 5.0.8
+ - DiceMaster tooltip icons now anchor to the top left of the tooltip instead of appearing inline.
+ - Chapter trait icons now display a gold dragon around their tooltip icon.
+ - The Icon Picker has been redesigned and now shows 49 icons at a time (up from 30).
+ - Added new formatting tools to the Trait Editor, providing a variety of new markdown options for trait descriptions.
+ - The markdown for colour tags has changed and will now only accept hexadecimal values (e.g. <color=RRGGBB></color>)
+ - A new Pet tab has been added to the Trait Editor, allowing players to create custom pets, followers, or guardians for their characters.
+ - Added Pet Frames to the Charges bar and Inspect Frame to display custom pets. 
+ - Added Pet tab to the Inspect Statistics Frame.
+ - Unit Frames is once again opt-in only. You must enable them in the config menu if you wish to see them.
+ - The Unit Editor has been completely redesigned.
+ - You can now manipulate the position, rotation, and scale of each Unit Frame model.
+ - Removed all nil/non-existent models from the Model Picker.
+ - The Model Picker should no longer cause unexpected memory errors/crashes.
+ - The Effects Picker has been removed due to memory errors/crashes. This feature may return if a solution can be found.
+ - Models can now be searched for by file name.
+ - Many new animation options have been added to the Unit Editor.
+ - You can also choose a custom backdrop for Unit Frames from hundreds of different in-game zones.
+ - New Talking Heads skins (Alliance, Horde, Neutral, and Normal).
+ - You can now save, load, and delete units in the Unit Editor for quick accessibility.
+ - You can now assign specific Attributes to new Statistics.
+ - Fixed an issue where clicking the 'Clear' button on the Roll Tracker detail frame was producing errors.
+ - Increased the width of the Roll Tracker detail frame so text wouldn't get cut off.
+ - Rolls should no longer be logged twice in the Roll Tracker detail frame.
+ - Adjusted the column widths of the Roll Tracker frame.
+ - Strings passed through the colour tags will no longer highlight special terms.
+ - Fixed an issue where swapping profiles would reset health to 5/5.
+
 ### 5.0.7
  - The /dice command can now be used to roll for a specific roll option (such as /dice bluff).
  - Fixed an issue causing raid rolls in raid/party chat to clip off the first letter of a name.

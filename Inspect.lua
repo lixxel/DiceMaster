@@ -71,6 +71,16 @@ local function PrimeInspectData( name )
 		armor         = 0;
 		level         = 1;
 		experience    = 0;
+		pet	= {
+			enable  = false;
+			name 	= "Pet Name";
+			type    = "Pet";
+			icon 	= "Interface/Icons/inv_misc_questionmark";
+			model 	= 31;
+			health       = 5;
+			healthMax    = 5;
+			armor        = 0;
+		};
 		hasDM4        = false;
 	}
 	
@@ -330,7 +340,7 @@ function Me.Inspect_Refresh( status, trait )
 				DiceMasterInspectFrame.charges2.text:SetText( store.charges.count.."/"..store.charges.max )
 				DiceMasterInspectFrame.charges:Hide()
 				DiceMasterInspectFrame.charges2:Show()
-				if Profile.healthPos then
+				if Me.db.char.healthPos then
 					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, -40 )
 				else
 					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 35 )
@@ -338,7 +348,7 @@ function Me.Inspect_Refresh( status, trait )
 			else
 				DiceMasterInspectFrame.charges:Show()
 				DiceMasterInspectFrame.charges2:Hide()
-				if Profile.healthPos then
+				if Me.db.char.healthPos then
 					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, -40 )
 				else
 					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 30 )
@@ -355,7 +365,7 @@ function Me.Inspect_Refresh( status, trait )
 		else
 			DiceMasterInspectFrame.charges:Hide()
 			DiceMasterInspectFrame.charges2:Hide()
-			if Profile.healthPos then
+			if Me.db.char.healthPos then
 				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, -40 )
 			else
 				DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 18 )
@@ -390,6 +400,14 @@ function Me.Inspect_Refresh( status, trait )
 		DiceMasterInspectBuffFrame:Hide()
 	end
 	
+	if store.pet.enable and not Me.db.global.hidePet then
+		DiceMasterInspectPetFrame.Texture:SetTexture( store.pet.icon )
+		Me.SetupTooltip( DiceMasterInspectPetFrame, store.pet.icon, store.pet.name, store.pet.type, store.pet.health.."/"..store.pet.healthMax.." |TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" )
+		DiceMasterInspectPetFrame:Show()
+	else
+		DiceMasterInspectPetFrame:Hide()
+	end
+	
 	if not Me.db.char.hidepanel or not Me.db.global.hideInspect then
 		if store.hasDM4 then
 			DiceMasterInspectFrame:Show()
@@ -417,6 +435,7 @@ function Me.Inspect_Open( name )
 	if name == nil then return end
 	
 	Me.StatInspector_Update()
+	Me.StatInspector_UpdatePet()
 	
 	Me.Inspect_UpdatePlayer( name )
 	Me.Inspect_Refresh( true, "all" ) 
@@ -498,7 +517,7 @@ end
 --
 function Me.Inspect_OnHealthClicked( button )
 
-	if not Me.IsLeader( true ) or not Me.inspectName then return end
+	if not IsInGroup(1) or not Me.IsLeader( true ) or not Me.inspectName then return end
 
 	local delta = 0
 	local health = Me.inspectData[Me.inspectName].health
@@ -520,6 +539,9 @@ function Me.Inspect_OnHealthClicked( button )
 		StaticPopup_Show("DICEMASTER4_SETTARGETHEALTHVALUE")
 		return
 	elseif IsAltKeyDown() then
+		if Me.OutOfRange( armor+delta, 0, 1000 ) then
+			return
+		end
 		armor = armor + delta;
 	else
 		if Me.OutOfRange( Me.inspectData[Me.inspectName].health+delta, 0, Me.inspectData[Me.inspectName].healthMax ) then
@@ -690,8 +712,17 @@ local function DoSendStatus()
 			cn = Profile.charges.name;
 			cs = Profile.charges.symbol;
 			cc = ToHex(Profile.charges.color);
+			ct = Profile.charges.tooltip;
 			le = Profile.level;
 			ex = Profile.experience;
+			pe = Profile.pet.enable;
+			pn = Profile.pet.name;
+			pt = Profile.pet.type;
+			pi = Profile.pet.icon;
+			pm = Profile.pet.model;
+			ph = Profile.pet.health;
+			phm = Profile.pet.healthMax;
+			pa = Profile.pet.armor;
 		}
 		if not Profile.charges.enable then
 			msg.c  = 0
@@ -756,7 +787,9 @@ function Me.Inspect_SendStats( dist, channel )
 			
 			local data = {
 				name = Profile.stats[i].name;
+				desc = Profile.stats[i].desc or nil;
 				value = value or nil;
+				attribute = Profile.stats[i].attribute or nil;
 			}
 			
 			tinsert( stats, data )
@@ -935,6 +968,15 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	if data.ct then data.ct = tostring(data.ct) end
 	if data.cs then data.cs = tostring(data.cs) end
 	if #data.cc ~= 6 then data.cc = "FFFFFF" end
+	if data.pe then
+		data.pn = tostring(data.pn)
+		data.pt = tostring(data.pt)
+		data.pi = tostring(data.pi)
+		data.pm = tonumber(data.pm)
+		data.ph = tonumber(data.ph)
+		data.phm = tonumber(data.phm)
+		data.pa = tonumber(data.pa)
+	end
 	
 	if not data.s or not data.h or not data.hm or not data.c 
 	   or not data.cm or not data.cn or data.cm < 0
@@ -966,9 +1008,20 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	store.armor          = data.ar
 	if data.le then store.level = data.le end
 	if data.ex then store.experience = data.ex end
+	if data.pe then
+		store.pet.enable 		= data.pe
+		store.pet.name	 		= data.pn
+		store.pet.type			= data.pt
+		store.pet.icon	 		= data.pi
+		store.pet.model	 		= data.pm
+		store.pet.health		= data.ph
+		store.pet.healthMax    	= data.phm
+		store.pet.armor        	= data.pa
+	end
 	store.hasDM4         = true
 	
 	Me.Inspect_OnStatusUpdated( sender )
+	Me.StatInspector_UpdatePet()
 	Me.DMExperienceFrame_Update()
 end
 

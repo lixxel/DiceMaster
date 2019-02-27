@@ -20,7 +20,7 @@ local EASTERN_KINGDOM_ZONES = {
 	"Gilneas", -- Ruins of Gilneas, Gilneas City, etc.
 	"Hillsbrad Foothills",
 	"Isle of Quel'Danas",
-	"Kelp'thar Forest",
+	"Vashj'ir",
 	"Loch Modan",
 	"Stranglethorn", -- Cape of Stranglethorn, Northern Stranglethorn, etc.
 	"Redridge Mountains",
@@ -102,6 +102,7 @@ local OTHER_ZONES_2 = {
 	"Suramar",
 	"Val'sharah",
 	"Argus",
+	-- BFA
 	"Drustvar",
 	"Nazmir",
 	"Stormsong Valley",
@@ -111,6 +112,13 @@ local OTHER_ZONES_2 = {
 	"Boralus",
 	"Dazar'alor",
 	"Northgarde",
+}
+
+local HEALTH_EFFECTS = {
+	["healthbuff"] = { soundKit = 32877, anim = 54, altAnim = 32 },
+	["healthdebuff"] = { soundKit = 32878, anim = 8, altAnim = 9 },
+	["defensebuff"] = { soundKit = 32882, anim = 54, altAnim = 32 },
+	["defensedebuff"] = { soundKit = 32881, anim = 20, altAnim = 30 },
 }
 
 local WORLD_MARKER_NAMES = {
@@ -124,27 +132,15 @@ local WORLD_MARKER_NAMES = {
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:14:14|t |cffffffffWhite|r World Marker"; -- [8]
 }
 
-local function getContinent()
-	local mapID = C_Map.GetBestMapForUnit("player")
-	if(mapID) then
-		local info = C_Map.GetMapInfo(mapID)
-		if(info) then
-			while(info['mapType'] and info['mapType'] > 2) do
-				info = C_Map.GetMapInfo(info['parentMapID'])
-			end
-			if(info['mapType'] == 2) and info['name'] then
-				info = info['name']
-				if info == "Eastern Kingdoms" then
-					return EASTERN_KINGDOM_ZONES, "eastern-kingdom-zones"
-				elseif info == "Kalimdor" then
-					return KALIMDOR_ZONES, "kalimdor-zones"
-				elseif info == "Outland" or info == "Northrend" or info == "Pandaria" or info == "Draenor" then
-					return OTHER_ZONES, "other-zones"
-				elseif info == "Broken Isles" or info == "Argus" or info == "Kul Tiras" or info == "Zandalar" then
-					return OTHER_ZONES_2, "other-zones-2"
-				end
-			end
-		end
+local function getContinent( continentString )
+	if continentString == "Eastern Kingdoms" then
+		return EASTERN_KINGDOM_ZONES, "eastern-kingdom-zones"
+	elseif continentString == "Kalimdor" then
+		return KALIMDOR_ZONES, "kalimdor-zones"
+	elseif continentString == "Outland" or continentString == "Northrend" or continentString == "Pandaria" or continentString == "Draenor" then
+		return OTHER_ZONES, "other-zones"
+	elseif continentString == "Broken Isles" or continentString == "Argus" or continentString == "Kul Tiras" or continentString == "Zandalar" then
+		return OTHER_ZONES_2, "other-zones-2"
 	end
 	return OTHER_ZONES_2, "other-zones-2"
 end
@@ -156,20 +152,24 @@ local methods = {
 	Reset = function( self )
 		self:SetDisplayInfo(1)
 		self.name:SetText("Unit Name")
-		self.toggleIcon:SetChecked(false)
 		self.symbol.State = 9;
 		self.symbol:SetNormalTexture(nil)
 		self.healthCurrent = 3
 		self.healthMax = 3
 		self.armor = 0
 		Me.RefreshHealthbarFrame( self.health, self.healthCurrent, self.healthMax, self.armor )
+		self.buffsAllowed = true
 		self.buffsActive = {}
 		self.buffFrame:Hide()
 		self.animation = 0
-		self.spellvisualkit = 0
+		self.rotation = 0
+		self.zoomLevel = 0.7
+		self.cameraX = 0
+		self.cameraY = 0
+		self.cameraZ = 0
 		self.scrollposition = nil
 		if Me.IsLeader( false ) then
-			DiceMaster4.SetupTooltip( self, nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>|n<Ctrl+Left Click to Set Speaker>" )
+			DiceMaster4.SetupTooltip( self, nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>" )
 			DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, "A unique icon to represent the location of this unit in the game world.|n|cFF707070<Left/Right Click to Toggle>" )
 			 DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, "Represents this unit's health.|n|cFF707070<Left/Right Click to Add/Remove>|n<Shift+Left Click to Set Max>|n<Ctrl+Left Click to Set Value>" )
 		else
@@ -177,8 +177,10 @@ local methods = {
 			DiceMaster4.SetupTooltip( self.symbol )
 			DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, "Represents this unit's health." )
 		end
-		self.speaker = false
-		self.speakerIcon:Hide()
+		self.state = false
+		self.zone = "Unknown"
+		self.continent = "Unknown"
+		self.visibleIcon:Hide()
 		self.highlight:Hide()
 		self.SetBackground( self )
 	end;
@@ -187,22 +189,25 @@ local methods = {
 	--
 	GetData = function( self )
 		local framedata = {}
-		framedata.name = self.name:GetText() or "Unit Name"
-		if Me.IsLeader( false ) then
-			framedata.state = self.toggleIcon:GetChecked()
-		else
-			framedata.state = true;
-		end
+		framedata.name = self.name:GetText() or ""
 		framedata.model = self:GetDisplayInfo()
 		framedata.symbol = self.symbol.State or 9;
 		framedata.healthCurrent = self.healthCurrent or 3
 		framedata.healthMax = self.healthMax or 3
 		framedata.armor = self.armor or 0
 		framedata.visible = self:IsVisible()
+		framedata.buffsAllowed = self.buffsAllowed
 		framedata.buffs = self.buffsActive or {}
-		framedata.speaker = self.speaker or false;
 		framedata.animation = self.animation or 0;
-		framedata.spellvisualkit = self.spellvisualkit or 0;
+		framedata.modelData = {}
+		framedata.modelData.px = self.cameraX
+		framedata.modelData.py = self.cameraY
+		framedata.modelData.pz = self.cameraZ
+		framedata.modelData.ro = self.rotation
+		framedata.modelData.zl = self.zoomLevel
+		framedata.state = self.state
+		framedata.zone = self.zone
+		framedata.continent = self.continent
 		return framedata;
 	end;
 	---------------------------------------------------------------------------
@@ -210,20 +215,43 @@ local methods = {
 	--
 	SetData = function( self, framedata )
 		local modelChanged = false;
+		
+		-- Check if it's a new model or not
 		if framedata.md and self:GetDisplayInfo() ~= framedata.md then		
 			self:SetDisplayInfo(framedata.md)
 			modelChanged = true;
 		elseif not framedata.md then
 			self:SetDisplayInfo(1)
 		end
-		-- wound animation
-		local wound = false;
-		if framedata.hc < self.healthCurrent and self:GetDisplayInfo() == framedata.md and self.name:GetText() == framedata.na then
-			wound = self.healthCurrent - framedata.hc;
+		
+		-- Set the rotation, zoomLevel, position
+		if framedata.mx and not self.collapsed then
+			self.rotation = framedata.mx.ro
+			self.zoomLevel = framedata.mx.zl
+			self.cameraX = framedata.mx.px
+			self.cameraY = framedata.mx.py
+			self.cameraZ = framedata.mx.pz
+			
+			self:SetRotation( self.rotation )
+			self:SetPortraitZoom( self.zoomLevel )
+			self:SetPosition( self.cameraX, self.cameraY, self.cameraZ )
 		end
-		if Me.IsLeader( false ) then
-			self.toggleIcon:SetChecked(framedata.vs)
-		else
+		
+		-- Check if model and name have changed
+		if self:GetDisplayInfo() == framedata.md and self.name:GetText() == framedata.na then
+			if framedata.hc < self.healthCurrent then
+				self:SetEffect( "healthdebuff" )
+			elseif framedata.hc > self.healthCurrent then
+				self:SetEffect( "healthbuff" )
+			elseif framedata.ar < self.armor then
+				self:SetEffect( "defensedebuff" )
+			elseif framedata.ar > self.armor then
+				self:SetEffect( "defensebuff" )
+			end
+		end
+		
+		-- Handle DM functions
+		if not Me.IsLeader( false ) then
 			DiceMaster4.SetupTooltip( self, nil, framedata.na, nil, nil, nil, "|cFF707070<Left Click to Target>|r" )
 			if framedata.sy ~= 9 then
 				DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, "This unit is currently located at the "..WORLD_MARKER_NAMES[framedata.sy] .. "|r." )
@@ -231,56 +259,93 @@ local methods = {
 				DiceMaster4.SetupTooltip( self.symbol, nil )
 			end
 		end
+		if framedata.st and Me.IsLeader( false ) then
+			self.state = true
+			self.visibleIcon:Show()
+		else
+			self.state = false
+			self.visibleIcon:Hide()
+		end
+		
+		-- Set name, World Marker symbol
 		self.name:SetText(framedata.na)
 		self.symbol.State = framedata.sy
 		self.symbol:SetNormalTexture("Interface/TARGETINGFRAME/UI-RaidTargetingIcon_" .. self.symbol.State )
 		if self.symbol.State == 9 then self.symbol:SetNormalTexture(nil) end
-		if wound then
-			self.damageText:SetText( "-"..wound )
-			if self.damageTextAnim:IsPlaying() then
-				self.damageTextAnim:Stop()
-			else
-				self:SetAnimation(8)
-			end
-			self.damageTextAnim:Play()
-		end
-		if framedata.hc == 0 then
+		
+		-- Handle death animation.
+		if framedata.an == 6 and framedata.hc == 0 then
+			-- unit is already "dead"
+			self.dead = true;
+			self:SetAnimation(6)
+		elseif framedata.hc == 0 then
+			-- unit is "dying"
 			self.dead = true;
 			self:SetAnimation(1)
 		elseif modelChanged or self.animation ~= framedata.an or self.dead then
+			-- unit is "alive"
 			self.dead = false;
 			self.animation = framedata.an or 0
 			self:SetAnimation(self.animation)
 		end
+		
+		-- Set visibility
+		if framedata.vs then self:Show() else self:Hide() end
+		
+		-- Allow buffs?
+		if framedata.ba then self.buffsAllowed = framedata.ba end
+		
+		-- Set health, healthMax, armour
 		self.healthCurrent = framedata.hc
 		self.healthMax = framedata.hm
 		self.armor = framedata.ar or 0
 		Me.RefreshHealthbarFrame( self.health, self.healthCurrent, self.healthMax, self.armor )
-		self.spellvisualkit = framedata.svk or 0
-		self:SetSpellVisualKit(self.spellvisualkit)
+		
+		-- Set unit frame backdrop
+		if framedata.zo then
+			self.zone = framedata.zo
+			self.continent = framedata.co
+		end
+		self:SetBackground( self )
+		
+		-- Handle buffs
 		if framedata.buffs then
 			self.buffsActive = framedata.buffs
 			for i = 1, #self.buffs do
 				Me.UnitFrames_UpdateBuffButton( self, i)
 			end
-			self.buffFrame:Show()
-		else
-			self.buffFrame:Hide()
+			if #self.buffsActive > 0 then
+				self.buffFrame:Show()
+			else
+				self.buffFrame:Hide()
+			end
 		end
-		if framedata.vs then self:Show() else self:Hide() end
+		
+		-- Handle highlight if frame is selected
 		if self.highlight:IsShown() then
 			local target = self.symbol.State
 			if target == 9 then target = 0 end
+			if target > 0 then
+				UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "|TInterface/TARGETINGFRAME/UI-RaidTargetingIcon_"..target..":16|t")
+			else
+				UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "") 
+			end
 			local msg = Me:Serialize( "TARGET", {
 				ta = tonumber( target );
 			})
 			Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 		end
 	end;
+	---------------------------------------------------------------------------
+	-- Set unit frame tooltip.
+	--
 	
 	SetCustomTooltip = function( self, text )
 		self.customTooltip = text
 	end;
+	---------------------------------------------------------------------------
+	-- Collapse/expand unit frame.
+	--
 	
 	Collapse = function( self, collapse )
 		if collapse then
@@ -306,12 +371,15 @@ local methods = {
 			self.expand.Arrow:SetTexCoord(0.767, 1, 0.327, 0.402)
 			DiceMaster4.SetupTooltip( self.expand, nil, "Collapse", nil, nil, nil, "Collapse the frame to a smaller size.|n|cFF707070<Left Click to Collapse>" )
 		end
-		self.SetBackground( self )
+		self:SetBackground( self )
 	end;
+	---------------------------------------------------------------------------
+	-- Set unit frame backdrop.
+	--
 	
 	SetBackground = function( self )
-		local zone = GetZoneText() or "Unknown"
-		local continent, texture = getContinent();
+		local zone = self.zone or "Unknown"
+		local continent, texture = getContinent( self.continent );
 		local zoneID = false;
 		for i=1,#continent do
 			if zone:find(continent[i]) then
@@ -344,7 +412,28 @@ local methods = {
 		self.bg:SetTexture("Interface/AddOns/DiceMaster_UnitFrames/Texture/"..texture)
 		self.bg:SetTexCoord(l, r, t, b)
 	end;
+	---------------------------------------------------------------------------
+	-- Set unit frame data.
+	--
+	
+	SetEffect = function( self, effect )
+		if self.buffEffect.IsPlaying then return end
+		
+		self.buffEffect.IsPlaying = true;
+		self.buffEffect:SetModel("spells\\pb_"..effect.."_impact");
+		if self:HasAnimation( HEALTH_EFFECTS[ effect ].anim ) then
+			self:SetAnimation( HEALTH_EFFECTS[ effect ].anim )
+		else
+			self:SetAnimation( HEALTH_EFFECTS[ effect ].altAnim )
+		end
+		self.buffEffect:Show()
+		PlaySound( HEALTH_EFFECTS[ effect ].soundKit )
+	end;
 }
+
+-------------------------------------------------------------------------------
+-- StaticPopupDialogs
+--
 
 StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHVALUE"] = {
   text = "Set Health value:",
@@ -352,7 +441,6 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHVALUE"] = {
   button2 = "Cancel",
   OnShow = function (self, data)
     self.editBox:SetText(data.healthCurrent)
-	self.editBox:SetNumeric()
 	self.editBox:HighlightText()
   end,
   OnAccept = function (self, data)
@@ -377,7 +465,6 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHMAX"] = {
   button2 = "Cancel",
   OnShow = function (self, data)
     self.editBox:SetText(data.healthMax)
-	self.editBox:SetNumeric()
 	self.editBox:HighlightText()
   end,
   OnAccept = function (self, data)
@@ -421,18 +508,23 @@ function Me.OnUnitBarHealthClicked( self, button )
 			-- Open dialog for custom value.
 			StaticPopup_Show("DICEMASTER4_SETUNITHEALTHVALUE", nil, nil, self:GetParent())
 		elseif IsAltKeyDown() then
+			if Me.OutOfRange( unit.armor+delta, 0, 1000 ) then
+				return
+			end
+			if delta == -1 then
+				unit:SetEffect( "defensedebuff" )
+			elseif delta == 1 then
+				unit:SetEffect( "defensebuff" )
+			end
 			unit.armor = unit.armor + delta;
 		else
 			if Me.OutOfRange( unit.healthCurrent+delta, 0, unit.healthMax ) then
 				return
 			end
 			if delta == -1 then
-				unit:SetAnimation(8)
-				unit.damageText:SetText( "-1" )
-				if unit.damageTextAnim:IsPlaying() then
-					unit.damageTextAnim:Stop()
-				end
-				unit.damageTextAnim:Play()
+				unit:SetEffect( "healthdebuff" )
+			elseif delta == 1 then
+				unit:SetEffect( "healthbuff" )
 			end
 			unit.healthCurrent = Me.Clamp( unit.healthCurrent + delta, 0, unit.healthMax )
 		end
@@ -481,6 +573,7 @@ function Me.CreateUnitFrame()
 		end
 		
 		Me.UpdateUnitFrames()
+		Me.AffixEditor_RefreshSlots()
 	end
 end
 -------------------------------------------------------------------------------
@@ -507,33 +600,7 @@ function Me.DeleteUnitFrame( frame )
 		end
 		
 		Me.UpdateUnitFrames()
-	end
-end
-
--------------------------------------------------------------------------------
--- Mark a unit frame as the talking head speaker.
---
-function Me.MarkUnitFrame( frame )
-	if Me.IsLeader( true ) then
-		local unitframes = DiceMasterUnitsPanel.unitframes
-		local visibleframes = DiceMaster4UF_Saved.VisibleFrames
-		
-		for i=1,#unitframes do
-			if unitframes[i] ~= frame then
-				unitframes[i].speaker = false;
-				unitframes[i].speakerIcon:Hide()
-			end
-		end
-		
-		if not frame.speaker then
-			frame.speaker = true;
-			frame.speakerIcon:Show()
-		else
-			frame.speaker = false;
-			frame.speakerIcon:Hide()
-		end
-		
-		Me.UpdateUnitFrames()
+		Me.AffixEditor_RefreshSlots()
 	end
 end
 
@@ -564,6 +631,11 @@ function Me.SelectUnitFrame( frame )
 		end
 	end
 	
+	if target > 0 then
+		UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "|TInterface/TARGETINGFRAME/UI-RaidTargetingIcon_"..target..":16|t")
+	else
+		UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "") 
+	end
 	local msg = Me:Serialize( "TARGET", {
 		ta = tonumber( target );
 	})
@@ -594,7 +666,6 @@ function Me.UpdateUnitFrames( number )
 		
 		-- Calculate how many frames are shareable with the group.
 		if Me.IsLeader( false ) then
-			DiceMasterUnitsPanel.unitframes[i].toggleIcon:Show()
 			local status = DiceMasterUnitsPanel.unitframes[i]:GetData()
 			if status.state then
 				tinsert(shareableframes, status)

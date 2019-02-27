@@ -18,43 +18,32 @@
   </Button>
   
   <!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
-  <Frame name="DiceMasterIconPicker" parent="DiceMasterTraitEditor" hidden="true">
-    <Size x="170" y="200" />
+  <Frame name="DiceMasterIconPicker" parent="UIParent" hidden="true" inherits="ButtonFrameTemplate" frameStrata="DIALOG" enableMouse="true" movable="true" resizable="false" toplevel="true">
+    <Size x="262" y="320" />
     <Anchors>
-      <Anchor point="TOPRIGHT" relativePoint="TOPLEFT" x="-48" y="-60" />
+      <Anchor point="TOPRIGHT" relativeTo="DiceMasterTraitEditor" relativePoint="TOPLEFT" x="-48" y="-60" />
     </Anchors>
     
     <Layers>
-      <!-- The portrait texture (book icon). -->
-      <Layer level="BACKGROUND">
-        <Texture file="Interface/SPELLBOOK/Spellbook-Icon">
-          <Size x="43" y="43" />
-          <Anchors>
-            <Anchor point="TOPLEFT" x="-48" y="34" />
-          </Anchors>
-        </Texture>
-      </Layer>
-      
-      <!-- The main window texture. -->
-      <Layer level="BORDER">
-        <Texture file="Interface/TUTORIALFRAME/UI-HELP-FRAME-POPUP">
-          <Size x="384" y="384"/>
-          <Anchors>
-            <Anchor point="TOPLEFT" x="-55" y="40" />
-          </Anchors>
-        </Texture>
-      </Layer>
     </Layers>
     
     <Scripts>
       <OnLoad>
+		self.portrait:SetTexture("Interface/AddOns/DiceMaster/Texture/logo")
+		self.TitleText:SetText( "Icons" )
+		
+		self:SetClampedToScreen( true )
+		self:RegisterForDrag( "LeftButton" )
+		self:SetScript( "OnDragStart", self.StartMoving )
+		self:SetScript( "OnDragStop", self.StopMovingOrSizing )
+	
         -- create icon map
         self.icons = {}
-        for y = 0,4 do
-          for x = 0,5 do
+        for y = 0,6 do
+          for x = 0,6 do
             local btn = CreateFrame( "Button", nil, self.selectorFrame, "DiceMasterIconPickerButton" )
             btn.pickerIndex = index
-            btn:SetPoint( "TOPLEFT", 32*x-32, -32*y-24 )
+            btn:SetPoint( "TOPLEFT", "DiceMasterIconPickerInset", 32*x+5, -32*y-5 )
             btn:SetSize( 32, 32 )
             
             table.insert( self.icons, btn )
@@ -69,7 +58,7 @@
       <EditBox parentKey="search" inherits="SearchBoxTemplate">
         <Size x="150" y="8" />
         <Anchors>
-          <Anchor point="TOPLEFT" x="15" y="0" />
+          <Anchor point="TOPLEFT" x="72" y="-42" />
         </Anchors>
         
         <Scripts>
@@ -101,11 +90,11 @@
         <Frames>
         
           <!-- Scroll bar -->
-          <Slider parentKey="scroller" inherits="UIPanelScrollBarTemplate" minvalue="0" maxvalue="1" valuestep="3">
+          <Slider parentKey="scroller" inherits="UIPanelScrollBarTrimTemplate" minvalue="0" maxvalue="1" valuestep="3">
             
             <Anchors>
-              <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="4" y="-18" />
-              <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="4" y="18" />
+              <Anchor point="TOPRIGHT" relativeTo="DiceMasterIconPickerInset" relativePoint="TOPRIGHT" x="2" y="-16" />
+              <Anchor point="BOTTOMRIGHT" relativeTo="DiceMasterIconPickerInset" relativePoint="BOTTOMRIGHT" x="2" y="14" />
             </Anchors>
             
             <Layers>
@@ -130,20 +119,6 @@
           </Slider>
         </Frames>
       </Frame>
-      
-      <!-- Close button -->
-      <Button parentKey="closeButton" inherits="UIPanelCloseButton">
-        <Size x="26" y="26"/>
-        <Anchors>
-          <Anchor point="TOPRIGHT" x="51" y="35" />
-        </Anchors>
-        
-        <Scripts>
-          <OnClick>
-            DiceMaster4.IconPicker_Close()
-          </OnClick>
-        </Scripts>
-      </Button>
       
     </Frames>
   </Frame>

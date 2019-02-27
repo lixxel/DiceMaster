@@ -6,8 +6,6 @@
 
 local Me = DiceMaster4 
 
-Me.enableMessageUF = true;
-
 ---------------------------------------------------------------------------
 -- Send a status request.
 --
@@ -30,13 +28,15 @@ function Me.UnitFrame_SendStatus( visibleframes, id, status )
 	local statusName   = status.name
 	local statusModel  = status.model
 	local statusAnim   = status.animation
-	local statusSVK    = status.spellvisualkit
+	local statusModelData = status.modelData
 	local statusSymbol = status.symbol
 	local statusHealth = status.healthCurrent
 	local statusMaxHealth = status.healthMax
 	local statusArmor = status.armor
 	local statusVisible = status.visible
 	local statusBuffs = status.buffs
+	local statusZone = status.zone
+	local statusContinent = status.continent
 	
 	local msg = Me:Serialize( "UFSTAT", {
 		vf = tonumber( statusFrames );
@@ -44,13 +44,15 @@ function Me.UnitFrame_SendStatus( visibleframes, id, status )
 		na = tostring( statusName );
 		md = tonumber( statusModel );
 		an = tonumber( statusAnim );
-		svk = tonumber( statusSVK );
+		mx = statusModelData;
 		sy = tonumber( statusSymbol );
 		hc = tonumber( statusHealth );
 		hm = tonumber( statusMaxHealth );
 		ar = tonumber( statusArmor );
 		vs = tostring( statusVisible );
 		buffs = statusBuffs;
+		zo = tostring( statusZone );
+		co = tostring( statusContinent );
 	})
 	
 	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
@@ -64,6 +66,13 @@ end
 --  st = visibility state				number
 --	md = model							number
 --  an = model animation				number
+--  mx = {								table
+--		mx.px = position x				number
+--		mx.py = position y				number
+--		mx.pz = position z				number
+--		mx.ro = rotation				number
+--		mx.zl = zoom level				number
+--  }
 --  svk = spell visual kit				number
 --	sy = symbol							number
 --	hc = current health					number
@@ -71,24 +80,21 @@ end
 --  ar = armour							number
 -- 	vs = visible						boolean
 --  buffs = buffs						table
+--  zo = zone							string
+--  co = continent						string
 
 function Me.UnitFrame_OnStatusMessage( data, dist, sender )	
 	-- Ignore our own data.
-	if sender == UnitName( "player" )  then return end
+	if sender == UnitName( "player" ) or Me.db.char.unitframes.enable then return end
  
 	if UnitIsGroupLeader( sender ) and data.vf and data.vf == 0 then
-		Me.ShowUnitPanel( false )
 		local unitframes = DiceMasterUnitsPanel.unitframes
 		
+		DiceMasterUnitsPanel:Hide()
 		for i=data.vf+1,#unitframes do
 			unitframes[i]:ClearModel()
 			unitframes[i]:Reset()
 		end
-		if Me.enableMessageUF then
-			local sexTable = { "your group leader", "he", "she" }
-			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..sender.." has enabled Unit Frames, but they are all currently hidden. They will display automatically when "..sexTable[UnitSex(sender)].." makes them visible.", "SYSTEM")
-		end
-		Me.enableMessageUF = false;
 		return
 	end
  
@@ -99,11 +105,11 @@ function Me.UnitFrame_OnStatusMessage( data, dist, sender )
 	end
 	
 	if UnitIsGroupLeader( sender ) then
-		Me.ShowUnitPanel( true )
 		local unitframes = DiceMasterUnitsPanel.unitframes
 		
 		unitframes[data.id]:SetData( data )
 		
+		DiceMasterUnitsPanel:Show()
 		for i=data.vf+1,#unitframes do
 			unitframes[i]:ClearModel()
 			unitframes[i]:Reset()
@@ -111,10 +117,6 @@ function Me.UnitFrame_OnStatusMessage( data, dist, sender )
 		end
 		
 		Me.UpdateUnitFrames( data.vf )
-		if Me.enableMessageUF then
-			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..sender.." has enabled Unit Frames.", "SYSTEM")
-		end
-		Me.enableMessageUF = false;
 	end
 end
 
@@ -142,7 +144,7 @@ function Me.UnitFrame_OnDMSAY( data, dist, sender )
 	if sender == UnitName( "player" ) then return end
  
 	-- sanitize message
-	if not data.na and not data.md and not data.ms then
+	if not data.na or not data.md or not data.tk or not data.ms then
 	   
 		return
 	end
@@ -150,7 +152,7 @@ function Me.UnitFrame_OnDMSAY( data, dist, sender )
 	
 	if ( UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) ) then
 		if Me.db.global.talkingHeads then
-			DiceMasterTalkingHeadFrame_SetUnit(data.md, data.na, data.so)
+			DiceMasterTalkingHeadFrame_SetUnit(data.md, data.na, data.tk, data.so)
 			DiceMasterTalkingHeadFrame_PlayCurrent(data.ms)
 		else
 			Me.PrintMessage("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms, "RAID")
@@ -181,6 +183,8 @@ function Me.UnitFrame_OnBuffMessage( data, dist, sender )
 	if not DiceMasterUnitsPanel.unitframes[data.un] then return end
 	
 	local unitframe = DiceMasterUnitsPanel.unitframes[data.un]
+	
+	if not unitframe.buffsAllowed then return end
 	
 	-- search for duplicates
 	local found = false
@@ -241,6 +245,8 @@ function Me.UnitFrame_OnRemoveBuffMessage( data, dist, sender )
 	if not DiceMasterUnitsPanel.unitframes[data.un] then return end
 	
 	local unitframe = DiceMasterUnitsPanel.unitframes[data.un]
+	
+	if not unitframe.buffsAllowed then return end
 	
 	-- search for buff
 	for i = 1, #unitframe.buffsActive do

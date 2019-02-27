@@ -144,6 +144,8 @@
   <Include file="Ui\StatInspector.xml"/>
   <Include file="Ui\Charges.xml"/>
   <Include file="Ui\IconPicker.xml"/>
+  <Include file="Ui\ColourPicker.xml"/>
+  <Include file="Ui\ModelPicker.xml"/>
   <Include file="Ui\Buffs.xml"/>
   <Include file="Ui\InspectFrame.xml"/>
   <Include file="Ui\RollTracker.xml"/>
