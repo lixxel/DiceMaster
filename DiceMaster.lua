@@ -412,8 +412,10 @@ function Me.FormatTooltipColors( text )
 		local hexCode = "|cFF"..string.sub(text, b + 1, c - 1);
 		local colorTag = string.sub(text,a,d)
 		local e, f = strfind(text, "</color>");
-		local textFind = string.sub(text, d + 1, e - 1)
-		text = string.gsub(text, textFind, RemoveColorTags( textFind ))
+		if e and f then
+			local textFind = string.sub(text, d + 1, e - 1)
+			text = string.gsub(text, textFind, RemoveColorTags( textFind ))
+		end
 		text = string.gsub(text,colorTag,hexCode)	
 	end
 	text = string.gsub(text,"</color>","|r")
