@@ -32,7 +32,7 @@ DiceMaster4.RollList = {
 			name = "Spell Attack",
 			subName = "Spell Attack[s]*",
 			wheelName = "Spell|nAttack",
-			desc = "Roll to cast an spell upon an enemy.", 
+			desc = "Roll to cast a spell upon an enemy.", 
 			stat = "Intelligence",
 		},
 		{
@@ -97,7 +97,7 @@ DiceMaster4.RollList = {
 		},
 		{
 			name = "Healing",
-			subName = "Heal[sing]*%A",
+			subName = "Heal[sing]*",
 			wheelName = "Heal",
 			desc = "Roll to mend wounds or restore health to someone.", 
 			stat = "Wisdom",
@@ -111,7 +111,7 @@ DiceMaster4.RollList = {
 		},
 		{
 			name = "Intimidation",
-			subName = "Intimidat[esion]*%A",
+			subName = "Intimidat[esion]*",
 			wheelName = "Coerce",
 			desc = "Roll to taunt, coerce, or frighten someone.", 
 			stat = "Charisma",
@@ -139,7 +139,7 @@ DiceMaster4.RollList = {
 		{
 			name = "Spellcraft",
 			subName = "Spellcraft[ing]*",
-			desc = "Roll to sense or identify spells and magic items.", 
+			desc = "Roll to cast or identify spells and magic items.", 
 			stat = "Intelligence",
 		},
 		{

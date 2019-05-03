@@ -1,3 +1,12 @@
+### 5.0.9
+ - New Diablo 3 and Heroes of the Storm icons have been added to the icon libraries.
+ - Rank icons have been removed from the Trait Editor.
+ - The value of the Dice Panel now saves between sessions.
+ - Collections have been re-added to the Model Picker.
+ - You can now search for models by their displayID in the Model Picker.
+ - Colour tags should no longer break when interrupted by highlighted terms.
+ - Added support for custom Unit Frame backdrops.
+
 ### 5.0.8
  - DiceMaster tooltip icons now anchor to the top left of the tooltip instead of appearing inline.
  - Chapter trait icons now display a gold dragon around their tooltip icon.

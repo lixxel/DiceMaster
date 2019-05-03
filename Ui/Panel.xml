@@ -82,6 +82,9 @@
           </OnLoad>
           
           <OnEscapePressed function="EditBox_ClearFocus"/>
+		  <OnEditFocusLost>
+			DiceMaster4.Profile.dice = self:GetText()
+		  </OnEditFocusLost>
         </Scripts>
       </EditBox>
       

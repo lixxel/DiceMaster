@@ -132,17 +132,20 @@ local WORLD_MARKER_NAMES = {
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:14:14|t |cffffffffWhite|r World Marker"; -- [8]
 }
 
-local function getContinent( continentString )
+local function getContinent( continentString, zone )
 	if continentString == "Eastern Kingdoms" then
-		return EASTERN_KINGDOM_ZONES, "eastern-kingdom-zones"
+		return EASTERN_KINGDOM_ZONES, "DiceMaster_UnitFrames/Texture/eastern-kingdom-zones"
 	elseif continentString == "Kalimdor" then
-		return KALIMDOR_ZONES, "kalimdor-zones"
+		return KALIMDOR_ZONES, "DiceMaster_UnitFrames/Texture/kalimdor-zones"
 	elseif continentString == "Outland" or continentString == "Northrend" or continentString == "Pandaria" or continentString == "Draenor" then
-		return OTHER_ZONES, "other-zones"
+		return OTHER_ZONES, "DiceMaster_UnitFrames/Texture/other-zones"
 	elseif continentString == "Broken Isles" or continentString == "Argus" or continentString == "Kul Tiras" or continentString == "Zandalar" then
-		return OTHER_ZONES_2, "other-zones-2"
+		return OTHER_ZONES_2, "DiceMaster_UnitFrames/Texture/other-zones-2"
+	elseif continentString and zone~="Unknown" and Me.DICEMASTER_CUSTOM_UNIT_TEXTURES then
+		-- For custom backdrops.
+		return Me.DICEMASTER_BACKDROP_ZONES[continentString], Me.DICEMASTER_CUSTOM_UNIT_TEXTURES[continentString]
 	end
-	return OTHER_ZONES_2, "other-zones-2"
+	return OTHER_ZONES_2, "DiceMaster_UnitFrames/Texture/other-zones-2"
 end
 
 local methods = {
@@ -379,7 +382,7 @@ local methods = {
 	
 	SetBackground = function( self )
 		local zone = self.zone or "Unknown"
-		local continent, texture = getContinent( self.continent );
+		local continent, texture = getContinent( self.continent, zone );
 		local zoneID = false;
 		for i=1,#continent do
 			if zone:find(continent[i]) then
@@ -390,13 +393,13 @@ local methods = {
 		
 		if not zoneID then
 			zoneID = 17;
-			texture = "other-zones-2"
+			texture = "DiceMaster_UnitFrames/Texture/other-zones-2"
 		end
 		
 		-- proxy image for Northgarde
 		if zone == "Dustwallow Marsh" and Me.PermittedUse() then
 			zoneID = 16;
-			texture = "other-zones-2"
+			texture = "DiceMaster_UnitFrames/Texture/other-zones-2"
 		end
 
 		local columns = 6
@@ -409,7 +412,7 @@ local methods = {
 			t = floor(zoneID/columns) * 0.2344
 			b = t + 0.0781
 		end
-		self.bg:SetTexture("Interface/AddOns/DiceMaster_UnitFrames/Texture/"..texture)
+		self.bg:SetTexture("Interface/AddOns/"..texture)
 		self.bg:SetTexCoord(l, r, t, b)
 	end;
 	---------------------------------------------------------------------------

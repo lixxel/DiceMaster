@@ -6,75 +6,6 @@
 -- Trait Editing Panel
 --
 
-
--------------------------------------------------------------------------------
--- Ranks and information of the LEAGUE OF LORDAERON
--------------------------------------------------------------------------------
-local LEAGUE_RANKS = {
-	[9] = {
-		icon  = "Interface/PvPRankBadges/PvPRankAlliance";
-		title = "Recruit",
-		desc  = "Recruits are those who have just joined the order and who have not yet proved their pledge to Lordaeron. They are encouraged to wear the colors, participate in missions, and form connections with enlisted members of the League to prove their worth and establish their belonging."
-	};
-	[8] = {
-		icon  = "Interface/PvPRankBadges/PvPRankAlliance";
-		title = "Auxiliary";
-		desc  = "Auxiliaries represent those that are associated with the League, but are not officially a part of its command structure. This includes mercenary attachments, liaisons with other orders, or civilian aids such as healers, administrators, and craftsmen."
-	};
-    [7] = {
-		icon  = "Interface/PvPRankBadges/PvPRank06",
-		title = "Advisor",
-		desc  = "Advisors are former officers or Auxiliaries that have held their associate rank for an extended period of time and proven themselves to be especially valuable assets to the officer corps and the order as a whole."
-	};
-    [6] = {
-		icon  = "Interface/PvPRankBadges/PvPRank01",
-		title = "Private",
-		desc  = "Privates are the lowest ranked members of the League; they have much to prove, but even more to gain. They are expected to follow orders dutifully and to the letter, and to maintain a sense of decency while representing the League."
-	};
-    [5] = {
-		icon  = "Interface/PvPRankBadges/PvPRank02";
-		title = "Corporal";
-		desc  = "Corporals are members that have demonstrated loyalty and aptitude, and are promoted both to reward service and to help groom them for potential further promotion. They can and are entrusted with minor tasks if requested, such as leading small units individually.";
-	};
-    [4] = {
-		icon  = "Interface/PvPRankBadges/PvPRank03";
-		title = "Sergeant";
-		desc  = "Sergeants are those that have proven a high level of loyalty and dedication to the League and its goals, but have either not been with the League for a sufficient period to merit promotion, or have not yet shown sufficient aptitude or potential for leadership.";
-	};
-    [3] = {
-		icon  = "Interface/PvPRankBadges/PvPRank07";
-		title = "Lieutenant";
-		desc  = "Lieutenants are the most junior officer rank within the League, and handle most of the day-to-day administration of the order.";
-	};
-    [2] = {
-		icon  = "Interface/PvPRankBadges/PvPRank08";
-		title = "Captain";
-		desc  = "The Captains of the League are entrusted with the care and well-being of its members; hardened veterans, most have been with the League for a great span of time and have proven themselves capable of sound judgment and quality in leadership.";
-	};
-    [1] = {
-		icon  = "Interface/PvPRankBadges/PvPRank09";
-		title = "Major";
-		desc  = "The Major is the High Commander's right hand in all matters concerning the League of Lordaeron. When the High Commander is not available, leadership of the League defaults to the Major.";
-	};
-    [0] = {
-		icon  = "Interface/PvPRankBadges/PvPRank11";
-		title = "High Commander";
-		desc  = "The High Commander is the ultimate authority within the League of Lordaeron, and should be respected as such. Whomever holds this office remains as the defining voice of the League, overseeing any and all decisions made for and by the organization.";
-	};
-}
-
-local TRAIT_RULES = {
-	[1] = "|cFFFFd100Trait Rules|r|n|nAvoid overpowered or unreasonable traits that grant you an unfair advantage.|n|nIf a trait seems too powerful, you can balance it by adding a drawback, such as a negative modifier or built-in consequence.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName rolls Double or Nothing this turn, but sustains twice as severe an injury if the roll fails.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName rolls Double or Nothing for the next three turns.\"",
-	[2] = "Traits cannot decide their own |cFFFFd100Difficulty Class|r, or the number set by the DM that you must score in order to succeed; however, a trait may reduce the Difficulty Class for a player by a value of 5 or less.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"Reduces the Difficulty Class by 3 as it applies to charName this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"This trait succeeds with a roll of at least 10.\"",
-	[3] = "Active trait modifiers may not exceed |cFF00FF00+5|r.|n|nPassive trait modifiers may not exceed |cFF00FF00+3|r, or |cFF00FF00+5|r if they target specific conditions or creatures (e.g. Undead, Demons, Beasts).|n|nTraits that use |cFFFFd100Charges|r are exempt from this rule.|n|nTraits that grant other players a bonus may not exceed a modifier of |cFF00FF00+2|r.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName gains +5 to Attacks made against the Undead.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +7 for the next Attack.\"",
-	[4] = "Passive traits cannot grant |cFFFFd100Advantage|r to combat actions (such as Attack or Defence), and |cFFFFd100Advantage|r cannot be granted to more than one target at a time.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName grants a chosen ally Advantage this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains Advantage for all Attack rolls.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"All players gain Advantage this turn.\"",
-	[5] = "Avoid giving a trait too many modifiers or effects.|n|nIf each effect can stand alone, it is probably best to separate them into multiple traits.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName benefits from +3 to Attack this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName gains +3 to Attack, +3 to Defence, +3 to Perception, and +3 to Stealth checks.\"",
-	[6] = "Traits may not assign the DM's dice. Traits can sometimes affect an enemy's modifiers, but this is left up to the DM's discretion.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"Reduces the target's Attack attempts by -3 for the next turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName forces the enemy to roll with a D10 for the rest of combat.\"",
-	[7] = "Traits that grant a player |cFFFFd100Immunity|r, or bypass a failed roll to spare a player from the consequences, should be limited to one or two uses and can only target a single player at a time.|n|nTraits that |cFFFFd100Revive|r, or return a character with 0|TInterface/AddOns/DiceMaster/Texture/health-heart:14:14:0:-8|t to combat with diminished health, may only have one use and can only target a single player at a time.|n|n|TInterface/Icons/ThumbsUp:14|t |cFF00FF00\"charName grants a target of their choosing Immunity for this turn.\"|n|n|TInterface/Icons/ThumbsDown:14|t |cFFFF0000\"charName grants all players Immunity this turn.\"",
-	[8] = "An |cFFFFd100Ultimate|r trait, or a powerful, single-use slot four trait, may sometimes bend or break these rules, however they must still obey Rule I and require officer approval. An |cFFFFd100Ultimate|r is intended to give a character a short moment of heroic action - not to guarantee success or overshadow the actions of others.",
-	[9] = "Your traits |cFFFF0000must|r be approved by two ranking officers before they are considered \"legal\" and allowed to be used in guild events. Please reach out to an officer when you are ready to have your traits reviewed.",
-}
-
 local Me      = DiceMaster4
 local Profile = Me.Profile
 
@@ -927,10 +858,6 @@ function Me.TraitEditor_Open()
 		Me.editor.trait_buttons[i]:SetPlayerTrait( UnitName( "player" ), i ) 
 	end
 	 
-	local guildName, guildRankName, guildRankIndex = GetGuildInfo( "player" )
-	if guildName ~= "The League of Lordaeron" then
-		guildRankIndex = 8
-	end
 	--get name, race, class
 	local charName, charRace, charClass, charColor = Me.GetCharInfo()
 	
@@ -939,11 +866,6 @@ function Me.TraitEditor_Open()
 	Me.editor.TitleText:SetText( charName )
 	
 	Me.editor.CloseButton:SetScript("OnClick",Me.TraitEditor_OnCloseClicked)
-	
-	if Me.PermittedUse() then
-		Me.editor.rankIcon.icon:SetTexture( LEAGUE_RANKS[guildRankIndex].icon )
-		Me.SetupTooltip( Me.editor.rankIcon, nil, LEAGUE_RANKS[guildRankIndex].title, nil, nil, nil, LEAGUE_RANKS[guildRankIndex].desc )
-	end
    
 	Me.TraitEditor_Refresh()
 	Me.PetEditor_Refresh()

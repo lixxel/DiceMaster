@@ -198,12 +198,11 @@ end
 -- @returns true if the player is the leader.
 --
 function Me.IsLeader( allowAssistant )
-	if allowAssistant and ( UnitIsGroupAssistant("player", 1) ) then
-		-- TODO
+	if not IsInGroup(1) then
 		return true
 	end
 	
-	if not IsInGroup(1) then
+	if allowAssistant and ( UnitIsGroupAssistant("player", 1) ) then
 		return true
 	end
 	
@@ -363,31 +362,7 @@ function Me.FormatUsage( usage, name )
 end
 
 -------------------------------------------------------------------------------
--- Add custom icons and colors for a trait description tooltip.
---
--- @param text Text to format.
--- @returns formatted text.
---
-
-function Me.FormatTooltipIcons( text )
-	local a, b = strfind(text, "<img>");
-	-- find the icon in the text
-	if a and b then
-		local c, d = strfind(text, "</img>");
-		if c then
-			local data = string.sub(text, b + 1, c - 1);
-			if data then
-				text = string.gsub(text, "<img>"..data.."</img>", "|T"..data..":16|t")
-			else
-				text = string.gsub(text, "<img>"..data.."</img>", "")
-			end
-		end
-	end
-	return text
-end
-
--------------------------------------------------------------------------------
--- Add custom colors for a trait description tooltip.
+-- Remove colors from a color tag in a trait description tooltip.
 --
 -- @param text Text to format.
 -- @returns formatted text.
@@ -401,24 +376,6 @@ local function RemoveColorTags( text )
 	for k, v in pairs(escapes) do
 		text = text:gsub(k, v);
 	end
-	return text
-end
-
-function Me.FormatTooltipColors( text )
-	local a, b = strfind(text, "<color=");
-	-- find the color tag in the text
-	if a and b then
-		local c, d = strfind(text, ">", b);
-		local hexCode = "|cFF"..string.sub(text, b + 1, c - 1);
-		local colorTag = string.sub(text,a,d)
-		local e, f = strfind(text, "</color>");
-		if e and f then
-			local textFind = string.sub(text, d + 1, e - 1)
-			text = string.gsub(text, textFind, RemoveColorTags( textFind ))
-		end
-		text = string.gsub(text,colorTag,hexCode)	
-	end
-	text = string.gsub(text,"</color>","|r")
 	return text
 end
 
@@ -442,27 +399,18 @@ function Me.FormatDescTooltip( text )
 	end
 	
 	-- <img> </img>
-	local imgCount = 0
-	for w in string.gmatch(text, "<img>") do
-		imgCount = imgCount + 1
-	end
+	text = gsub( text, "<img>","|T" )
+	text = gsub( text, "</img>",":16|t" )
 	
-	for i = 1, imgCount do
-		text = Me.FormatTooltipIcons( text )
+	-- <color=rrggbb> </color>	
+	for c in string.gmatch(text, "<color=%x%x%x%x%x%x>(.-)</color>") do
+		text = gsub(text, c, RemoveColorTags( c ) )
 	end
-	
-	-- <color=rrggbb> </color>
-	local colorCount = 0
-	for w in string.gmatch(text, "<color=") do
-		colorCount = colorCount + 1
-	end
-	
-	for i = 1, colorCount do
-		text = Me.FormatTooltipColors( text )
-	end
+	text = gsub( text, "<color=(.-)>","|cFF%1" )
+	text = gsub( text, "</color>","|r" )
 	
 	-- Remove extra spaces/lines at the beginning/end.
-	text = string.gsub(text, '^%s*(.-)%s*$', '%1')
+	text = gsub( text, "^%s*(.-)%s*$", "%1" )
 
 	return text
 end
@@ -476,6 +424,7 @@ function Me.UpdatePanelTraits()
 	for i=1,#traits do
 		traits[i]:SetPlayerTrait( UnitName( "player" ), i ) 
 	end
+	DiceMasterPanelDice:SetText(Profile.dice)
 end
 
 -------------------------------------------------------------------------------

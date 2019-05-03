@@ -26,7 +26,7 @@ local BUFF_DURATION_AMOUNTS = {
 	{name = "3 hours", time = 10800},
 }
 
-local BACKDROP_ZONES = {
+Me.DICEMASTER_BACKDROP_ZONES = {
 	["Eastern Kingdoms"] = {
 		"Arathi Highlands",
 		"Badlands",
@@ -134,21 +134,6 @@ local BACKDROP_ZONES = {
 		"Vol'dun",
 		"Zuldazar",
 	},
-}
-
-local AFFIX_RULES = {
-	[1] = {text="The |cFFFFd100Unit Editor|r allows you to edit the visual elements of any unit frame, including the unit's model, animation, and custom |cFFFFd100Buffs|r. You can click any of the unit frames to open this menu."},
-	[2] = {text="Use the |cFFFFd100Search|r field to browse for models by their file name.", relativeTo="DiceMasterAffixEditorFilter"},
-	[3] = {text="Use the |cFFFFd100Animation|r dropdown to select from a list of animation options to preview in the list below. Some of these animations are not available to every model, specifically those listed as |cFFFFd100(PC)|r or |cFFFFd100(Humans)|r only.|n|nWhen you select a model from the list, the unit frame will use this animation.", relativeTo="DiceMasterAffixEditorAnimation", offSet="16"},
-	[4] = {text="The |cFFFFd100Models List|r displays a preview of the available model options for the unit frame. You can scroll through this list of models and left click to select one for the unit frame.", relativeTo="DiceMasterAffixEditor"},
-	[5] = {text="|cFFFFd100Buffs|r allow you and your group members to give a unit a custom buff (or debuff) that the rest of your group can see at the bottom of the unit frame. You can give |cFFFFd100Buffs|r a custom icon, name, description, and duration.|n|nYou can also Load, Save, and Delete |cFFFFd100Buffs|r with the buttons at the bottom of the Unit Editor.|n|nYour group members can also apply their trait buffs to a unit frame by left clicking the frame and using the trait. Each unit frame can support a maximum of 15 |cFFFFd100Buffs|r at a time.", relativeTo="DiceMasterAffixEditorLoadButton"},
-	[6] = {text="Select a |cFFFFd100Buff Icon|r from a library of icons.", relativeTo="DiceMasterAffixEditorAffixIconButton"},
-	[7] = {text="Choose a |cFFFFd100Buff Name|r to represent this Buff.", relativeTo="DiceMasterAffixEditorAffixName"},
-	[8] = {text="Choose a |cFFFFd100Description|r that describes the effects of the Buff. This description should be brief but concise.", relativeTo="DiceMasterAffixEditorAffixDesc"},
-	[9] = {text="Click the |cFFFFd100Lasts until cancelled|r check box to toggle whether or not the Buff should persist indefinitely.|n|nIf unchecked, move the |cFFFFd100Buff Duration|r slider to set the duration of the Buff.", relativeTo="DiceMasterAffixEditorAffixCancelable"},
-	[10] = {text="Click the |cFFFFd100Stackable|r check box to toggle whether or not the Buff can stack more than once.", relativeTo="DiceMasterAffixEditorAffixStackable"},
-	[11] = {text="Click the |cFFFFd100Choose Effect...|r button to open the |cFFFFd100Effects|r library, allowing you to scroll through a list of visual effects for the unit frame model. You can also create, rename, and delete custom effects collections to store for later use.", relativeTo="DiceMasterAffixEditorAffixEffect"},
-	[12] = {text="Click the |cFFFFd100Apply Buff|r button to apply the Buff to the unit, allowing you and the rest of your group to see it below the Unit Frame.|n|nRemember: Each unit frame can only have up to 15 Buffs active at a time.", relativeTo="DiceMasterAffixEditorAffixToggle"},
 }
 
 -------------------------------------------------------------------------------
@@ -285,10 +270,15 @@ function Me.BackdropPickerDropDown_OnLoad(frame, level, menuList)
 		CreateContinentMenu(self, level, "Broken Isles");
 		CreateContinentMenu(self, level, "Kul Tiras");
 		CreateContinentMenu(self, level, "Zandalar");
+		if Me.DICEMASTER_CUSTOM_UNIT_TEXTURES then
+			for k, v in pairs( Me.DICEMASTER_CUSTOM_UNIT_TEXTURES ) do
+				CreateContinentMenu(self, level, k);
+			end
+		end
 	elseif menuList then
-		for i = 1, #BACKDROP_ZONES[ menuList ] do
+		for i = 1, #Me.DICEMASTER_BACKDROP_ZONES[ menuList ] do
 			local info = UIDropDownMenu_CreateInfo();
-			info.text = BACKDROP_ZONES[ menuList ][i];
+			info.text = Me.DICEMASTER_BACKDROP_ZONES[ menuList ][i];
 			info.func = Me.BackdropPickerDropDown_OnClick;
 			info.checked = Me.UnitEditing.zone == info.text;
 			info.arg1 = menuList;
@@ -460,46 +450,6 @@ function Me.AffixEditor_Save()
 	
 	Me.UnitEditing:SetData( data )
 	Me.UpdateUnitFrames()
-end
-
--------------------------------------------------------------------------------
--- Load the help tooltip text.
---
-function Me.AffixEditor_HelpTooltipLoad()
-	local tooltip = DiceMasterAffixEditorHelpTooltip
-
-	tooltip.Text:SetText( AFFIX_RULES[tooltip.rulesid].text)
-	tooltip:SetHeight(tooltip.Text:GetHeight()+60);
-	if AFFIX_RULES[tooltip.rulesid].relativeTo then
-		DiceMasterAffixEditorHelpArrow:SetPoint("RIGHT", AFFIX_RULES[tooltip.rulesid].relativeTo, "LEFT", AFFIX_RULES[tooltip.rulesid].offSet or 0, 0)
-		DiceMasterAffixEditorHelpArrow:Show()
-	else
-		DiceMasterAffixEditorHelpArrow:Hide()
-	end
-end
-
--------------------------------------------------------------------------------
--- Change the help tooltip page.
---
-function Me.AffixEditor_ChangePage( self, delta )
-	local tooltip = DiceMasterAffixEditorHelpTooltip
-	tooltip.rulesid = tooltip.rulesid + 1*delta
-	tooltip.Text:SetText(AFFIX_RULES[tooltip.rulesid].text)
-	tooltip:SetHeight(tooltip.Text:GetHeight()+60);
-	if tooltip.rulesid == 1 then
-		tooltip.PrevPageButton:Disable()
-	elseif tooltip.rulesid == #AFFIX_RULES then
-		tooltip.NextPageButton:Disable()
-	else
-		tooltip.PrevPageButton:Enable()
-		tooltip.NextPageButton:Enable()
-	end
-	if AFFIX_RULES[tooltip.rulesid].relativeTo then
-		DiceMasterAffixEditorHelpArrow:SetPoint("RIGHT", AFFIX_RULES[tooltip.rulesid].relativeTo, "LEFT", AFFIX_RULES[tooltip.rulesid].offSet or 0, 0)
-		DiceMasterAffixEditorHelpArrow:Show()
-	else
-		DiceMasterAffixEditorHelpArrow:Hide()
-	end
 end
 
 -------------------------------------------------------------------------------

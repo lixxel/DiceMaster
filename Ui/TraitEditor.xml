@@ -265,23 +265,7 @@
       </OnShow>
     </Scripts>
     
-    <Frames>
-      
-      <!-- Rank icon, bottom right of portrait. -->
-      <Frame name="$parentRankIcon" parentKey="rankIcon">
-        <Size x="24" y="24"/>
-		<Anchors>
-			<Anchor point="TOPLEFT" x="32" y="-32"/> 
-		</Anchors>
-		<Layers>
-			<Layer level="ARTWORK">
-  
-				<!-- This is adjusted at runtime. -->
-				<Texture parentKey="icon" setAllPoints="true"/>
-			</Layer>
-		</Layers>
-      </Frame>
-      
+    <Frames>      
       <!-- Scroll frame for the trait description editing. -->
       <ScrollFrame name="DiceMasterTraitsFrame" parentKey="scrollFrame" inherits="UIPanelScrollFrameTemplate">
 		<Anchors>
@@ -813,7 +797,6 @@
 					DiceMaster4.editor.Bg:SetPoint("BOTTOMRIGHT", -6, 40)
 					PanelTemplates_SetTab(DiceMaster4.editor, 1);
                     DiceMasterTraitsFrame:Show();
-					DiceMaster4.editor.rankIcon:Show()
 					DiceMasterTraitEditor.StatsWarning:Hide()
 					DiceMasterTraitEditorExperienceBar:Hide()
 					DiceMasterTraitEditor.FormatBar:Show();
@@ -837,7 +820,6 @@
 				DiceMaster4.editor.Bg:SetPoint("BOTTOMRIGHT", -6, 26)
 				PanelTemplates_SetTab(DiceMaster4.editor, 2);
 				DiceMasterTraitsFrame:Hide();
-				DiceMaster4.editor.rankIcon:Hide()
 				DiceMasterTraitEditorExperienceBar:Show()
 				DiceMasterTraitEditor.FormatBar:Hide();
 				for i = 1,5 do
@@ -860,7 +842,6 @@
 				DiceMaster4.editor.Bg:SetPoint("BOTTOMRIGHT", -6, 26)
 				PanelTemplates_SetTab(DiceMaster4.editor, 3);
 				DiceMasterTraitsFrame:Hide();
-				DiceMaster4.editor.rankIcon:Hide()
 				DiceMasterTraitEditor.StatsWarning:Hide()
 				DiceMasterTraitEditorExperienceBar:Hide()
 				DiceMasterTraitEditor.FormatBar:Hide();

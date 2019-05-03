@@ -89,6 +89,7 @@ local DB_DEFAULTS = {
 		};
 		level        = 1;
 		experience   = 0;
+		dice 		 = "1D20+0";
 	} 
 }
 

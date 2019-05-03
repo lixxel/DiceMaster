@@ -28,7 +28,7 @@
   
   <!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
   <Frame name="DiceMasterModelPicker" parent="UIParent" hidden="true" inherits="SimplePanelTemplate" frameStrata="DIALOG" toplevel="true">
-    <Size x="256" y="256"/>
+    <Size x="256" y="288"/>
     <Anchors>
       <Anchor point="LEFT" relativeTo="DiceMasterTraitEditor" relativePoint="RIGHT" x="0" y="0" />
     </Anchors>
@@ -38,7 +38,8 @@
     
     <Scripts>
       <OnLoad>	
-        -- create icon map
+        self.Inset:SetPoint("TOPLEFT", self, "TOPLEFT", 3, -56)
+		-- create icon map
 		self.icons = {}
 		for y = 0,2 do
 		  for x = 0,3 do
@@ -54,18 +55,61 @@
       </OnLoad>
     </Scripts>
     <Frames>
+	
+	  <!-- Favourites filter. -->
+      <Button name="$parentFilter" parentKey="filter" enableMouse="true" inherits="UIDropDownMenuTemplate">
+		<Size x="150" y="22"/>
+		<Anchors>
+		  <Anchor point="TOPLEFT" x="0" y="-28"/> 
+		</Anchors>
+	  </Button>
+	  
+	  <Button name="$parentRenameButton" inherits="UIPanelButtonTemplate" text="R">
+			<Size x="24" y="24"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeTo="$parentFilter" relativePoint="TOPRIGHT" x="32" y="-2"/> 
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					StaticPopup_Show("DICEMASTER4_RENAMECOLLECTION", nil, nil, DiceMasterModelPickerFilterText:GetText())
+				</OnClick>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to rename this collection.")
+					self:Disable()
+				</OnLoad>
+			</Scripts>
+	  </Button>
+		
+	  <Button name="$parentDeleteButton" inherits="UIPanelButtonTemplate" text="X">
+			<Size x="24" y="24"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeTo="$parentRenameButton" relativePoint="TOPRIGHT" x="2" y="0"/> 
+			</Anchors>
+			<Scripts>
+				<OnClick>
+					StaticPopup_Show("DICEMASTER4_DELETECOLLECTION", nil, nil, DiceMasterModelPickerFilterText:GetText())
+				</OnClick>
+				<OnLoad>
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to delete this collection.")
+					self:Disable()
+				</OnLoad>
+			</Scripts>
+	  </Button>
     
       <!-- Search/filter box. -->
       <EditBox parentKey="search" inherits="SearchBoxTemplate">
-        <Size x="150" y="8" />
+        <Size x="200" y="8" />
         <Anchors>
-          <Anchor point="TOP" x="0" y="-12" />
+          <Anchor point="TOP" x="0" y="-14" />
         </Anchors>
         
         <Scripts>
           <OnTextChanged>
             SearchBoxTemplate_OnTextChanged(self);
-            DiceMaster4.ModelPicker_FilterChanged()
+			UIDropDownMenu_SetText(DiceMasterModelPickerFilter, "Default")
+			DiceMaster4.ModelPicker_FilterChanged( "default" )
+			DiceMasterModelPickerRenameButton:Disable()
+			DiceMasterModelPickerDeleteButton:Disable()
           </OnTextChanged>
           
           
