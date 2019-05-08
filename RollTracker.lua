@@ -810,7 +810,7 @@ function Me.OnVanillaRollMessage( name, roll, min, max )
 		return
 	end
 	
-	local dice = ( "(" .. min .. "-" .. max .. ")" )
+	local dice = ( min .. "-" .. max )
 	
 	if roll then
 		if not Me.HistoryRolls[name] then

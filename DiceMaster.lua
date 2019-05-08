@@ -362,24 +362,6 @@ function Me.FormatUsage( usage, name )
 end
 
 -------------------------------------------------------------------------------
--- Remove colors from a color tag in a trait description tooltip.
---
--- @param text Text to format.
--- @returns formatted text.
---
-
-local function RemoveColorTags( text )
-	local escapes = {
-		["|c%x%x%x%x%x%x%x%x"] = "", -- color start
-		["|r"] = "", -- color end
-	}
-	for k, v in pairs(escapes) do
-		text = text:gsub(k, v);
-	end
-	return text
-end
-
--------------------------------------------------------------------------------
 -- Add color codes to a trait description tooltip.
 --
 -- @param text Text to format.
@@ -402,10 +384,7 @@ function Me.FormatDescTooltip( text )
 	text = gsub( text, "<img>","|T" )
 	text = gsub( text, "</img>",":16|t" )
 	
-	-- <color=rrggbb> </color>	
-	for c in string.gmatch(text, "<color=%x%x%x%x%x%x>(.-)</color>") do
-		text = gsub(text, c, RemoveColorTags( c ) )
-	end
+	-- <color=rrggbb> </color>
 	text = gsub( text, "<color=(.-)>","|cFF%1" )
 	text = gsub( text, "</color>","|r" )
 	
