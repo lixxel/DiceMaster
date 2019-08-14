@@ -14,6 +14,10 @@ local Me = DiceMaster4
 
 function Me.UnitFrame_SendStatus( visibleframes, id, status )
 	
+	if IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+		return
+	end
+	
 	if not status then
 		local msg = Me:Serialize( "UFSTAT", {
 			vf = tonumber( 0 );
@@ -127,7 +131,7 @@ function Me.UnitFrame_OnStatusRequest( data, dist, sender )
 	-- Ignore our own data.
 	if sender == UnitName( "player" ) then return end
 	
-	if Me.IsLeader( false ) and IsInGroup(1) and not Me.db.char.unitframes.enable then		
+	if Me.IsLeader( false ) and IsInGroup( LE_PARTY_CATEGORY_HOME ) and not IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) and not Me.db.char.unitframes.enable then		
 		Me.UpdateUnitFrames()
 	end
 end
@@ -172,7 +176,7 @@ end
 
 function Me.UnitFrame_OnBuffMessage( data, dist, sender )
 	-- Only accept buffs if we're the DM.
-	if not Me.IsLeader( false ) or not IsInGroup(1) then return end
+	if not Me.IsLeader( false ) or not IsInGroup( LE_PARTY_CATEGORY_HOME ) or IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then return end
  
 	-- sanitize message
 	if not data.un or data.un > 5 or data.un < 1 or not data.na or not data.ic or not data.de or not data.co then
@@ -234,7 +238,7 @@ end
 
 function Me.UnitFrame_OnRemoveBuffMessage( data, dist, sender )
 	-- Only accept buffs if we're the DM.
-	if not Me.IsLeader( false ) or not IsInGroup(1) then return end
+	if not Me.IsLeader( false ) or not IsInGroup( LE_PARTY_CATEGORY_HOME ) or IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then return end
  
 	-- sanitize message
 	if not data.un or data.un > 5 or data.un < 1 or not data.na or not data.co then

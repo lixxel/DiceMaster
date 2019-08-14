@@ -4,25 +4,6 @@
 
 local Me = DiceMaster4
 
-local DICEMASTER_TERMS = {
-	-- Glossary Terms
-	{ "Advantage", "Advantage", "Allows the character to roll the same dice twice, and take the greater of the two resulting numbers." },
-	{ "Control[sleding]*", "Control", "Allows the character to take command of a target until the effect expires." },
-	{ "Disadvantage", "Disadvantage", "Allows the character to roll the same dice twice, and take the lesser of the two resulting numbers." },
-	{ "Double or Nothing", "Double or Nothing", "An unmodified D40 roll. If the roll succeeds, the character is rewarded with a critical success; however, if the roll fails, the character suffers critically failure." },
-	{ "Immunity", "Immunity", "Prevents a character from suffering any damage from a failure this turn." },
-	{ "Intercept[edsing]*", "Intercept", "Intercepts another character's failure, taking the full amount of damage." },
-	{ "NAT1", "Natural 1", "A roll of 1 that is achieved before dice modifiers are applied that results in critical failure." },
-	{ "NAT20", "Natural 20", "A roll of 20 that is achieved before dice modifiers are applied that results in critical success." },
-	{ "Poison[seding]*", "Poison", "Causes additional damage to a target each turn." },
-	{ "Reload[edsing]*", "Reload", "Grants the character's active trait another use." },
-	{ "Reviv[desing]*", "Revive", "Allows a character with |cFFFFFFFF0|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t|cFFffd100 remaining to return to battle with diminished health." },
-	{ "Stun[snedig]*", "Stun", "Incapacitates a target, preventing them from performing any action next turn." },
-	-- Icons
-	{ "Armo[u]*r", "Armour (|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t)", "Extends a character's Health beyond the maximum amount by a certain value. Damage taken will usually be deducted from Armour before Health unless otherwise specified." },
-	{ "Health", "Health (|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t)", "A measure of a character's health or an object's integrity. Damage taken decreases Health, and healing restores Health." },
-}
-
 -------------------------------------------------------------------------------
 Me.playerTraitTooltipOpen = false
 Me.playerTraitTooltipName = nil
@@ -34,16 +15,10 @@ function Me.CheckTooltipForTerms( text )
 	local termsTable = {}
 	for k, v in pairs( Me.RollList ) do
 		for i = 1, #v do
-			local matchFound = string.match( text, v[i].subName )
+			local matchFound = string.match( text, "<" .. v[i].subName .. ">" )
 			if matchFound then
-
 				local desc = gsub( v[i].desc, "Roll", "An attempt" )
 				local termsString = "|cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. desc .. "|r|n|cFF707070(Modified by " .. v[i].stat .. " + " .. v[i].name .. ")|r"
-				
-				-- Special handler for "Spell Defence"
-				if matchFound == "Spell Defence" then
-					termsString = "|cFFFFFFFFSpell Defence|r|n|cFFffd100An attempt to defend yourself from enemy spell damage.|r|n|cFF707070(Modified by Intelligence + Spell Defence)|r"
-				end
 				
 				if not tContains( termsTable, termsString ) then
 					tinsert( termsTable, termsString )
@@ -51,11 +26,14 @@ function Me.CheckTooltipForTerms( text )
 			end
 		end
 	end
-	for i=1,#DICEMASTER_TERMS do
-		if string.match( text, DICEMASTER_TERMS[i][1] ) then
-			local termsString = "|cFFFFFFFF" .. DICEMASTER_TERMS[i][2] .. "|r|n|cFFffd100" .. DICEMASTER_TERMS[i][3] .. "|r"
-			if not tContains( termsTable, termsString ) then
-				tinsert( termsTable, termsString )
+	for k, v in pairs( Me.TermsList ) do
+		for i = 1, #v do
+			local matchFound = string.match( text, "<" .. v[i].subName .. ">" )
+			if matchFound then
+				local termsString = Me.FormatIcon( v[i].iconID ) .. " |cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. v[i].desc .. "|r"
+				if not tContains( termsTable, termsString ) then
+					tinsert( termsTable, termsString )
+				end
 			end
 		end
 	end
@@ -119,9 +97,21 @@ function Me.OpenTraitTooltip( owner, trait, index )
 	 
 	if trait.usage then
 		local usage = Me.FormatUsage( trait.usage, playername )
-		GameTooltip:AddDoubleLine( usage, nil, 1, 1, 1, 1, 1, 1, true )
+		
+		if trait.usage ~= "PASSIVE" and trait.range and trait.range ~= "NONE" then
+			local range = Me.FormatRange( trait.range )
+			GameTooltip:AddDoubleLine( usage, range, 1, 1, 1, 1, 1, 1, true )
+		else
+			GameTooltip:AddDoubleLine( usage, nil, 1, 1, 1, 1, 1, 1, true )
+		end
+		
+		if trait.usage ~= "PASSIVE" and trait.castTime then
+			local castTime = Me.FormatCastTime( trait.castTime )
+			GameTooltip:AddLine( castTime, 1, 1, 1, true )
+		end
 	end
 	
+	DiceMasterTooltipIcon.approved:Hide()
 	if trait.approved and trait.approved > 0 and Me.PermittedUse() then
 		if trait.approved == 1 then
 			DiceMasterTooltipIcon.approved:SetTexCoord( 0, 0.5, 0.5, 1 )

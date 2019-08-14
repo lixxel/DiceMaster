@@ -249,11 +249,11 @@
 				<Scripts>
 					<OnClick>
 						if DiceMaster4.IsLeader( false ) then
-							StaticPopup_Show("DICEMASTER4_ROLLBANNER", nil, nil, self:GetParent().Name:GetText())							PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+							DiceMasterBannerPromptDialog:Show()	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 						end
 					</OnClick>
 					<OnUpdate>
-						if DiceMaster4.IsLeader() then
+						if DiceMaster4.IsLeader( false ) and DiceMaster4.PermittedUse() then
 							self:Enable()
 						else
 							self:Disable()
@@ -391,219 +391,6 @@
 			</OnLeave>
 		</Scripts>
 	</Button>
-	
-  <Frame name="DiceMasterRollBanner" parent="UIParent" hidden="true" framestrata="DIALOG" alpha="1">
-	<Size x="128" y="180"/>
-	<Anchors>
-		<Anchor point="TOP" x="0" y="-120"/>
-	</Anchors>
-	<Layers>
-		<Layer level="BORDER">
-			<Texture parentKey="BannerTop" hidden="false" alpha="0" alphaMode="BLEND" file="Interface/AddOns/DiceMaster/Texture/league-banner">
-				<Size x="440" y="112"/>
-				<TexCoords left="0.001953125" right="0.861328125" top="0.224609375" bottom="0.443359375"/>
-				<Anchors>
-					<Anchor point="TOP" x="0" y="-44"/>
-				</Anchors>
-			</Texture>
-			<Texture parentKey="BannerTopGlow" hidden="false" alpha="0" alphaMode="ADD" file="Interface/AddOns/DiceMaster/Texture/league-banner">
-				<Size x="440" y="112"/>
-				<TexCoords left="0.001953125" right="0.861328125" top="0.224609375" bottom="0.443359375"/>
-				<Anchors>
-					<Anchor point="TOP" x="0" y="-44"/>
-				</Anchors>
-			</Texture>
-			<Texture parentKey="BannerBottom" hidden="false" alpha="0" alphaMode="BLEND" file="Interface/AddOns/DiceMaster/Texture/league-banner">
-				<Size x="440" y="112"/>
-				<TexCoords left="0.001953125" right="0.861328125" top="0.001953125" bottom="0.220703125"/>
-				<Anchors>
-					<Anchor point="BOTTOM" x="0" y="0"/>
-				</Anchors>
-			</Texture>
-			<Texture parentKey="BannerBottomGlow" hidden="false" alpha="0" alphaMode="ADD" file="Interface/AddOns/DiceMaster/Texture/league-banner">
-				<Size x="440" y="112"/>
-				<TexCoords left="0.001953125" right="0.861328125" top="0.001953125" bottom="0.220703125"/>
-				<Anchors>
-					<Anchor point="BOTTOM" x="0" y="0"/>
-				</Anchors>
-			</Texture>	
-		</Layer>
-		<Layer level="BACKGROUND">
-			<Texture parentKey="BannerMiddle" alpha="0" atlas="BossBanner-BgBanner-Mid" alphaMode="BLEND" useAtlasSize="true">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeKey="$parent.BannerTop" x="0" y="-34"/>
-					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.BannerBottom" x="0" y="25"/>
-				</Anchors>
-			</Texture>
-			<Texture parentKey="BannerMiddleGlow" alpha="0" atlas="BossBanner-BgBanner-Mid" alphaMode="ADD" useAtlasSize="true">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeKey="$parent.BannerTop" x="0" y="-34"/>
-					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.BannerBottom" x="0" y="25"/>
-				</Anchors>
-			</Texture>
-		</Layer>
-		<Layer level="OVERLAY">
-			<Texture parentKey="SkullCircle" hidden="false" alpha="0" alphaMode="BLEND" file="Interface/AddOns/DiceMaster/Texture/league-banner">
-				<Size x="257" y="88"/>
-				<TexCoords left="0.26" right="0.93" top="0.58" bottom="0.81"/>
-				<Anchors>
-					<Anchor point="CENTER" relativeKey="$parent.BannerTop" x="0" y="54"/>
-				</Anchors>
-			</Texture>		
-			<Texture parentKey="RedFlash" hidden="false" alpha="0" alphaMode="ADD" file="Interface/AddOns/DiceMaster/Texture/league-banner">
-				<Size x="92" y="92"/>
-				<TexCoords left="0.001953125" right="0.181640625" top="0.810546875" bottom="0.990234375"/>
-				<Anchors>
-					<Anchor point="CENTER" relativeKey="$parent.SkullCircle" x="0" y="3"/>
-				</Anchors>
-			</Texture>
-		</Layer>			
-		<Layer level="ARTWORK">
-			<FontString parentKey="Title" inherits="QuestFont_Enormous">
-				<Anchors>
-					<Anchor point="TOP" relativeKey="$parent.BannerTop" x="0" y="-47"/>
-				</Anchors>
-				<Color r="1" g="0.82" b="0" a="0"/>
-			</FontString>
-			<FontString parentKey="SubTitle" inherits="GameFontNormalLarge">
-				<Anchors>
-					<Anchor point="TOP" relativeKey="$parent.Title" relativePoint="BOTTOM" x="0" y="0"/>
-				</Anchors>
-				<Color r="1" g="1" b="1" a="0"/>
-			</FontString>
-		</Layer>
-		<Layer level="OVERLAY" textureSubLevel="2">
-			<Texture parentKey="FlashBurst" hidden="false" alpha="0.01" alphaMode="ADD" atlas="BossBanner-RedLightning" useAtlasSize="true">
-				<Anchors>
-					<Anchor point="CENTER" relativeKey="$parent.SkullCircle" x="15" y="-4"/>
-				</Anchors>
-			</Texture>
-			<Texture parentKey="FlashBurstLeft" hidden="false" alpha="0.01" alphaMode="ADD" atlas="BossBanner-RedLightning" useAtlasSize="true">
-				<Anchors>
-					<Anchor point="CENTER" relativeKey="$parent.SkullCircle" x="-15" y="-4"/>
-				</Anchors>
-			</Texture>
-		</Layer>
-		<Layer level="OVERLAY" textureSubLevel="3">
-			<Texture parentKey="FlashBurstCenter" hidden="false" alpha="0.01" alphaMode="ADD" atlas="BossBanner-RedLightning" useAtlasSize="true">
-				<Anchors>
-					<Anchor point="CENTER" relativeKey="$parent.SkullCircle"/>
-				</Anchors>
-			</Texture>
-		</Layer>
-		<Layer level="OVERLAY" textureSubLevel="4">
-			<Texture parentKey="RedFlash" hidden="false" alpha="0.01" alphaMode="ADD" file="Interface/AddOns/DiceMaster/Texture/league-banner">
-				<Size x="92" y="92"/>
-				<TexCoords left="0.001953125" right="0.181640625" top="0.810546875" bottom="0.990234375"/>
-				<Anchors>
-					<Anchor point="CENTER" relativeKey="$parent.SkullCircle" x="1" y="-3"/>
-				</Anchors>
-			</Texture>
-		</Layer>
-	</Layers>
-	<Animations>
-		<AnimationGroup parentKey="AnimIn" setToFinalAlpha="true">
-			<Scale childKey="SkullCircle" duration="0.15" order="1" fromScaleX="5" fromScaleY="5" toScaleX="1" toScaleY="1"/>
-			<Alpha childKey="SkullCircle" duration="0.1" order="1" fromAlpha="0" toAlpha="1"/>
-			<Alpha childKey="BannerTop" startDelay="0.2" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="BannerTop" startDelay="0.1" duration="0.3" order="2" fromScaleX="0.1" fromScaleY="1" toScaleX="1" toScaleY="1"/>
-			<Alpha childKey="BannerBottom" startDelay="0.2" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="BannerBottom" startDelay="0.1" duration="0.3" order="2" fromScaleX="0.1" fromScaleY="1" toScaleX="1" toScaleY="1"/>
-			<Alpha childKey="BannerMiddle" startDelay="0.2" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="BannerMiddle" startDelay="0.1" duration="0.3" order="2" fromScaleX="0.1" fromScaleY="1" toScaleX="1" toScaleY="1"/>
-			<Alpha childKey="BannerTopGlow" startDelay="0.9" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="BannerTopGlow" startDelay="0.9" duration="0.5" order="2" fromScaleX="0.5" fromScaleY="1" toScaleX="1.6" toScaleY="1"/>
-			<Alpha childKey="BannerTopGlow" startDelay="1.1" duration="0.6" order="2" fromAlpha="1" toAlpha="0"/>
-			<Alpha childKey="BannerBottomGlow" startDelay="0.9" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="BannerBottomGlow" startDelay="0.9" duration="0.5" order="2" fromScaleX="0.5" fromScaleY="1" toScaleX="1.6" toScaleY="1"/>
-			<Alpha childKey="BannerBottomGlow" startDelay="1.1" duration="0.6" order="2" fromAlpha="1" toAlpha="0"/>
-			<Alpha childKey="BannerMiddleGlow" startDelay="0.9" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="BannerMiddleGlow" startDelay="0.9" duration="0.5" order="2" fromScaleX="0.5" fromScaleY="1" toScaleX="1.6" toScaleY="1"/>
-			<Alpha childKey="BannerMiddleGlow" startDelay="1.1" duration="0.6" order="2" fromAlpha="1" toAlpha="0"/>							
-			<Alpha childKey="Title" startDelay="0.2" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Alpha childKey="SubTitle" startDelay="0.2" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-
-			<Alpha childKey="RedFlash" duration="0.1" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="RedFlash" smoothing="IN" duration="0.25" order="2" fromScaleX="2.5" fromScaleY="2.5" toScaleX="1" toScaleY="1"/>
-			<Alpha childKey="RedFlash" startDelay="0.25" duration="0.5" order="2" fromAlpha="1" toAlpha="0"/>
-			<Alpha childKey="FlashBurst" startDelay="0.25" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="FlashBurst" startDelay="0.25" duration="0.4" order="2" fromScaleX="1" fromScaleY="0.75" toScaleX="1.25" toScaleY="0.75">
-				<Origin point="LEFT">
-					<Offset x="0" y="0"/>
-				</Origin>
-			</Scale>
-			<Translation childKey="FlashBurst" startDelay="0.25" duration="0.5" order="2" offsetX="10" offsetY="0"/>
-			<Alpha childKey="FlashBurst" startDelay="0.25" duration="0.4" order="2" fromAlpha="1" toAlpha="0"/>
-			<Alpha childKey="FlashBurstLeft" startDelay="0.25" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="FlashBurstLeft" startDelay="0.25" duration="0.5" order="2" fromScaleX="1" fromScaleY="0.75" toScaleX="1.25" toScaleY="0.75">
-				<Origin point="RIGHT">
-					<Offset x="0" y="0"/>
-				</Origin>
-			</Scale>
-			<Translation childKey="FlashBurstLeft" startDelay="0.25" duration="0.5" order="2" offsetX="-10" offsetY="0"/>
-			<Alpha childKey="FlashBurstLeft" startDelay="0.25" duration="0.5" order="2" fromAlpha="1" toAlpha="0"/>
-			<Alpha childKey="FlashBurstCenter" startDelay="0.25" duration="0.25" order="2" fromAlpha="0" toAlpha="1"/>
-			<Scale childKey="FlashBurstCenter" startDelay="0.25" duration="0.5" order="2" fromScaleX="1" fromScaleY="1" toScaleX="1.25" toScaleY="1.25"/>
-			<Alpha childKey="FlashBurstCenter" startDelay="0.25" duration="0.5" order="2" fromAlpha="1" toAlpha="0"/>
-			
-			<Scripts>
-				<OnPlay>
-					local banner = self:GetParent();
-					banner:Show();
-					banner.BannerTop:SetAlpha(0);
-					banner.BannerBottom:SetAlpha(0);
-					banner.BannerMiddle:SetAlpha(0);
-					banner.Title:SetAlpha(0);
-					banner.SubTitle:SetAlpha(0);
-					banner.FlashBurst:SetAlpha(0);
-					banner.FlashBurstLeft:SetAlpha(0);
-					banner.FlashBurstCenter:SetAlpha(0);
-					banner.RedFlash:SetAlpha(0);
-					PlaySound(SOUNDKIT.UI_PERSONAL_LOOT_BANNER);
-				</OnPlay>
-				<OnFinished>
-				</OnFinished>
-			</Scripts>
-		</AnimationGroup>
-		<AnimationGroup parentKey="AnimSwitch" setToFinalAlpha="true">
-			<Alpha childKey="SkullCircle" duration="0.5" order="1" fromAlpha="1" toAlpha="0"/>
-			<Alpha childKey="Title" duration="0.25" order="1" fromAlpha="1" toAlpha="0"/>	
-			<Alpha childKey="SubTitle" duration="0.25" order="1" fromAlpha="1" toAlpha="0"/>	
-		</AnimationGroup>
-		<AnimationGroup parentKey="AnimOut">
-			<Alpha duration="1" order="1" fromAlpha="1" toAlpha="0"/>
-			<Scripts>
-				<OnFinished>
-					local banner = self:GetParent();
-					banner:Hide();
-					banner:SetHeight(banner.baseHeight);
-					banner.BannerTop:SetAlpha(0);
-					banner.BannerBottom:SetAlpha(0);
-					banner.BannerMiddle:SetAlpha(0);
-					banner.Title:SetAlpha(0);
-					banner.SubTitle:SetAlpha(0);
-					banner.FlashBurst:SetAlpha(0);
-					banner.FlashBurstLeft:SetAlpha(0);
-					banner.FlashBurstCenter:SetAlpha(0);
-					banner.RedFlash:SetAlpha(0);
-				</OnFinished>
-			</Scripts>
-		</AnimationGroup>
-	</Animations>
-	<Scripts>
-		<OnLoad>
-			self.baseHeight = self:GetHeight();
-			DiceMaster4.RollBanner_OnLoad( self )
-		</OnLoad>
-		<OnEnter>
-			DiceMaster4.RollBanner_OnMouseEnter( self, button )
-		</OnEnter>
-		<OnLeave>
-			DiceMaster4.RollBanner_OnMouseLeave( self, button )
-		</OnLeave>
-		<OnUpdate function="BossBanner_OnUpdate"/>
-	</Scripts>
-</Frame>
   
   <Frame name="DiceMasterRollFrame" parent="UIParent" inherits="PortraitFrameTemplate" hidden="true" framestrata="HIGH">
     <Size x="285" y="384" />
@@ -795,7 +582,7 @@
 					<Scripts>
 						<OnClick>
 							if DiceMaster4.IsLeader( false ) then
-								StaticPopup_Show("DICEMASTER4_ROLLBANNER", nil, nil, "RAID")
+								DiceMasterBannerPromptDialog:Show()
 							end
 						</OnClick>
 						<OnUpdate>

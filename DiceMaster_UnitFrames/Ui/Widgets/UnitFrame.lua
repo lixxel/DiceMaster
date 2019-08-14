@@ -72,7 +72,7 @@ local OTHER_ZONES = {
 	"Shadowmoon Valley",
 	"Terokkar Forest",
 	"Zangarmarsh",
-	--Northrend
+	-- Northrend
 	"Borean Tundra",
 	"Crystalsong Forest",
 	"Dragonblight",
@@ -82,7 +82,7 @@ local OTHER_ZONES = {
 	"Sholazar Basin",
 	"Storm Peaks",
 	"Zul'Drak",
-	--Pandaria
+	-- Pandaria
 	"Dread Wastes",
 	"Krasarang Wilds",
 	"Kun-Lai Summit",
@@ -90,6 +90,13 @@ local OTHER_ZONES = {
 	"Townlong Steppes",
 	"Vale of Eternal Blossoms",
 	"Valley of the Four Winds",
+	-- Draenor
+	"Frostfire Ridge",
+	"Gorgrond",
+	"Shadowmoon Valley",
+	"Spires of Arak",
+	"Talador",
+	"Tanaan Jungle",
 }
 
 local OTHER_ZONES_2 = {
@@ -111,6 +118,8 @@ local OTHER_ZONES_2 = {
 	"Zuldazar",
 	"Boralus",
 	"Dazar'alor",
+	"Mechagon",
+	"Nazjatar",
 	"Northgarde",
 }
 
@@ -333,6 +342,11 @@ local methods = {
 			else
 				UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "") 
 			end
+			
+			if IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+				return
+			end
+			
 			local msg = Me:Serialize( "TARGET", {
 				ta = tonumber( target );
 			})
@@ -398,7 +412,7 @@ local methods = {
 		
 		-- proxy image for Northgarde
 		if zone == "Dustwallow Marsh" and Me.PermittedUse() then
-			zoneID = 16;
+			zoneID = 18;
 			texture = "DiceMaster_UnitFrames/Texture/other-zones-2"
 		end
 
@@ -639,6 +653,11 @@ function Me.SelectUnitFrame( frame )
 	else
 		UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "") 
 	end
+	
+	if IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+		return
+	end
+	
 	local msg = Me:Serialize( "TARGET", {
 		ta = tonumber( target );
 	})

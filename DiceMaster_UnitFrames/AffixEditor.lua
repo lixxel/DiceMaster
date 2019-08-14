@@ -112,6 +112,14 @@ Me.DICEMASTER_BACKDROP_ZONES = {
 		"Vale of Eternal Blossoms",
 		"Valley of the Four Winds",
 	},
+	["Draenor"] = {
+		"Frostfire Ridge",
+		"Gorgrond",
+		"Shadowmoon Valley",
+		"Spires of Arak",
+		"Talador",
+		"Tanaan Jungle",
+	},
 	["Broken Isles"] = {
 		"Argus",
 		"Azsuna",
@@ -267,6 +275,7 @@ function Me.BackdropPickerDropDown_OnLoad(frame, level, menuList)
 		CreateContinentMenu(self, level, "Outland");
 		CreateContinentMenu(self, level, "Northrend");
 		CreateContinentMenu(self, level, "Pandaria");
+		CreateContinentMenu(self, level, "Draenor");
 		CreateContinentMenu(self, level, "Broken Isles");
 		CreateContinentMenu(self, level, "Kul Tiras");
 		CreateContinentMenu(self, level, "Zandalar");
@@ -520,7 +529,7 @@ end
 -- Refresh the unit frame slots.
 --
 function Me.AffixEditor_RefreshSlots()
-	for i = 1, 5 do
+	for i = 1, 6 do
 		local framedata = DiceMasterUnitsPanel.unitframes[i]:GetData()
 		local activeUnit = _G["DiceMasterAffixEditorActiveUnit".. i]
 		

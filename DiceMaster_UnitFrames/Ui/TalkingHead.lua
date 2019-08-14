@@ -25,7 +25,7 @@ function DiceMasterTalkingHeadFrame_OnLoad(self)
 	self:RegisterForDrag( "LeftButton" )
 	self:SetScript( "OnDragStart", self.StartMoving )
 	self:SetScript( "OnDragStop", self.StopMovingOrSizing )
-	self:SetScale(0.8)
+	--self:SetScale(0.8)
 	self:SetUserPlaced( true )
 	self:RegisterForClicks("RightButtonUp");
 

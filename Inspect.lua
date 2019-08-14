@@ -401,7 +401,8 @@ function Me.Inspect_Refresh( status, trait )
 	end
 	
 	if store.pet.enable and not Me.db.global.hidePet then
-		DiceMasterInspectPetFrame.Texture:SetTexture( store.pet.icon )
+		--DiceMasterInspectPetFrame.Texture:SetTexture( store.pet.icon )
+		SetPortraitTextureFromCreatureDisplayID( DiceMasterInspectPetFrame.Texture, store.pet.model )
 		Me.SetupTooltip( DiceMasterInspectPetFrame, store.pet.icon, store.pet.name, store.pet.type, store.pet.health.."/"..store.pet.healthMax.." |TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" )
 		DiceMasterInspectPetFrame:Show()
 	else
@@ -517,7 +518,7 @@ end
 --
 function Me.Inspect_OnHealthClicked( button )
 
-	if not IsInGroup(1) or not Me.IsLeader( true ) or not Me.inspectName then return end
+	if not IsInGroup( LE_PARTY_CATEGORY_HOME ) or not Me.IsLeader( true ) or not Me.inspectName then return end
 
 	local delta = 0
 	local health = Me.inspectData[Me.inspectName].health
@@ -594,6 +595,8 @@ function Me.Inspect_OnTraitClicked( self, button )
 					s = trait.serial;
 					n = trait.name;
 					u = trait.usage;
+					r = trait.range;
+					c = trait.castTime;
 					d = trait.desc;
 					a = trait.approved;
 					o = trait.officers;
@@ -679,6 +682,8 @@ function Me.Inspect_SendTrait( index, dist, channel )
 		s = Me.db.char.traitSerials[index];
 		n = trait.name;
 		u = trait.usage;
+		r = trait.range;
+		c = trait.castTime;
 		d = trait.desc;
 		a = trait.approved;
 		o = trait.officers;
@@ -809,7 +814,7 @@ end
 -- Send a STATUS message to the party.
 --
 function Me.Inspect_ShareStatusWithParty()
-	if not IsInGroup(1) then
+	if not IsInGroup( LE_PARTY_CATEGORY_HOME ) or IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
 		return
 	end
 	
@@ -909,6 +914,8 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 	data.i = tonumber( data.i )
 	data.s = tonumber( data.s )
 	data.u = tostring( data.u or "UNKNOWN" ) 
+	data.r = tostring( data.r or "UNKNOWN" )
+	data.c = tostring( data.c or "UNKNOWN" ) 
 	data.n = tostring( data.n or "<Unknown name.>" )
 	data.d = tostring( data.d or "" )
 	data.a = tonumber( data.a or 0 )
@@ -928,6 +935,8 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 		serial  = data.s;
 		name    = data.n;
 		usage   = data.u;
+		range   = data.r;
+		castTime = data.c;
 		desc    = data.d;
 		approved = data.a;
 		officers = data.o;

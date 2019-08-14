@@ -25,7 +25,7 @@ function Me.PostTracker_SendUpdate( typing )
 end
 
 function Me.PostTracker_Typing( self )
-	if IsInGroup(2) then return end
+	if IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then return end
 	
 	local chatType = _G[self:GetName() .. "Header"]:GetText()
 	local msg = self:GetText()
@@ -56,6 +56,10 @@ function Me.PostTracker_OnLoad( self )
 	local f = CreateFrame("Frame")
 	f:RegisterEvent( "GROUP_ROSTER_UPDATE" )
 	f:SetScript( "OnEvent", function( self, event )
+		if IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+			return
+		end
+		
 		if event and #Me.WhoIsTyping > 0 then
 			for i=1,#Me.WhoIsTyping do
 				if not UnitInParty(Me.WhoIsTyping[i]) and not UnitInRaid(Me.WhoIsTyping[i])  then

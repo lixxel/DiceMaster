@@ -14,34 +14,6 @@ if not Me.SavedRolls then
 end
 Me.HistoryRolls = {}
 
-local ROLL_ROUND_TYPES = {
-	["Athletic"] = "Roll to swim, climb, flee, fly, or outrun someone.",
-	["Attack"] = "Roll to strike an enemy with an attack.",
-	["Bluff"] = "Roll to deceive, trick, or lie to someone.",
-	["Defence"] = "Roll to defend yourself from enemy damage.",
-	["Defense"] = "Roll to defend yourself from enemy damage.",
-	-- You're welcome, America.
-	["Diplomacy"] = "Roll to persuade or win favour with someone.",
-	["Disable Device"] = "Roll to disarm a trap or disable a lock.",
-	["Disguise"] = "Roll to change your appearance.",
-	["Escape"] = "Roll to slip bonds and escape from grapples.",
-	["Fortitude"] = "Roll to resist physical punishment or pain.",
-	["Grapple"] = "Roll to disarm or disable an enemy.",
-	["Heal"] = "Roll to restore health to yourself or others.",
-	["Insight"] = "Roll to discern intent or decipher body language.",
-	["Intimidat"] = "Roll to taunt, coerce, or frighten someone.",
-	-- Matches "Intimidate" and "Intimidation"
-	["Knowledge"] = "Roll to determine your education or understanding of a particular topic.",
-	["Perception"] = "Roll to notice fine details and alert yourself to danger.",
-	["Perform"] = "Roll to impress an audience with your talent and skill.",
-	["Reflex"] = "Roll to avoid or prevent an unexpected action.",
-	["Spellcraft"] = "Roll to sense or identify spells and magic items.",
-	["Stealth"] = "Roll to conceal yourself from detection.",
-	["Surviv"] = "Roll to keep yourself safe and fed in the wild.",
-	-- Matches "Survival" and "Survive"
-	["Will"] = "Roll to resist mental influence.",
-}
-
 local WORLD_MARKER_NAMES = {
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:14:14|t |cffffff00Yellow|r World Marker"; -- [1]
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:14:14|t |cffff7f3fOrange|r World Marker"; -- [2]
@@ -51,45 +23,6 @@ local WORLD_MARKER_NAMES = {
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_6:14:14|t |cff0070ddBlue|r World Marker"; -- [6]
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_7:14:14|t |cffff2020Red|r World Marker"; -- [7]
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:14:14|t |cffffffffWhite|r World Marker"; -- [8]
-}
-
-StaticPopupDialogs["DICEMASTER4_ROLLBANNER"] = {
-  text = "Enter a title for the banner:",
-  button1 = "Accept",
-  button2 = "Cancel",
-  OnShow = function (self, data)
-    self.editBox:SetText("Attack")
-	self.editBox:HighlightText()
-  end,
-  OnAccept = function (self, data)
-    local text = self.editBox:GetText()
-	local channel = "RAID";
-	local name = nil;
-	if data and UnitIsPlayer( data ) then
-		channel = "WHISPER";
-		name = data;
-	end
-	if GetNumGroupMembers() == 0 then
-		channel = "WHISPER";
-		name = UnitName("player")
-	end
-	if text == "" then
-		UIErrorsFrame:AddMessage( "Invalid name: too short.", 1.0, 0.0, 0.0, 53, 5 );
-	elseif strlen(text) > 30 then
-		UIErrorsFrame:AddMessage( "Invalid name: too long.", 1.0, 0.0, 0.0, 53, 5 );
-	else
-		local msg = Me:Serialize( "BANNER", {
-			na = tostring( UnitName("player") );
-			tp = tostring( text );
-		})
-		Me:SendCommMessage( "DCM4", msg, channel, name or nil, "ALERT" )
-	end
-  end,
-  hasEditBox = true,
-  timeout = 0,
-  whileDead = true,
-  hideOnEscape = true,
-  preferredIndex = 3,
 }
 
 StaticPopupDialogs["DICEMASTER4_GRANTEXPERIENCE"] = {
@@ -230,7 +163,7 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 	f:SetScript( "OnEvent", function( self, event, msg, sender )
 		if event:match("CHAT_MSG_") then
 			Me.OnChatMessage( msg, sender )
-		elseif event == "GROUP_ROSTER_UPDATE" and IsInGroup(1) then
+		elseif event == "GROUP_ROSTER_UPDATE" and IsInGroup( LE_PARTY_CATEGORY_HOME ) and not IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
 			DiceMasterDMNotesAllowAssistants:Hide()
 			DiceMasterDMNotesDMNotes.EditBox:Disable()
 			if Me.IsLeader() then
@@ -257,7 +190,7 @@ function Me.DiceMasterRollFrame_OnLoad(self)
 		DiceMasterDMNotesAllowAssistants:Show()
 		DiceMasterDMNotesDMNotes.EditBox:Enable()
 		Me.RollTracker_ShareNoteWithParty()
-	elseif IsInGroup(1) and not Me.IsLeader( false ) then
+	elseif IsInGroup( LE_PARTY_CATEGORY_HOME ) and not Me.IsLeader( false ) and not IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
 		for i = 1, GetNumGroupMembers(1) do
 			local name, rank = GetRaidRosterInfo(i)
 			if rank == 2 then
@@ -277,12 +210,17 @@ function Me.RollTargetDropDown_OnClick(self, arg1)
 	else
 		UIDropDownMenu_SetText(DiceMasterRollTracker.selectTarget, "") 
 	end
+	
+	if IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+		return
+	end
+	
 	local msg = Me:Serialize( "TARGET", {
 		ta = tonumber( arg1 );
 	})
 	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "ALERT" )
 	
-	if not IsInGroup(1) then
+	if not IsInGroup( LE_PARTY_CATEGORY_HOME ) then
 		if arg1 > 0 then 
 			Me.OnChatMessage( "{rt"..arg1.."}", UnitName("player") ) 
 		else
@@ -331,11 +269,11 @@ function DiceMasterRollTrackerButton_OnClick(self, button)
 end
 
 function Me.SortRolls( self, reversed, sortKey )
-	local sort_func = function( a,b ) return a[sortKey] < b[sortKey] end
+	local sort_func = function( a,b ) if not a then a = 0 end if not b then b = 0 end return a[sortKey] < b[sortKey] end
 	if not reversed then
 		self.reversed = true
 	else
-		sort_func = function( a,b ) return a[sortKey] > b[sortKey] end
+		sort_func = function( a,b ) if not a then a = 0 end if not b then b = 0 end return a[sortKey] > b[sortKey] end
 		self.reversed = false
 	end
 	table.sort( Me.SavedRolls, sort_func)
@@ -415,6 +353,8 @@ function Me.DiceMasterRollFrame_Update()
 			className, classFile, classID = UnitClass(name)
 			buttonText:SetText("|TInterface/Icons/ClassIcon_"..classFile..":16|t "..name)
 			buttonText:SetTextColor(RAID_CLASS_COLORS[classFile].r, RAID_CLASS_COLORS[classFile].g, RAID_CLASS_COLORS[classFile].b)
+		elseif name and not UnitIsConnected(name) then
+			buttonText:SetTextColor(0.5, 0.5, 0.5)
 		end
 		local buttonText = _G["DiceMasterRollTrackerButton"..i.."Roll"];
 		buttonText:SetText(roll or "--")
@@ -656,6 +596,8 @@ function Me.DiceMasterRollFrameDisplayDetail( rollIndex )
 		className, classFile, classID = UnitClass(name)
 		frame.Name:SetText("|TInterface/Icons/ClassIcon_"..classFile..":16|t "..name)
 		frame.Name:SetTextColor(RAID_CLASS_COLORS[classFile].r, RAID_CLASS_COLORS[classFile].g, RAID_CLASS_COLORS[classFile].b)
+	elseif name and not UnitIsConnected(name) then
+		buttonText:SetTextColor(0.5, 0.5, 0.5)
 	end
 	
 	Me.DiceMasterRollDetailFrame_Update()
@@ -672,6 +614,35 @@ function DiceMasterNotesEditBox_OnEditFocusLost(self)
 	else
 		self.Instructions:Hide()
 	end
+	
+	local TEXT_SUBS = {
+		{"{star}", "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:12|t"},
+		{"{circle}", "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:12|t"},
+		{"{diamond}", "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_3:12|t"},
+		{"{triangle}", "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4:12|t"},
+		{"{moon}", "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_5:12|t"},
+		{"{square}", "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_6:12|t"},
+		{"{x}", "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_7:12|t"},
+		{"{skull}", "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_8:12|t"},
+		{"<rule>", " |TInterface/COMMON/UI-TooltipDivider:4:240|t"},
+		{"<HP>", "|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t"},
+		{"<AR>", "|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t"},
+	}
+	
+	local text = self:GetText()
+	for i = 1, #TEXT_SUBS do
+		text = gsub( text, TEXT_SUBS[i][1], TEXT_SUBS[i][2] )
+	end
+	
+	-- <img> </img>
+	text = gsub( text, "<img>","|T" )
+	text = gsub( text, "</img>",":12|t" )
+	
+	-- <color=rrggbb> </color>
+	text = gsub( text, "<color=(.-)>","|cFF%1" )
+	text = gsub( text, "</color>","|r" )
+	
+	self:SetText( text )
 	
 	if Me.IsLeader( true ) then
 		Me.RollTracker_ShareNoteWithParty()
@@ -691,34 +662,10 @@ function DiceMasterNotesEditBox_OnTextChanged(self, userInput)
 end
 
 -------------------------------------------------------------------------------
--- Roll Banners.
---
-
-function Me.RollBanner_OnLoad( self )
-	self:SetScale( 0.8 )	
-end
-
-function Me.RollBanner_OnMouseEnter( self, button )
-	
-	if DiceMasterRollBanner.AnimOut:IsPlaying() then
-		DiceMasterRollBanner.AnimOut:Stop()
-	end
-	
-end
-
-function Me.RollBanner_OnMouseLeave( self, button )
-	
-	if DiceMasterRollBanner:IsShown() and not ( DiceMasterRollBanner.AnimIn:IsPlaying() or DiceMasterRollBanner.AnimOut:IsPlaying() ) then
-		DiceMasterRollBanner.AnimOut:Play()
-	end
-	
-end
-
--------------------------------------------------------------------------------
 -- Send a NOTES message to the party.
 --
 function Me.RollTracker_ShareNoteWithParty( shareRollOptions )
-	if not Me.IsLeader( true ) or not IsInGroup(1) then
+	if not Me.IsLeader( true ) or not IsInGroup( LE_PARTY_CATEGORY_HOME ) or IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
 		return
 	end
 	
@@ -935,7 +882,7 @@ function Me.RollTracker_OnNoteMessage( data, dist, sender )
 		return
 	end
 	
-	data.no = tostring(data.no)
+	data.no = tostring(data.no)	
 	DiceMasterDMNotesDMNotes.EditBox:SetText( data.no )
 	
 	if Me.IsLeader( true ) and data.ra then
@@ -954,7 +901,9 @@ end
 function Me.RollTracker_OnStatusRequest( data, dist, sender )
 
 	-- Ignore our own data.
-	if sender == UnitName( "player" ) then return end
+	if sender == UnitName( "player" ) or IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then 
+		return
+	end
  
 	if Me.IsLeader( false ) then
 		local msg = Me:Serialize( "NOTES", {
@@ -1006,62 +955,4 @@ function Me.RollTracker_OnTargetMessage( data, dist, sender )
 		tinsert(Me.SavedRolls, msg)
 	end
 	Me.DiceMasterRollFrame_Update()
-end
-
----------------------------------------------------------------------------
--- Received a banner request.
---  na = name							string
---	tp = type							string
-
-function Me.RollTracker_OnBanner( data, dist, sender )	
-	-- Only the party leader can send us these.
-	if not UnitIsGroupLeader(sender, 1) and not Me.IsLeader( false ) then return end
- 
-	-- sanitize message
-	if not data.na or not data.tp then
-	   
-		return
-	end
-	
-	if not DiceMasterRollBanner:IsShown() then
-		
-		-- if banners are off, just show the message.
-		if not Me.db.global.enableRoundBanners then
-			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp, "RAID")
-			return
-		end
-		
-		-- Look for punctuation at the end of the string
-		if not data.tp:match("%p$") then
-			data.tp = data.tp.."!"
-		end
-		
-		DiceMasterRollBanner.Title:SetText( data.tp )
-		
-		local found = false;
-		for k,v in pairs(ROLL_ROUND_TYPES) do
-			if data.tp:find(k) then
-				
-				Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp.." "..v)
-				
-				DiceMasterRollBanner.SubTitle:SetText(v)
-				
-				found = true;
-				break;
-			end
-		end
-		
-		if not found then
-			DiceMasterRollBanner.SubTitle:SetText("")
-			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t "..data.tp, "RAID")
-		end
-		
-		DiceMasterRollBanner.AnimIn:Play()
-		local timer = C_Timer.NewTimer(8, function()
-			if DiceMasterRollBanner:IsShown() and not MouseIsOver( DiceMasterRollBanner ) then
-				Me.RollBanner_OnMouseLeave( self, button )
-			end
-		end)
-		
-	end
 end

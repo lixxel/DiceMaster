@@ -48,31 +48,30 @@ local TRAIT_USAGE_MODES = {
 	"CHARGE1", "CHARGE2", "CHARGE3", "CHARGE4", "CHARGE5", "CHARGE6", "CHARGE7", "CHARGE8"
 }
 
+-------------------------------------------------------------------------------
+-- Trait.castTime modes.
+--
+local TRAIT_CAST_TIME_MODES = {
+	"INSTANT", "CHANNELED", "TURN1", "TURN2", "TURN3", "TURN4", "TURN5"
+}
+
+-------------------------------------------------------------------------------
+-- Trait.range modes.
+--
+local TRAIT_RANGE_MODES = {
+	"NONE", "MELEE", "10YD", "20YD", "30YD", "40YD", "50YD", "60YD", "70YD", "80YD", "90YD", "100YD", "UNLIMITED"
+}
+
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
-	-- Glossary Terms
-	{ "Advantage",          "|cFFFFFFFFAdvantage|r" };                                                  -- "advantage"
-	{ "(%s)(Check[s]*)", "%1|cFFFFFFFF%2|r" };	  													-- "checks"
-	{ "(Control[sleding]*)", "|cFFFFFFFF%1|r" };	  													-- "control"
-	{ "Disadvantage",       "|cFFFFFFFFDisadvantage|r" };                                               -- "disadvantage"
-	{ "[dD]ouble [oO]r [nN]othing", "|cFFFFFFFFDouble or Nothing|r" };                       			-- "double or nothing"
-	{ "Immunity",             "|cFFFFFFFFImmunity|r" };                                                 -- "immunity"
-	{ "NAT1", "|cFFFFFFFFNAT1|r" };	  																	-- "NAT1"
-	{ "NAT20", "|cFFFFFFFFNAT20|r" };	  																-- "NAT20"
-	{ "(Poison[seding]*)",   "|cFFFFFFFF%1|r" };   														-- "poison"
-	{ "(Reload[edsing]*)",             "|cFFFFFFFF%1|r" };                                        		-- "reload"
-	{ "(%s)(Reviv[edsing]*)",             "%1|cFFFFFFFF%2|r" };                                         -- "revive"
-	{ "(%s)(Sav[esing]*)",             "%1|cFFFFFFFF%2|r" };
-	{ "(%s)(Throw[s]*)",             "%1|cFFFFFFFF%2|r" };                                         -- e.g. "saving throws"
-	{ "(Stun[snedig]*)",    "|cFFFFFFFF%1|r" };   														-- "stun"
 	-- Icons
 	{ "(%s)(%d+)%sHealth",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };  		-- e.g. "1 health"
 	{ "(%s)(%d+)%sHP",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };      		-- e.g. "1 hp"
 	{ "(%s)(%d+)%sArmo[u]*r",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };		-- e.g. "1 armour"
 	-- Tags
 	{ "<rule>",		" |TInterface/COMMON/UI-TooltipDivider:4:220|t" };									-- <rule>
-	{ "<HP>",		"|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };						-- <HP>
-	{ "<AR>",		"|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };							-- <AR>
+	{ "(%s)(%d*)%s*<HP>",		"%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };						-- <HP>
+	{ "(%s)(%d*)%s*<AR>",		"%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };							-- <AR>
 	{ "%<%*%>",		"|TInterface/Transmogrify/transmog-tooltip-arrow:8|t" };									-- <*>
 	-- Dice
 	{ "%s?[+]%d+",           "|cFF00FF00%1|r" };                                                        -- e.g. "+1"
@@ -148,6 +147,8 @@ StaticPopupDialogs["DICEMASTER4_SETHEALTHMAX"] = {
  
 Me.traitCount  = 5
 Me.TRAIT_USAGE_MODES = TRAIT_USAGE_MODES
+Me.TRAIT_CAST_TIME_MODES = TRAIT_CAST_TIME_MODES
+Me.TRAIT_RANGE_MODES = TRAIT_RANGE_MODES
  
 -------------------------------------------------------------------------------
 -- Misc helper functions
@@ -198,7 +199,7 @@ end
 -- @returns true if the player is the leader.
 --
 function Me.IsLeader( allowAssistant )
-	if not IsInGroup(1) then
+	if not IsInGroup( LE_PARTY_CATEGORY_HOME ) then
 		return true
 	end
 	
@@ -362,6 +363,54 @@ function Me.FormatUsage( usage, name )
 end
 
 -------------------------------------------------------------------------------
+-- Convert trait cast time number into text.
+--
+-- @param castTime 	Cast Time index.
+--
+local TRAIT_CAST_TIME = {
+	["INSTANT"] = "Instant"; ["CHANNELED"] = "Channeled"; ["TURN1"] = "1 turn cast"; ["TURN2"] = "2 turns cast"; ["TURN3"] = "3 turns cast"; ["TURN4"] = "4 turns cast"; ["TURN5"] = "5 turns cast";
+}
+
+function Me.FormatCastTime( castTime )
+	local text = TRAIT_CAST_TIME[castTime] or "Instant"
+	return text
+end
+
+-------------------------------------------------------------------------------
+-- Convert trait range number into text.
+--
+-- @param range 	Range index.
+--
+local TRAIT_RANGE = {
+	["NONE"] = "(None)"; ["MELEE"] = "Melee Range";  ["10YD"] = "10 yd range"; ["20YD"] = "20 yd range"; ["30YD"] = "30 yd range"; ["40YD"] = "40 yd range"; ["50YD"] = "50 yd range"; ["60YD"] = "60 yd range"; ["70YD"] = "70 yd range"; ["80YD"] = "80 yd range"; ["90YD"] = "90 yd range"; ["100YD"] = "100 yd range"; ["UNLIMITED"] = "Unlimited range"; 
+}
+
+function Me.FormatRange( range )	
+	local text = TRAIT_RANGE[range] or ""
+	return text
+end
+
+-------------------------------------------------------------------------------
+-- Convert icon name into path.
+--
+-- @param iconID 	Index of the icon in the texture.
+--
+
+function Me.FormatIcon( iconID )
+	if not iconID then
+		return "";
+	end
+
+	local columns = 8
+	local l = mod(iconID, columns) * 32
+	local r = l + 32
+	local t = floor(iconID/columns) * 32
+	local b = t + 32
+	local path = "|TInterface/AddOns/DiceMaster/Texture/conditions:16:16:0:0:256:256:"..l..":"..r..":"..t..":"..b.."|t"
+	return path;
+end
+
+-------------------------------------------------------------------------------
 -- Add color codes to a trait description tooltip.
 --
 -- @param text Text to format.
@@ -371,7 +420,15 @@ function Me.FormatDescTooltip( text )
 	for k, v in pairs( Me.RollList ) do
 		for i = 1, #v do
 			if v[i].subName then
-				text = gsub( text, v[i].subName, "|cFFFFFFFF%1|r" )
+				text = gsub( text, "<(" .. v[i].subName .. ")>", "|cFFFFFFFF%1|r" )
+			end
+		end
+	end
+	
+	for k, v in pairs( Me.TermsList ) do
+		for i = 1, #v do
+			if v[i].subName then
+				text = gsub( text, "<(" .. v[i].subName .. ")>", "|cFFFFFFFF%1|r" )
 			end
 		end
 	end
@@ -578,7 +635,8 @@ end
 function Me.RefreshPetFrame()
 	if Profile.pet.enable and not Me.db.char.hidepanel then
 		DiceMasterPetChargesFrame.Name:SetText( Profile.pet.name )
-		DiceMasterPetChargesFrame.Texture:SetTexture( Profile.pet.icon )
+		--DiceMasterPetChargesFrame.Texture:SetTexture( Profile.pet.icon )
+		SetPortraitTextureFromCreatureDisplayID( DiceMasterPetChargesFrame.Texture, Profile.pet.model )
 		Me.SetupTooltip( DiceMasterPetChargesFrame.portrait, Profile.pet.icon, Profile.pet.name, Profile.pet.type )
 		DiceMasterPetChargesFrame:Show()
 	else

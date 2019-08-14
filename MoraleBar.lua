@@ -208,6 +208,15 @@ local altPowerBars = {
 		flash = true;
 		inset = 0.14;
 	},
+	["KargathRoarCrowd"] = {
+		path = "Interface/UNITPOWERBARALT/KargathRoarCrowd_Horizontal_";
+		frame = false;
+		background = true;
+		fill = true;
+		spark = true;
+		flash = true;
+		inset = 0.14;
+	},
 	["Map"] = {
 		path = "Interface/UNITPOWERBARALT/Map_Horizontal_";
 		frame = true;
@@ -298,6 +307,15 @@ local altPowerBars = {
 		spark = true;
 		flash = true;
 		inset = 0.15;
+	},
+	["Rhyolith"] = {
+		path = "Interface/UNITPOWERBARALT/Rhyolith_Horizontal_";
+		frame = true;
+		background = true;
+		fill = true;
+		spark = false;
+		flash = false;
+		inset = 0.14;
 	},
 	["Rock"] = {
 		path = "Interface/UNITPOWERBARALT/Rock_Horizontal_";
@@ -546,7 +564,7 @@ function Me.MoraleBar_SetUp(self)
 	
 	Me.MoraleBar_SetMinMaxPower(0, 100)
 	
-	if IsInGroup(1) and not Me.IsLeader( false ) then
+	if IsInGroup( LE_PARTY_CATEGORY_HOME ) and not Me.IsLeader( false ) and not IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
 		for i = 1, GetNumGroupMembers(1) do
 			local name, rank = GetRaidRosterInfo(i)
 			if rank == 2 then
@@ -596,7 +614,7 @@ end
 -- Send a MORALE message to the party.
 --
 function Me.MoraleBar_ShareStatusWithParty()
-	if not Me.IsLeader( true ) or not IsInGroup(1) then
+	if not Me.IsLeader( true ) or not IsInGroup( LE_PARTY_CATEGORY_HOME ) or IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
 		return
 	end
 	

@@ -123,6 +123,7 @@ function Me.TraitEditor_StatsList_Update()
 	DiceMasterStatsFrame.numStatsListEntries = addButtonIndex;
 
 	Me.TraitEditor_StatsFrame_UpdateStats();
+	Me.TraitEditor_StatsList_UpdatePointsTotal()
 end
 
 -------------------------------------------------------------------------------
@@ -151,6 +152,10 @@ function Me.TraitEditor_StatsFrame_UpdateStats()
 			local height = Me.TraitEditor_StatsFrame_UpdateStatButton(button)
 			button:SetHeight(height);
 			usedHeight = usedHeight + height;
+			
+			if button.value:HasFocus() then
+				button.value:ClearFocus()
+			end
 			
 			if index == 1 then
 				button.upButton:Disable()
@@ -280,7 +285,10 @@ function Me.TraitEditor_StatsList_Move( self, direction )
 		tinsert(Profile.stats, index + 1, stat)
 	end
 	Me.TraitEditor_StatsList_Update()
-	Me.Inspect_SendStats( "RAID" )
+	
+	if not IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+		Me.Inspect_SendStats( "RAID" )
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -316,7 +324,10 @@ function Me.TraitEditor_StatsList_Add( button, name, statistic, attribute )
 	tinsert(Profile.stats, index + 1, stat)
 	
 	Me.TraitEditor_StatsList_Update()
-	Me.Inspect_SendStats( "RAID" )
+	
+	if not IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+		Me.Inspect_SendStats( "RAID" )
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -340,7 +351,7 @@ function Me.TraitEditor_StatsList_Roll( button )
 	
 	dice = Me.FormatDiceString( dice, modifier )
 	
-	Me.Roll( dice, name )
+	Me.Roll( dice, stat.name )
 end
 
 -------------------------------------------------------------------------------
@@ -379,7 +390,10 @@ function Me.TraitEditor_StatsList_CreateDefaults()
 	end
 	
 	Me.TraitEditor_StatsList_Update()
-	Me.Inspect_SendStats( "RAID" )
+	
+	if not IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+		Me.Inspect_SendStats( "RAID" )
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -395,8 +409,70 @@ function Me.TraitEditor_StatsList_SaveStat( self )
 		return
 	end
 	
-	stat.value = self:GetText()
-	Me.Inspect_SendStats( "RAID" )
+	if Me.PermittedUse() then
+		if tonumber( self:GetText() ) > 5 then
+			self:SetText( self.lastValue )
+			UIErrorsFrame:AddMessage( "You cannot have more than 5 points in that Statistic!", 1.0, 0.0, 0.0, 53, 5 ); 
+		end		
+	end
+	
+	if stat.value then
+		stat.value = self:GetText()
+	end
+	
+	if not IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then
+		Me.Inspect_SendStats( "RAID" )
+	end
+	
+	Me.TraitEditor_StatsList_UpdatePointsTotal()
+end
+
+-------------------------------------------------------------------------------
+-- Handler for calculating the points totals.
+--
+--
+function Me.TraitEditor_StatsList_UpdatePointsTotal()
+
+	if not Me.PermittedUse() or not Profile.stats then
+		return
+	end
+
+	local stats = Profile.stats
+	local attributePoints = 3
+	local skillPoints = 9
+	
+	for k, v in pairs( Me.AttributeList ) do
+		for i = 1, #stats do
+			if stats[i].name == k and stats[i].value then
+				attributePoints = attributePoints - stats[i].value
+			end
+		end
+	end
+	
+	for i = 1, #Me.RollList["Skills"] do
+		for s = 1, #stats do
+			if stats[s].name == Me.RollList["Skills"][i].name and stats[s].value then
+				skillPoints = skillPoints - stats[s].value
+			end
+		end
+	end
+	
+	DiceMasterTraitEditor.StatsPointCounter.AttributeCount:SetText( attributePoints )
+	DiceMasterTraitEditor.StatsPointCounter.SkillCount:SetText( skillPoints )
+	
+	if attributePoints < 0 then
+		DiceMasterTraitEditor.StatsPointCounter.AttributeCount:SetTextColor( 1, 0, 0 )
+	else
+		DiceMasterTraitEditor.StatsPointCounter.AttributeCount:SetTextColor( 1, 1, 1 )
+	end
+	
+	if skillPoints < 0 then
+		DiceMasterTraitEditor.StatsPointCounter.SkillCount:SetTextColor( 1, 0, 0 )
+	else
+		DiceMasterTraitEditor.StatsPointCounter.SkillCount:SetTextColor( 1, 1, 1 )
+	end
+	
+	Me.SetupTooltip( DiceMasterTraitEditor.StatsPointCounter, nil, "Remaining Points", nil, nil, nil, "You have "..attributePoints.." remaining Attribute points and "..skillPoints.." remaining Skill points to spend." )
 end
 
 -------------------------------------------------------------------------------
@@ -475,6 +551,10 @@ end
 -- Handler for when the model has been updated.
 --
 function Me.PetEditor_SaveModel()
+	if DiceMasterPetFrame.petModel:GetDisplayInfo() == 0 then
+		return
+	end
+	
 	Profile.pet.model = DiceMasterPetFrame.petModel:GetDisplayInfo()
 	Me.RefreshPetFrame()
 end
@@ -533,6 +613,97 @@ function Me.TraitEditor_InsertTag( tag, tag2 )
 	end
 	editbox:Insert(s);
 	
+end
+
+-------------------------------------------------------------------------------
+-- Terms dropdown list.
+--
+--
+
+function Me.TraitEditor_TermsOnClick(self, arg1)
+	if arg1 then
+		Me.TraitEditor_Insert( "<" .. arg1 .. ">" )
+	end
+end
+
+function Me.TraitEditor_TermsOnLoad(frame, level, menuList)
+	local info = UIDropDownMenu_CreateInfo()
+	if level == 1 then
+		info.isNotRadio = true;
+		info.notCheckable = true;
+		info.hasArrow = true;
+		info.keepShownOnClick = true;
+		info.menuList = 1;
+		info.text = "Effects";
+		UIDropDownMenu_AddButton(info, level);
+		info.menuList = 2;
+		info.text = "Conditions";
+		UIDropDownMenu_AddButton(info, level);
+		info.menuList = 3;
+		info.text = "Skills";
+		UIDropDownMenu_AddButton(info, level);
+		info.menuList = 4;
+		info.text = "Saving Throws";
+		UIDropDownMenu_AddButton(info, level);
+		info.isTitle = false;
+		info.func = Me.TraitEditor_TermsOnClick;
+	elseif menuList == 1 then
+		for i = 1, #Me.TermsList["Effects"] do
+			local term = Me.TermsList["Effects"][i];
+			info.text = Me.FormatIcon( term.iconID ) .. " " .. term.name;
+			info.notCheckable = true;
+			info.tooltipTitle = Me.FormatIcon( term.iconID ) .. " " .. term.name;
+			info.tooltipText = term.desc;
+			info.tooltipOnButton = true;
+			if term.altTerm then
+				info.arg1 = term.altTerm;
+			else
+				info.arg1 = term.name;
+			end
+			info.func = Me.TraitEditor_TermsOnClick;
+			UIDropDownMenu_AddButton(info, level);
+		end
+	elseif menuList == 2 then
+		for i = 1, #Me.TermsList["Conditions"] do
+			local term = Me.TermsList["Conditions"][i];
+			info.text = Me.FormatIcon( term.iconID ) .. " " .. term.name;
+			info.notCheckable = true;
+			info.tooltipTitle = Me.FormatIcon( term.iconID ) .. " " .. term.name;
+			info.tooltipText = term.desc;
+			info.tooltipOnButton = true;
+			if term.altTerm then
+				info.arg1 = term.altTerm;
+			else
+				info.arg1 = term.name;
+			end
+			info.func = Me.TraitEditor_TermsOnClick;
+			UIDropDownMenu_AddButton(info, level);
+		end
+	elseif menuList == 3 then
+		for i = 1, #Me.RollList["Skills"] do
+			local term = Me.RollList["Skills"][i];
+			info.text = term.name;
+			info.notCheckable = true;
+			info.tooltipTitle = term.name;
+			info.tooltipText = gsub( term.desc, "Roll", "An attempt" );
+			info.tooltipOnButton = true;
+			info.arg1 = term.name;
+			info.func = Me.TraitEditor_TermsOnClick;
+			UIDropDownMenu_AddButton(info, level);
+		end
+	elseif menuList == 4 then
+		for i = 1, #Me.RollList["Saving Throws"] do
+			local term = Me.RollList["Saving Throws"][i];
+			info.text = term.name;
+			info.notCheckable = true;
+			info.tooltipTitle = term.name;
+			info.tooltipText = gsub( term.desc, "Roll", "An attempt" );
+			info.tooltipOnButton = true;
+			info.arg1 = term.name;
+			info.func = Me.TraitEditor_TermsOnClick;
+			UIDropDownMenu_AddButton(info, level);
+		end
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -695,42 +866,57 @@ end
 --
 function Me.TraitEditor_Refresh()
 	local trait = Profile.traits[Me.editing_trait]
-	Me.editor.scrollFrame.Container.traitIcon:SetTexture( trait.icon )
-	Me.editor.scrollFrame.Container.traitName:SetText( trait.name )
-	Me.editor.scrollFrame.Container.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
-	Me.editor.scrollFrame.Container.traitUsage:SetWidth(Me.editor.scrollFrame.Container.traitUsage.text:GetStringWidth())
-	Me.editor.scrollFrame.Container.descEditor:SetText( trait.desc )
+	local scrollFrame = Me.editor.scrollFrame.Container
+	
+	scrollFrame.traitIcon:SetTexture( trait.icon )
+	scrollFrame.traitName:SetText( trait.name )
+	scrollFrame.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
+	scrollFrame.traitUsage:SetWidth(scrollFrame.traitUsage.text:GetStringWidth())
+	
+	if not ( trait.usage == "PASSIVE" ) then
+		scrollFrame.traitRange.text:SetText( Me.FormatRange( trait.range ) )
+		scrollFrame.traitRange:SetWidth(scrollFrame.traitRange.text:GetStringWidth())
+		scrollFrame.traitCastTime.text:SetText( Me.FormatCastTime( trait.castTime ) )
+		scrollFrame.traitCastTime:SetWidth(scrollFrame.traitCastTime.text:GetStringWidth())
+		scrollFrame.traitRange:Show()
+		scrollFrame.traitCastTime:Show()
+	else
+		scrollFrame.traitRange:Hide()
+		scrollFrame.traitCastTime:Hide()
+	end
+	
+	scrollFrame.descEditor:SetText( trait.desc )
 	
 	local buff = Me.Profile.buffs[Me.editing_trait] or nil
 	if buff and buff.blank == false then
-		Me.editor.scrollFrame.Container.applyBuff:Show()
-		Me.editor.scrollFrame.Container.applyBuff.Icon:SetTexture(buff.icon)
-		Me.editor.scrollFrame.Container.applyBuff.Name:SetText(buff.name)
-		Me.editor.scrollFrame.Container.removeBuff:SetPoint("TOPLEFT", Me.editor.scrollFrame.Container.applyBuff, "BOTTOMLEFT", 0, -20)
-		Me.SetupTooltip( Me.editor.scrollFrame.Container.applyBuff, nil, "|cFFffd100"..buff.name, nil, nil, Me.FormatDescTooltip( buff.desc or "" ) )
+		scrollFrame.applyBuff:Show()
+		scrollFrame.applyBuff.Icon:SetTexture(buff.icon)
+		scrollFrame.applyBuff.Name:SetText(buff.name)
+		scrollFrame.removeBuff:SetPoint("TOPLEFT", scrollFrame.applyBuff, "BOTTOMLEFT", 0, -20)
+		Me.SetupTooltip( scrollFrame.applyBuff, nil, "|cFFffd100"..buff.name, nil, nil, Me.FormatDescTooltip( buff.desc or "" ) )
 	else
-		Me.editor.scrollFrame.Container.applyBuff:Hide()
-		Me.editor.scrollFrame.Container.removeBuff:SetPoint("TOPLEFT", Me.editor.scrollFrame.Container.descEditor, "BOTTOMLEFT", 0, -30)
+		scrollFrame.applyBuff:Hide()
+		scrollFrame.removeBuff:SetPoint("TOPLEFT", scrollFrame.descEditor, "BOTTOMLEFT", 0, -30)
 	end
 	
 	local debuff = Me.Profile.removebuffs[Me.editing_trait] or nil
 	if debuff and debuff.blank == false then
-		Me.editor.scrollFrame.Container.removeBuff:Hide()
-		Me.editor.scrollFrame.Container.removeBuff.Name:SetText(debuff.name)
-		Me.editor.scrollFrame.Container.removeBuff.Icon:SetTexture("Interface/Icons/Spell_Shadow_SacrificialShield")
+		scrollFrame.removeBuff:Hide()
+		scrollFrame.removeBuff.Name:SetText(debuff.name)
+		scrollFrame.removeBuff.Icon:SetTexture("Interface/Icons/Spell_Shadow_SacrificialShield")
 		
 		if not Me.Profile.buffs then return end
 		
 		for i = 1,5 do
 			if Me.Profile.buffs[i] and Me.Profile.buffs[i].name == debuff.name then
-				Me.editor.scrollFrame.Container.removeBuff.Icon:SetTexture(Me.Profile.buffs[i].icon)
-				Me.editor.scrollFrame.Container.removeBuff:Show()
-				Me.SetupTooltip( Me.editor.scrollFrame.Container.removeBuff, nil, "|cFFffd100"..Me.Profile.buffs[i].name, nil, nil, Me.FormatDescTooltip( Me.Profile.buffs[i].desc or "" ) )
+				scrollFrame.removeBuff.Icon:SetTexture(Me.Profile.buffs[i].icon)
+				scrollFrame.removeBuff:Show()
+				Me.SetupTooltip( scrollFrame.removeBuff, nil, "|cFFffd100"..Me.Profile.buffs[i].name, nil, nil, Me.FormatDescTooltip( Me.Profile.buffs[i].desc or "" ) )
 				break
 			end
 		end
 	else
-		Me.editor.scrollFrame.Container.removeBuff:Hide()
+		scrollFrame.removeBuff:Hide()
 	end
 	
 	for i = 1, 5 do
@@ -810,8 +996,108 @@ function Me.TraitEditor_ChangeUsage( button )
 	
 	trait.usage = Me.TRAIT_USAGE_MODES[usage_index]
 	
+	if trait.usage == "PASSIVE" then
+		Me.editor.scrollFrame.Container.traitRange:Hide()
+		Me.editor.scrollFrame.Container.traitCastTime:Hide()
+	else
+		Me.editor.scrollFrame.Container.traitRange:Show()
+		Me.editor.scrollFrame.Container.traitCastTime:Show()
+	end
+	
 	-- update text
 	Me.editor.scrollFrame.Container.traitUsage.text:SetText( Me.FormatUsage( trait.usage ) )
+	TraitUpdated()
+end
+
+-------------------------------------------------------------------------------
+-- Change the range of the currently edited trait
+--
+-- @param button Mouse button that was pressed
+--               "LeftButton" = use next range
+--               "RightButton" = use previous range
+--
+function Me.TraitEditor_ChangeRange( button )
+	local trait = Profile.traits[Me.editing_trait]
+	
+	local delta
+	if button == "LeftButton" then
+		delta = 1
+	elseif button == "RightButton" then
+		delta = -1
+	else
+		return
+	end
+	
+	local range_index
+	for k,v in ipairs( Me.TRAIT_RANGE_MODES ) do
+		if trait.range == v then
+			range_index = k
+			break
+		end
+	end
+	
+	if not range_index then
+		range_index = 1;
+	else
+		range_index = range_index + delta
+	end
+	
+	if range_index > #Me.TRAIT_RANGE_MODES then
+		range_index = 1;
+	elseif range_index <= 0 then
+		range_index = #Me.TRAIT_RANGE_MODES;
+	end
+	
+	trait.range = Me.TRAIT_RANGE_MODES[range_index]
+	
+	-- update text
+	Me.editor.scrollFrame.Container.traitRange.text:SetText( Me.FormatRange( trait.range ) )
+	TraitUpdated()
+end
+
+-------------------------------------------------------------------------------
+-- Change the cast time of the currently edited trait
+--
+-- @param button Mouse button that was pressed
+--               "LeftButton" = use next cast time
+--               "RightButton" = use previous cast time
+--
+function Me.TraitEditor_ChangeCastTime( button )
+	local trait = Profile.traits[Me.editing_trait]
+	
+	local delta
+	if button == "LeftButton" then
+		delta = 1
+	elseif button == "RightButton" then
+		delta = -1
+	else
+		return
+	end
+	
+	local cast_index
+	for k,v in ipairs( Me.TRAIT_CAST_TIME_MODES ) do
+		if trait.castTime == v then
+			cast_index = k
+			break
+		end
+	end
+	
+	if not cast_index then
+		cast_index = 1;
+	else
+		cast_index = cast_index + delta
+	end
+	
+	if cast_index > #Me.TRAIT_CAST_TIME_MODES then
+		cast_index = 1;
+	elseif cast_index <= 0 then
+		cast_index = #Me.TRAIT_CAST_TIME_MODES;
+	end
+	
+	trait.castTime = Me.TRAIT_CAST_TIME_MODES[cast_index]
+	
+	-- update text
+	Me.editor.scrollFrame.Container.traitCastTime.text:SetText( Me.FormatCastTime( trait.castTime ) )
 	TraitUpdated()
 end
 

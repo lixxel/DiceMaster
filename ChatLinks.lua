@@ -50,6 +50,45 @@ local public_events = {
 	["CHAT_MSG_EMOTE"] = true;
 }
 
+local function CheckTooltipForTerms( text )
+	DiceMasterItemRefTooltip:Hide()
+	local termsTable = {}
+	for k, v in pairs( Me.RollList ) do
+		for i = 1, #v do
+			local matchFound = string.match( text, v[i].subName )
+			if matchFound then
+				local desc = gsub( v[i].desc, "Roll", "An attempt" )
+				local termsString = "|cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. desc .. "|r|n|cFF707070(Modified by " .. v[i].stat .. " + " .. v[i].name .. ")|r"
+				
+				if not tContains( termsTable, termsString ) then
+					tinsert( termsTable, termsString )
+				end
+			end
+		end
+	end
+	for k, v in pairs( Me.TermsList ) do
+		for i = 1, #v do
+			local matchFound = string.match( text, "<" .. v[i].subName .. ">" )
+			if matchFound then
+				local termsString = Me.FormatIcon( v[i].iconID ) .. " |cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. v[i].desc .. "|r"
+				if not tContains( termsTable, termsString ) then
+					tinsert( termsTable, termsString )
+				end
+			end
+		end
+	end
+	if #termsTable > 0 then
+		table.sort( termsTable )
+		local tooltip = termsTable[1]
+		for i = 2, #termsTable do
+			tooltip = tooltip .. "|n|n" .. termsTable[i]
+		end
+		DiceMasterItemRefTooltip.TextLeft1:SetText( tooltip )
+		DiceMasterItemRefTooltip:Show()
+		ItemRefTooltip:HookScript("OnHide", function() DiceMasterItemRefTooltip:Hide() end )
+	end
+end
+
 -------------------------------------------------------------------------------
 -- Chat filter for processing DiceMaster4 links.
 --
@@ -108,9 +147,32 @@ local function RefreshItemRef()
 	
 	ItemRefTooltip:ClearLines();
 	ItemRefTooltip:AddLine( trait.name, 1,1,1,1 )
-	ItemRefTooltip:AddLine( Me.FormatUsage( trait.usage, Me.itemRefPlayer ), 1,1,1,1 )
+	
+	if trait.usage then
+		local usage = Me.FormatUsage( trait.usage, Me.itemRefPlayer )
+		
+		if trait.usage ~= "PASSIVE" and trait.range and trait.range ~= "NONE" then
+			local range = Me.FormatRange( trait.range )
+			ItemRefTooltip:AddDoubleLine( usage, range, 1, 1, 1, 1, 1, 1, true )
+		else
+			ItemRefTooltip:AddDoubleLine( usage, nil, 1, 1, 1, 1, 1, 1, true )
+		end
+		
+		if trait.usage ~= "PASSIVE" and trait.castTime then
+			local castTime = Me.FormatCastTime( trait.castTime )
+			ItemRefTooltip:AddLine( castTime, 1, 1, 1, true )
+		end
+	end
 	
 	local desc = Me.FormatDescTooltip( trait.desc )
+	
+	if trait.desc then
+		if Me.db.global.hideTips then
+			CheckTooltipForTerms( trait.desc )
+		end
+		local desc = Me.FormatDescTooltip( trait.desc )
+		ItemRefTooltip:AddLine( desc, 1,0.82,0,1 )
+	end
 	
 	if trait.approved and trait.approved > 0 and Me.PermittedUse() then
 		if trait.approved == 1 then
@@ -122,8 +184,6 @@ local function RefreshItemRef()
 	else
 		DiceMasterItemRefIcon.approved:Hide()
 	end
-	
-	ItemRefTooltip:AddLine( desc, 1,0.82,0,1 )
 	
 	if trait.officers and Me.PermittedUse() then
 		local approval

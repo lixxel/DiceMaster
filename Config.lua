@@ -101,6 +101,8 @@ do
 		DB_DEFAULTS.profile.traits[i] = {
 			name   = "Trait " .. numbers[i];                    -- name of trait
 			usage  = Me.TRAIT_USAGE_MODES[1];                   -- usage, see USAGE_MODES
+			range  = Me.TRAIT_RANGE_MODES[1];                   -- usage, see RANGE_MODES
+			castTime = Me.TRAIT_CAST_TIME_MODES[1];				-- cast time, see CAST_TIME_MODES
 			desc   = "Type a description for your trait here."; -- trait description
 			approved = false;									-- trait approved
 			officers = {};										-- approved by
@@ -598,6 +600,8 @@ Me.configOptionsProgressBar = {
 						["FelCorruption"] = "Fel Corruption",
 						["Murozond"] = "Murozond Hourglass",
 						["Pride"] = "Pride",
+						["Rhyolith"] = "Rhyolith",
+						["KargathRoarCrowd"] = "Ogre",
 						["Meditation"] = "Meditation",
 						["Jaina"] = "Jaina",
 					};

@@ -24,10 +24,11 @@ local MessageHandlers = {
 	
 	TYPE    = "PostTracker_OnTyping";
 	
-	BANNER  = "RollTracker_OnBanner";
 	TARGET  = "RollTracker_OnTargetMessage";
 	NOTES   = "RollTracker_OnNoteMessage";
 	NOTREQ  = "RollTracker_OnStatusRequest";
+	
+	BANNER  = "RollBanner_OnBanner";
 	
 	BUFF    = "BuffFrame_OnBuffMessage";
 	REMOVE  = "BuffFrame_OnRemoveBuffMessage";
@@ -53,6 +54,11 @@ function Me:OnCommMessage( prefix, packed_message, dist, sender )
 	if sender:find("-") then
 		-- this is the best xrealm support ur gonna get :)
 		sender = sender:match( "(.+)%-")
+	end
+	
+	if dist == "RAID" and IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) and IsInGroup( LE_PARTY_CATEGORY_HOME ) then
+		-- Prevents "You are not in a raid group" spam.
+		dist = "PARTY";
 	end
 	
 	local handler = MessageHandlers[msgtype]

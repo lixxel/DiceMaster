@@ -728,7 +728,7 @@ function Me.BuffFrame_RemoveBuff( traitIndex )
 end
 
 function Me.BuffFrame_CastAOEBuff( target, range, buff )
-	if not IsInGroup(1) or not target or not range or not buff then return end
+	if not IsInGroup( LE_PARTY_CATEGORY_HOME ) or not target or not range or not buff then return end
 	
 	local y1, x1, _, instance1 = UnitPosition( target )
 	for i = 1, GetNumGroupMembers(1) do
@@ -782,7 +782,7 @@ end
 
 function Me.BuffFrame_OnBuffMessage( data, dist, sender )
 	-- Only accept buffs if we're in a party.
-	if not IsInGroup(1) and sender ~= UnitName("player") then return end
+	if not IsInGroup( LE_PARTY_CATEGORY_HOME ) and sender ~= UnitName("player") then return end
  
 	-- sanitize message
 	if not data.na or not data.ic or not data.de or not data.co then
@@ -841,7 +841,7 @@ end
 
 function Me.BuffFrame_OnRemoveBuffMessage( data, dist, sender )
 	-- Only accept buffs if we're in a party.
-	if not IsInGroup(1) and sender ~= UnitName("player") then return end
+	if not IsInGroup( LE_PARTY_CATEGORY_HOME ) and sender ~= UnitName("player") then return end
  
 	-- sanitize message
 	if not data.na or not data.co then

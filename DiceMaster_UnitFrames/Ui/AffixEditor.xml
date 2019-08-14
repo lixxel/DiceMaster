@@ -16,7 +16,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="OVERLAY">
-				<FontString name="$parentUnitName" inherits="GameFontHighlightSmall" parentKey="UnitName" text="Unit Name">
+				<FontString name="$parentUnitName" wordwrap="false" maxLines="1" inherits="GameFontHighlightSmall" parentKey="UnitName" text="Unit Name">
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="-12" y="7"/>
 						<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" x="12" y="7"/>
@@ -99,7 +99,7 @@
   
 	<!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
 	<Frame name="DiceMasterAffixEditor" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="HIGH" toplevel="true">
-		<Size x="417" y="438" />
+		<Size x="417" y="498" />
 		<Anchors>
 		  <Anchor point="CENTER" />
 		</Anchors>
@@ -127,7 +127,7 @@
 			
 			self.Inset:ClearAllPoints();
 			self.Inset:SetPoint("TOPLEFT", 91, -26);
-			self.Inset:SetPoint("BOTTOMRIGHT", -6, 126);
+			self.Inset:SetPoint("BOTTOMRIGHT", -6, 186);
 			
 			self.NineSlice:SetFrameLevel(1)
 			self.TitleText:SetText("Unit Editor")
@@ -196,6 +196,12 @@
 			<Button name="$parentActiveUnit5" inherits="DiceMasterUnitFrameSlotTemplate" id="5">
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeTo="$parentActiveUnit4" relativePoint="BOTTOMLEFT" x="0" y="-25"/>
+				</Anchors>
+			</Button>
+			
+			<Button name="$parentActiveUnit6" inherits="DiceMasterUnitFrameSlotTemplate" id="6">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parentActiveUnit5" relativePoint="BOTTOMLEFT" x="0" y="-25"/>
 				</Anchors>
 			</Button>
 			
@@ -374,6 +380,36 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
+			
+			<Button name="$parentSetHealth" parentKey="setHealth" inherits="MagicButtonTemplate" text="Set Health">
+				<Size x="120" y="22"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parentSendTalkingHead" relativePoint="BOTTOMLEFT" x="0" y="-8"/> 
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to change this unit's health.")
+					</OnLoad>
+					<OnClick>
+						StaticPopup_Show("DICEMASTER4_SETUNITHEALTHVALUE", nil, nil, DiceMaster4.UnitEditing)
+					</OnClick>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentSetMaxHealth" parentKey="setMaxHealth" inherits="MagicButtonTemplate" text="Set Maximum Health">
+				<Size x="180" y="22"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parentSetHealth" relativePoint="RIGHT" x="4" y="0"/> 
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to change this unit's maximum health.")
+					</OnLoad>
+					<OnClick>
+						StaticPopup_Show("DICEMASTER4_SETUNITHEALTHMAX", nil, nil, DiceMaster4.UnitEditing)
+					</OnClick>
+				</Scripts>
+			</Button>
 			
 			<Button name="$parentLoadButton" parentKey="LoadButton" enableMouse="true" inherits="UIPanelButtonTemplate">
 				<Size x="80" y="16"/>

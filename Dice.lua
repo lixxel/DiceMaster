@@ -105,8 +105,8 @@ function Me.FormatDiceString( dice, modifier )
 		mod = mod + modifier
 	end
 	
-	if Me.PermittedUse() and mod > 5 then
-		mod = 5
+	if Me.PermittedUse() and mod > 10 then
+		mod = 10
 	end
 	
 	return Me.FormatDiceType( count, sides, mod )
