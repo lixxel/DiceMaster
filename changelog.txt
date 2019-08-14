@@ -1,3 +1,21 @@
+### 5.1
+ - Patch 8.2 support
+ - Added support for img and color tags in the DM Manager Notes tab, as well as world markers in {} brackets.
+ - Unit Frames cap increased to 6 (was 5).
+ - Active-use traits can now specify a cast time and range.
+ - Added enhanced tooltips to the ItemRefTooltip.
+ - Enhanced tooltips should no longer go off-screen.
+ - DiceMaster no longer automatically colours certain terms in white text. You will now have to put those terms in <> brackets.
+ - Added a new "insert terms" option to the Trait Editor markdown toolbar.
+ - Fixed an issue where Pet models were not saving between sessions.
+ - Added new 8.2 NPC displayIDs to the Model Picker.
+ - Fixed an issue where sorting the Roll Tracker by Roll or Type produced Lua errors when some entries were missing values.
+ - Fixed an issue causing Statistics headers to sometimes display as statistics.
+ - Fixed an issue where DiceMaster caused "You are not in a raid group" messages to spam chat when the player is in instanced content.
+ - Added Anduin's Heroes of the Storm icons, plus a 40+ Diablo 3 icons that were missing.
+ - Added new buttons to set health and maximum health to the Unit Editor.
+ - Added a new StaticPopUpDialog when a player tries to edit the description field of an approved trait (League of Lordaeron only).
+
 ### 5.0.9
  - New Diablo 3 and Heroes of the Storm icons have been added to the icon libraries.
  - Rank icons have been removed from the Trait Editor.
