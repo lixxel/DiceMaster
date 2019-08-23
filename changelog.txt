@@ -1,3 +1,14 @@
+### 5.1.1
+ - Fixed an issue with the "Select Model" button in the Unit Editor.
+ - You can now assign sound effects to Unit Frames in the Unit Editor! These sounds will play when the unit spawns, takes damage, dies, and sends a Talking Head message.
+ - New config menu option to enable/disable Unit Frame sound effects.
+ - New animations added to Unit Frames.
+ - New "blood effects" option added to Unit Frames, enabling blood spurt effects when a unit takes damage.
+ - Added a "toggle visibility" button to Unit Frames to facilitate quicker visibility toggling.
+ - Collapsed Unit Frames no longer clip the unit's head.
+ - Fixed subbing tags for Saving Throw terms.
+ - Fixed an issue where sorting the Roll Tracker produced Lua errors.
+
 ### 5.1
  - Patch 8.2 support
  - Added support for img and color tags in the DM Manager Notes tab, as well as world markers in {} brackets.
@@ -15,7 +26,7 @@
  - Added Anduin's Heroes of the Storm icons, plus a 40+ Diablo 3 icons that were missing.
  - Added new buttons to set health and maximum health to the Unit Editor.
  - Added a new StaticPopUpDialog when a player tries to edit the description field of an approved trait (League of Lordaeron only).
-
+ 
 ### 5.0.9
  - New Diablo 3 and Heroes of the Storm icons have been added to the icon libraries.
  - Rank icons have been removed from the Trait Editor.

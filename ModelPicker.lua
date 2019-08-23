@@ -419,6 +419,8 @@ end
 -- Open the model picker window.
 --
 function Me.ModelPicker_Open( frame, model )
+	Me.SoundPicker_Close()
+	DiceMasterModelPicker:ClearAllPoints()
 	DiceMasterModelPicker:SetPoint( "LEFT", frame, "RIGHT" )
 	Me.ModelEditing = model
 	filteredList = nil

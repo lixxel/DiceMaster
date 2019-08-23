@@ -249,6 +249,7 @@
 				<Scripts>
 					<OnClick>
 						if DiceMaster4.IsLeader( false ) then
+							DiceMasterBannerPromptDialog.target = DiceMasterRollTracker.selectedName
 							DiceMasterBannerPromptDialog:Show()	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 						end
 					</OnClick>
@@ -582,6 +583,7 @@
 					<Scripts>
 						<OnClick>
 							if DiceMaster4.IsLeader( false ) then
+								DiceMasterBannerPromptDialog.target = "RAID"
 								DiceMasterBannerPromptDialog:Show()
 							end
 						</OnClick>

@@ -23,6 +23,7 @@ local DB_DEFAULTS = {
 		hideTypeTracker = false;
 		enableRoundBanners = true;
 		talkingHeads = true;
+		soundEffects = true;
 		miniFrames = false;
 		snapping = false;
 	};
@@ -808,6 +809,18 @@ Me.configOptionsUF = {
 				Me.db.global.talkingHeads = val
 			end;
 			get = function( info ) return Me.db.global.talkingHeads end;
+		};
+		
+		soundEffects = {
+			order = 20;
+			name  = "Enable Sound Effects";
+			desc  = "Allow the party leader to use sound effects with Unit Frames.";
+			type  = "toggle";
+			width = "full";
+			set = function( info, val )
+				Me.db.global.soundEffects = val
+			end;
+			get = function( info ) return Me.db.global.soundEffects end;
 		};
 	};
 }

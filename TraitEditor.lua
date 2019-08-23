@@ -81,6 +81,24 @@ StaticPopupDialogs["DICEMASTER4_DELETETRAITDESCRIPTION"] = {
   preferredIndex = 3,
 }
 
+StaticPopupDialogs["DICEMASTER4_EDITTRAITDESCRIPTION"] = {
+  text = "This trait will lose its officer approval if you edit its description. Are you sure you want to commit these changes?",
+  button1 = "Yes",
+  button2 = "No",
+  OnAccept = function (self, data)
+	Me.TraitEditor_SaveDescription()
+  end,
+  OnCancel = function (self, data)
+	Me.editor.scrollFrame.Container.descEditor:SetText( data )
+	Me.TraitEditor_SaveDescription( true )
+  end,
+  showAlert  = true,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
 -------------------------------------------------------------------------------
 -- Refresh the statistics list.
 --
@@ -1125,13 +1143,32 @@ function Me.TraitEditor_SaveName()
 end
 
 -------------------------------------------------------------------------------
+-- Handler for when the text editor gains focus.
+--
+function Me.TraitEditor_EditDescription()
+	if not Me.PermittedUse() then
+		Me.TraitEditor_SaveDescription()
+		return
+	end
+
+	local trait = Profile.traits[Me.editing_trait]
+	if trait.approved and trait.approved > 0 and trait.officers and #trait.officers > 0 then
+		StaticPopup_Show("DICEMASTER4_EDITTRAITDESCRIPTION", nil, nil, trait.desc)
+	else
+		Me.TraitEditor_SaveDescription()
+	end
+end
+
+-------------------------------------------------------------------------------
 -- Handler for when the text editor loses focus.
 --
-function Me.TraitEditor_SaveDescription()
+function Me.TraitEditor_SaveDescription( noReset )
 	local trait = Profile.traits[Me.editing_trait]
 	trait.desc = Me.editor.scrollFrame.Container.descEditor:GetText()
-	trait.approved = 0;
-	trait.officers = nil;
+	if not noReset then
+		trait.approved = 0;
+		trait.officers = nil;
+	end
 	TraitUpdated()
 end
 

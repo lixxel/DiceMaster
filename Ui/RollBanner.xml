@@ -230,6 +230,8 @@
 				self:SetScript( "OnDragStop", self.StopMovingOrSizing )
 				self:SetUserPlaced( true )
 				
+				self.target = "RAID"
+				
 				-- create check buttons
 				self.checkboxes = {}
 				for i = 1, 6 do

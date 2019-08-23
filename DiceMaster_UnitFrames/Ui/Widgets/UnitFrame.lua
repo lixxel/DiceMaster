@@ -124,10 +124,8 @@ local OTHER_ZONES_2 = {
 }
 
 local HEALTH_EFFECTS = {
-	["healthbuff"] = { soundKit = 32877, anim = 54, altAnim = 32 },
-	["healthdebuff"] = { soundKit = 32878, anim = 8, altAnim = 9 },
-	["defensebuff"] = { soundKit = 32882, anim = 54, altAnim = 32 },
-	["defensedebuff"] = { soundKit = 32881, anim = 20, altAnim = 30 },
+	["wound"] = { anim = 8, altAnim = 9 },
+	["spawn"] = { anim = 127, altAnim = 224 },
 }
 
 local WORLD_MARKER_NAMES = {
@@ -171,6 +169,7 @@ local methods = {
 		self.armor = 0
 		Me.RefreshHealthbarFrame( self.health, self.healthCurrent, self.healthMax, self.armor )
 		self.buffsAllowed = true
+		self.bloodEnabled = true
 		self.buffsActive = {}
 		self.buffFrame:Hide()
 		self.animation = 0
@@ -179,6 +178,7 @@ local methods = {
 		self.cameraX = 0
 		self.cameraY = 0
 		self.cameraZ = 0
+		self.sounds = {}
 		self.scrollposition = nil
 		if Me.IsLeader( false ) then
 			DiceMaster4.SetupTooltip( self, nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>" )
@@ -192,7 +192,7 @@ local methods = {
 		self.state = false
 		self.zone = "Unknown"
 		self.continent = "Unknown"
-		self.visibleIcon:Hide()
+		self.visibleButton:SetAlpha(0.5)
 		self.highlight:Hide()
 		self.SetBackground( self )
 	end;
@@ -209,6 +209,7 @@ local methods = {
 		framedata.armor = self.armor or 0
 		framedata.visible = self:IsVisible()
 		framedata.buffsAllowed = self.buffsAllowed
+		framedata.bloodEnabled = self.bloodEnabled
 		framedata.buffs = self.buffsActive or {}
 		framedata.animation = self.animation or 0;
 		framedata.modelData = {}
@@ -217,6 +218,7 @@ local methods = {
 		framedata.modelData.pz = self.cameraZ
 		framedata.modelData.ro = self.rotation
 		framedata.modelData.zl = self.zoomLevel
+		framedata.sounds = self.sounds or {};
 		framedata.state = self.state
 		framedata.zone = self.zone
 		framedata.continent = self.continent
@@ -228,22 +230,41 @@ local methods = {
 	SetData = function( self, framedata )
 		local modelChanged = false;
 		
+		-- Set the unit's sounds
+		if framedata.sd then
+			self.sounds = framedata.sd
+		else
+			self.sounds = {}
+		end
+		
+		-- Set blood settings
+		if framedata.bl then
+			self.bloodEnabled = true;
+		else
+			self.bloodEnabled = false;
+		end
+		
 		-- Check if it's a new model or not
 		if framedata.md and self:GetDisplayInfo() ~= framedata.md then		
 			self:SetDisplayInfo(framedata.md)
 			modelChanged = true;
+			if self.sounds["Aggro"] and Me.db.global.soundEffects then
+				PlaySound( self.sounds["Aggro"].id )
+			end
 		elseif not framedata.md then
 			self:SetDisplayInfo(1)
 		end
 		
 		-- Set the rotation, zoomLevel, position
-		if framedata.mx and not self.collapsed then
+		if framedata.mx then
 			self.rotation = framedata.mx.ro
 			self.zoomLevel = framedata.mx.zl
 			self.cameraX = framedata.mx.px
 			self.cameraY = framedata.mx.py
 			self.cameraZ = framedata.mx.pz
-			
+		end
+		
+		if not self.collapsed then
 			self:SetRotation( self.rotation )
 			self:SetPortraitZoom( self.zoomLevel )
 			self:SetPosition( self.cameraX, self.cameraY, self.cameraZ )
@@ -252,31 +273,42 @@ local methods = {
 		-- Check if model and name have changed
 		if self:GetDisplayInfo() == framedata.md and self.name:GetText() == framedata.na then
 			if framedata.hc < self.healthCurrent then
-				self:SetEffect( "healthdebuff" )
-			elseif framedata.hc > self.healthCurrent then
-				self:SetEffect( "healthbuff" )
-			elseif framedata.ar < self.armor then
-				self:SetEffect( "defensedebuff" )
-			elseif framedata.ar > self.armor then
-				self:SetEffect( "defensebuff" )
+				self:SetEffect( "wound" )
+				if self.sounds["Wound"] and Me.db.global.soundEffects then
+					PlaySound( self.sounds["Wound"].id )
+				end
+				if self.bloodEnabled then
+					self:ApplySpellVisualKit( 61015, true )
+				end
+			end
+			
+			if framedata.hc > self.healthCurrent and self.healthCurrent == 0 then
+				self.dead = false;
+				self:SetEffect( "spawn" )
+				if self.sounds["PreAggro"] and Me.db.global.soundEffects then
+					PlaySound( self.sounds["PreAggro"].id )
+				end
 			end
 		end
 		
 		-- Handle DM functions
 		if not Me.IsLeader( false ) then
+			self.visibleButton:Hide()
 			DiceMaster4.SetupTooltip( self, nil, framedata.na, nil, nil, nil, "|cFF707070<Left Click to Target>|r" )
 			if framedata.sy ~= 9 then
 				DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, "This unit is currently located at the "..WORLD_MARKER_NAMES[framedata.sy] .. "|r." )
 			else
 				DiceMaster4.SetupTooltip( self.symbol, nil )
 			end
+		else
+			self.visibleButton:Show()
 		end
 		if framedata.st and Me.IsLeader( false ) then
 			self.state = true
-			self.visibleIcon:Show()
+			self.visibleButton:SetAlpha(1)
 		else
 			self.state = false
-			self.visibleIcon:Hide()
+			self.visibleButton:SetAlpha(0.5)
 		end
 		
 		-- Set name, World Marker symbol
@@ -286,14 +318,20 @@ local methods = {
 		if self.symbol.State == 9 then self.symbol:SetNormalTexture(nil) end
 		
 		-- Handle death animation.
-		if framedata.an == 6 and framedata.hc == 0 then
+		if ( framedata.an == 6 and framedata.hc == 0 ) or ( self.dead and framedata.hc == 0 ) then
 			-- unit is already "dead"
 			self.dead = true;
 			self:SetAnimation(6)
 		elseif framedata.hc == 0 then
 			-- unit is "dying"
-			self.dead = true;
 			self:SetAnimation(1)
+			self.dead = true;
+			if self.sounds["Death"] and Me.db.global.soundEffects then
+				PlaySound( self.sounds["Death"].id )
+			end
+			if self.bloodEnabled then
+				self:ApplySpellVisualKit( 61014, true )
+			end
 		elseif modelChanged or self.animation ~= framedata.an or self.dead then
 			-- unit is "alive"
 			self.dead = false;
@@ -376,6 +414,9 @@ local methods = {
 			self.health:SetPoint("BOTTOM", 0, -36)
 			self.expand.Arrow:SetTexCoord(0.767, 1, 0.25, 0.327)
 			DiceMaster4.SetupTooltip( self.expand, nil, "Expand", nil, nil, nil, "Expand the frame to a larger size.|n|cFF707070<Left Click to Expand>" )
+			self:SetPosition( 0, 0, 0 )
+			self:SetRotation( 0 )
+			self:SetPortraitZoom( 1 )
 		else
 			self.collapsed = false;
 			self.border:SetTexture("Interface/AddOns/DiceMaster_UnitFrames/Texture/unitframe")
@@ -387,6 +428,9 @@ local methods = {
 			self.health:SetPoint("BOTTOM", 0, -38)
 			self.expand.Arrow:SetTexCoord(0.767, 1, 0.327, 0.402)
 			DiceMaster4.SetupTooltip( self.expand, nil, "Collapse", nil, nil, nil, "Collapse the frame to a smaller size.|n|cFF707070<Left Click to Collapse>" )
+			self:SetRotation( self.rotation )
+			self:SetPortraitZoom( self.zoomLevel )
+			self:SetPosition( self.cameraX, self.cameraY, self.cameraZ )
 		end
 		self:SetBackground( self )
 	end;
@@ -433,18 +477,12 @@ local methods = {
 	-- Set unit frame data.
 	--
 	
-	SetEffect = function( self, effect )
-		if self.buffEffect.IsPlaying then return end
-		
-		self.buffEffect.IsPlaying = true;
-		self.buffEffect:SetModel("spells\\pb_"..effect.."_impact");
-		if self:HasAnimation( HEALTH_EFFECTS[ effect ].anim ) then
-			self:SetAnimation( HEALTH_EFFECTS[ effect ].anim )
+	SetEffect = function( self, animation )
+		if self:HasAnimation( HEALTH_EFFECTS[ animation ].anim ) then
+			self:SetAnimation( HEALTH_EFFECTS[ animation ].anim )
 		else
-			self:SetAnimation( HEALTH_EFFECTS[ effect ].altAnim )
+			self:SetAnimation( HEALTH_EFFECTS[ animation ].altAnim )
 		end
-		self.buffEffect:Show()
-		PlaySound( HEALTH_EFFECTS[ effect ].soundKit )
 	end;
 }
 
@@ -465,8 +503,42 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHVALUE"] = {
 	if Me.OutOfRange( text, 0, data.healthMax ) then
 		return
 	end
+	
+	if text < data.healthCurrent then
+		data:SetEffect( "wound" )
+		if data.sounds["Wound"] then
+			PlaySound( data.sounds["Wound"].id )
+		end
+		if data.bloodEnabled then
+			data:ApplySpellVisualKit( 61015, true )
+		end
+	end
+	
+	if text > data.healthCurrent and data.healthCurrent == 0 then
+		data.dead = false;
+		data:SetEffect( "spawn" )
+		if data.sounds["PreAggro"] then
+			PlaySound( data.sounds["PreAggro"].id )
+		end
+	end
+	
 	data.healthCurrent = text
 	Me.RefreshHealthbarFrame( data.health, data.healthCurrent, data.healthMax, data.armor )
+	
+	if data.healthCurrent == 0 then
+		data.dead = true;
+		data:SetAnimation(1)
+		if data.sounds["Death"] then
+			PlaySound( data.sounds["Death"].id )
+		end
+		if data.bloodEnabled then
+			data:ApplySpellVisualKit( 61014, true )
+		end
+	elseif data.dead then
+		data.dead = false;
+		data:SetAnimation(data.animation)
+	end
+		
 	Me.UpdateUnitFrames()
   end,
   hasEditBox = true,
@@ -528,33 +600,47 @@ function Me.OnUnitBarHealthClicked( self, button )
 			if Me.OutOfRange( unit.armor+delta, 0, 1000 ) then
 				return
 			end
-			if delta == -1 then
-				unit:SetEffect( "defensedebuff" )
-			elseif delta == 1 then
-				unit:SetEffect( "defensebuff" )
-			end
 			unit.armor = unit.armor + delta;
 		else
 			if Me.OutOfRange( unit.healthCurrent+delta, 0, unit.healthMax ) then
 				return
 			end
 			if delta == -1 then
-				unit:SetEffect( "healthdebuff" )
-			elseif delta == 1 then
-				unit:SetEffect( "healthbuff" )
+				unit:SetEffect( "wound" )
+				if unit.sounds["Wound"] then
+					PlaySound( unit.sounds["Wound"].id )
+				end
+				if unit.bloodEnabled then
+					unit:ApplySpellVisualKit( 61015, true )
+				end
 			end
+			
+			if delta == 1 and unit.healthCurrent == 0 then
+				unit.dead = false;
+				unit:SetEffect( "spawn" )
+				if unit.sounds["PreAggro"] then
+					PlaySound( unit.sounds["PreAggro"].id )
+				end
+			end
+			
 			unit.healthCurrent = Me.Clamp( unit.healthCurrent + delta, 0, unit.healthMax )
+			
+			if unit.healthCurrent == 0 then
+				unit.dead = true;
+				unit:SetAnimation(1)
+				if unit.sounds["Death"] then
+					PlaySound( unit.sounds["Death"].id )
+				end
+				if unit.bloodEnabled then
+					unit:ApplySpellVisualKit( 61014, true )
+				end
+			elseif unit.dead then
+				unit.dead = false;
+				unit:SetAnimation(unit.animation)
+			end
 		end
 		
 		Me.RefreshHealthbarFrame( self, unit.healthCurrent, unit.healthMax, unit.armor )
-		
-		if unit.healthCurrent == 0 then
-			unit.dead = true;
-			unit:SetAnimation(1)
-		elseif unit.dead then
-			unit.dead = false;
-			unit:SetAnimation(unit.animation)
-		end
 		
 		Me.UpdateUnitFrames()
 	end

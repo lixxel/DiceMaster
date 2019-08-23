@@ -164,7 +164,7 @@ function DiceMasterTalkingHeadFrame_PlayCurrent(message)
 		
 		Me.PrintMessage("|cFFE6E68E"..(frame.NameFrame.Name:GetText() or "Unknown").." says: "..message, "RAID")
 		
-		if DiceMasterTalkingHeadFrame.soundKitID then
+		if DiceMasterTalkingHeadFrame.soundKitID and Me.db.global.soundEffects then
 			PlaySound(DiceMasterTalkingHeadFrame.soundKitID, "Dialog")
 		end
 		
@@ -187,7 +187,10 @@ function DiceMasterTalkingHeadFrame_Init( message, textureKit )
 	local model = DiceMasterAffixEditor.Model:GetDisplayInfo()
 	local name = DiceMasterAffixEditor.unitName:GetText()
 	if name == "" then name = "Unknown" end
-	local sound = Me.soundKitID
+	local sound;
+	if Me.UnitEditing and Me.UnitEditing.sounds and Me.UnitEditing.sounds["PreAggro"] then
+		sound = Me.UnitEditing.sounds["PreAggro"].id
+	end
 	DiceMasterTalkingHeadFrame_SetUnit(model, name, textureKit, sound);
 	DiceMasterTalkingHeadFrame_PlayCurrent(message)
 	

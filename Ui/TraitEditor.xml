@@ -449,7 +449,7 @@
 						self:SetMaxLetters( 1200 )
 					  </OnLoad>
 					  <OnEditFocusLost>
-						DiceMaster4.TraitEditor_SaveDescription()
+						DiceMaster4.TraitEditor_EditDescription()
 					  </OnEditFocusLost>
 					  <OnEscapePressed function="EditBox_ClearFocus"/>
 					  <OnCursorChanged>

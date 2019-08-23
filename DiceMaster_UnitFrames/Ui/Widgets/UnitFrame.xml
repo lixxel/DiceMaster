@@ -3,7 +3,7 @@
   <Script file="UnitFrame.lua"/>
   
   <!-- Template for unit frames. -->
-  <PlayerModel name="DiceMasterUnitFrame" inherits="ModelWithZoomTemplate" virtual="true">
+  <CinematicModel name="DiceMasterUnitFrame" inherits="ModelWithZoomTemplate" virtual="true">
     <Size x="197" y="223"/>
     <Layers>
 	
@@ -28,14 +28,6 @@
 		  </Anchors>
           
         </Texture>
-		<Texture parentKey="visibleIcon" file="Interface/AddOns/DiceMaster_UnitFrames/Texture/visible-icon" hidden="true">
-          
-          <Size x="24" y="24"/>	
-          <Anchors>
-            <Anchor point="BOTTOMRIGHT" x="-4" y="0" />
-		  </Anchors>
-          
-        </Texture>
 	  </Layer>
 	  
 	  <Layer level="OVERLAY" textureSubLevel="3">
@@ -57,19 +49,6 @@
       
     </Layers>
 	<Frames>
-		<PlayerModel parentKey="buffEffect" setallpoints="true">
-			<Scripts>
-				<OnShow>
-					Model_OnLoad(self);
-					self:SetPosition(-3, -0.1, -1)
-				</OnShow>
-				<OnAnimFinished>
-					self.IsPlaying = false
-					self:ClearModel()
-					self:Hide()
-				</OnAnimFinished>
-			</Scripts>
-		</PlayerModel>
 		<Button parentKey="expand">
 			 <Size x="30" y="19"/>	
 			  <Anchors>
@@ -126,6 +105,33 @@
 							DiceMasterAffixEditorUnitSymbol:SetNormalTexture(nil)
 						end
 						end
+						PlaySound(823)
+						DiceMaster4.UpdateUnitFrames()
+					end
+				</OnClick>
+			  </Scripts>
+		</Button>
+		<Button parentKey="visibleButton">
+			 <Size x="24" y="24"/>	
+			  <Anchors>
+				<Anchor point="BOTTOMRIGHT" x="-4" y="0" />
+			  </Anchors>
+			  <Scripts>
+				<OnLoad>
+					self:RegisterForClicks("LeftButtonUp", "RightButtonDown");					self:SetNormalTexture("Interface/AddOns/DiceMaster_UnitFrames/Texture/visible-icon")
+					self:SetAlpha(0.5);
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to toggle whether players can see this unit.")
+				</OnLoad>
+				<OnClick>
+					if DiceMaster4.IsLeader( false ) then
+						if self:GetParent().state == true then
+							self:GetParent().state = false;
+							self:SetAlpha(0.5);
+						else
+							self:GetParent().state = true;
+							self:SetAlpha(1);
+						end
+						
 						PlaySound(823)
 						DiceMaster4.UpdateUnitFrames()
 					end
@@ -260,6 +266,6 @@
 	  </OnAnimFinished>
     </Scripts>
     
-  </PlayerModel>
+  </CinematicModel>
 
 </Ui>

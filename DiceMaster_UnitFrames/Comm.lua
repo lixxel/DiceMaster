@@ -33,11 +33,13 @@ function Me.UnitFrame_SendStatus( visibleframes, id, status )
 	local statusModel  = status.model
 	local statusAnim   = status.animation
 	local statusModelData = status.modelData
+	local statusSounds = status.sounds
 	local statusSymbol = status.symbol
 	local statusHealth = status.healthCurrent
 	local statusMaxHealth = status.healthMax
 	local statusArmor = status.armor
 	local statusVisible = status.visible
+	local statusBlood = status.bloodEnabled
 	local statusBuffs = status.buffs
 	local statusZone = status.zone
 	local statusContinent = status.continent
@@ -49,11 +51,13 @@ function Me.UnitFrame_SendStatus( visibleframes, id, status )
 		md = tonumber( statusModel );
 		an = tonumber( statusAnim );
 		mx = statusModelData;
+		sd = statusSounds;
 		sy = tonumber( statusSymbol );
 		hc = tonumber( statusHealth );
 		hm = tonumber( statusMaxHealth );
 		ar = tonumber( statusArmor );
 		vs = tostring( statusVisible );
+		bl = statusBlood;
 		buffs = statusBuffs;
 		zo = tostring( statusZone );
 		co = tostring( statusContinent );
@@ -77,6 +81,7 @@ end
 --		mx.ro = rotation				number
 --		mx.zl = zoom level				number
 --  }
+--  sd = sounds							table
 --  svk = spell visual kit				number
 --	sy = symbol							number
 --	hc = current health					number

@@ -202,6 +202,12 @@ function Me.RollBanner_SendBanner()
 	
 	local channel = "RAID";
 	local name = nil;
+	
+	if DiceMasterBannerPromptDialog.target ~= "RAID" then
+		channel = "WHISPER";
+		name = DiceMasterBannerPromptDialog.target
+	end
+	
 	if GetNumGroupMembers() == 0 then
 		channel = "WHISPER";
 		name = UnitName("player")

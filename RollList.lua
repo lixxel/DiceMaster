@@ -167,21 +167,21 @@ DiceMaster4.RollList = {
 	["Saving Throws"] = {
 		{
 			name = "Fortitude Save",
-			subName = "Fortitude%s?",
+			subName = "Fortitude Save[s]?",
 			wheelName = "Fort.|nSave",
 			desc = "Roll to resist physical punishment or pain.", 
 			stat = "Constitution",
 		},
 		{
 			name = "Reflex Save",
-			subName = "Reflex%s?",
+			subName = "Reflex Save[s]?",
 			wheelName = "Reflex|nSave",
 			desc = "Roll to avoid or prevent an unexpected action.", 
 			stat = "Dexterity",
 		},
 		{
 			name = "Will Save",
-			subName = "Will%s?",
+			subName = "Will Save[s]?",
 			wheelName = "Will|nSave",
 			desc = "Roll to resist mental influence.", 
 			stat = "Wisdom",
@@ -390,7 +390,7 @@ DiceMaster4.TermsList = {
 			name = "Restrain",
 			subName = "Restrain[seding]*",
 			iconID = 22,
-			desc = "The target is unable to move and has Disadvantage on Reflex Saves. Attack rolls against the target have Advantage, and the target's Attack rolls have Disadvantage.",
+			desc = "The target is unable to move and has Disadvantage on Reflex Saves. Attack rolls against the target have Advantage, and the target's attack rolls have Disadvantage.",
 		},
 		{
 			name = "Silence",

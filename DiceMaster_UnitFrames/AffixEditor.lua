@@ -341,6 +341,7 @@ function Me.AffixEditor_Refresh()
 	editor.unitName:SetText( framedata.name )
 	editor.enable:SetChecked( framedata.state )
 	editor.allowBuffs:SetChecked( framedata.buffsAllowed )
+	editor.enableBlood:SetChecked( framedata.bloodEnabled )
 	editor.Model:SetDisplayInfo( framedata.model )
 	
 	if framedata.healthCurrent == 0 then
@@ -359,6 +360,9 @@ function Me.AffixEditor_Refresh()
 			end
 		end
 	end
+	
+	editor.sounds = framedata.sounds
+	Me.SoundPicker_UpdateBindings()
 	
 	editor.Model.animation = Me.unitAnim
 	editor.Model:SetAnimation(Me.unitAnim)
@@ -395,9 +399,11 @@ function Me.AffixEditor_SaveUnit()
 	data.mx.px, data.mx.py, data.mx.pz = editor.Model:GetPosition()
 	data.mx.ro = editor.Model.rotation
 	data.mx.zl = editor.Model.zoomLevel or editor.Model.minZoom
+	data.sd = editor.sounds or {}
 	data.st = editor.enable:GetChecked()
 	data.ba = editor.allowBuffs:GetChecked()
-	data.buffs = Me.UnitEditing.buffsActive or {}
+	data.bl = editor.enableBlood:GetChecked()
+	--data.buffs = Me.UnitEditing.buffsActive or {}
 	data.vs = true;
 	data.zo = Me.UnitEditing.zone
 	data.co = Me.UnitEditing.continent
@@ -453,8 +459,10 @@ function Me.AffixEditor_Save()
 	data.mx.px, data.mx.py, data.mx.pz = editor.Model:GetPosition()
 	data.mx.ro = editor.Model.rotation
 	data.mx.zl = editor.Model.zoomLevel or editor.Model.minZoom
+	data.sd = editor.sounds or {}
 	data.st = editor.enable:GetChecked()
 	data.ba = editor.allowBuffs:GetChecked()
+	data.bl = editor.enableBlood:GetChecked()
 	data.buffs = Me.UnitEditing.buffsActive or {}
 	
 	Me.UnitEditing:SetData( data )
@@ -521,6 +529,7 @@ function Me.AffixEditor_Close( noSound )
 		PlaySound(680)
 	end
 	Me.ModelPicker_Close()
+	Me.SoundPicker_Close()
 	DiceMasterUnitFramesBuffEditor:Hide()
 	DiceMasterAffixEditor:Hide()
 end

@@ -99,7 +99,7 @@
   
 	<!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
 	<Frame name="DiceMasterAffixEditor" parent="UIParent" inherits="ButtonFrameTemplate" hidden="true" framestrata="HIGH" toplevel="true">
-		<Size x="417" y="498" />
+		<Size x="417" y="508" />
 		<Anchors>
 		  <Anchor point="CENTER" />
 		</Anchors>
@@ -127,7 +127,7 @@
 			
 			self.Inset:ClearAllPoints();
 			self.Inset:SetPoint("TOPLEFT", 91, -26);
-			self.Inset:SetPoint("BOTTOMRIGHT", -6, 186);
+			self.Inset:SetPoint("BOTTOMRIGHT", -6, 196);
 			
 			self.NineSlice:SetFrameLevel(1)
 			self.TitleText:SetText("Unit Editor")
@@ -410,6 +410,37 @@
 					</OnClick>
 				</Scripts>
 			</Button>
+			
+			<Button name="$parentSetSounds" parentKey="setSounds" inherits="MagicButtonTemplate" text="Assign Sound Effects">
+				<Size x="170" y="22"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parentSetHealth" relativePoint="BOTTOMLEFT" x="0" y="-8"/> 
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to change this unit's sound effect settings.")
+					</OnLoad>
+					<OnClick>
+						DiceMaster4.SoundPicker_Open( self:GetParent() )
+					</OnClick>
+				</Scripts>
+			</Button>
+			
+			<CheckButton name="$parentEnableBlood" parentKey="enableBlood" inherits="UICheckButtonTemplate">
+				<Size x="24" y="24"/>
+				<Anchors>
+				  <Anchor point="LEFT" relativeTo="$parentSetSounds" relativePoint="RIGHT" x="4" y="0"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText("Enable Blood Effects")
+						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to toggle whether this unit has blood effects when it loses health.")
+					</OnLoad>
+					<OnClick>
+						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
 			
 			<Button name="$parentLoadButton" parentKey="LoadButton" enableMouse="true" inherits="UIPanelButtonTemplate">
 				<Size x="80" y="16"/>

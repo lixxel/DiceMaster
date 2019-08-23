@@ -188,7 +188,7 @@ end
 function Me.IsOfficer()
 	local guildName, guildRankName, guildRankIndex = GetGuildInfo( "player" )
 	
-	if Me.PermittedUse() and guildRankIndex < 4 then
+	if Me.PermittedUse() and guildRankIndex < 3 then
 		return true
 	end
 end

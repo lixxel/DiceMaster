@@ -269,11 +269,11 @@ function DiceMasterRollTrackerButton_OnClick(self, button)
 end
 
 function Me.SortRolls( self, reversed, sortKey )
-	local sort_func = function( a,b ) if not a then a = 0 end if not b then b = 0 end return a[sortKey] < b[sortKey] end
+	local sort_func = function( a,b ) if not a then a = 0 end if not b then b = 0 end return tostring( a[sortKey] ) < tostring( b[sortKey] ) end
 	if not reversed then
 		self.reversed = true
 	else
-		sort_func = function( a,b ) if not a then a = 0 end if not b then b = 0 end return a[sortKey] > b[sortKey] end
+		sort_func = function( a,b ) if not a then a = 0 end if not b then b = 0 end return tostring( a[sortKey] ) > tostring( b[sortKey] ) end
 		self.reversed = false
 	end
 	table.sort( Me.SavedRolls, sort_func)
@@ -597,7 +597,7 @@ function Me.DiceMasterRollFrameDisplayDetail( rollIndex )
 		frame.Name:SetText("|TInterface/Icons/ClassIcon_"..classFile..":16|t "..name)
 		frame.Name:SetTextColor(RAID_CLASS_COLORS[classFile].r, RAID_CLASS_COLORS[classFile].g, RAID_CLASS_COLORS[classFile].b)
 	elseif name and not UnitIsConnected(name) then
-		buttonText:SetTextColor(0.5, 0.5, 0.5)
+		frame.Name:SetTextColor(0.5, 0.5, 0.5)
 	end
 	
 	Me.DiceMasterRollDetailFrame_Update()
@@ -700,7 +700,7 @@ function Me.OnRollMessage( name, you, count, sides, mod, roll, rollType )
 	end
 	
 	if not rollType then
-		rollType = 0
+		rollType = "--"
 	end
 	
 	local dice = Me.FormatDiceType( count, sides, mod )
@@ -767,7 +767,7 @@ function Me.OnVanillaRollMessage( name, roll, min, max )
 		for i=1,#Me.SavedRolls do
 			if Me.SavedRolls[i].name == name then
 				Me.SavedRolls[i].roll = tonumber(roll)
-				Me.SavedRolls[i].rollType = 0
+				Me.SavedRolls[i].rollType = "--"
 				Me.SavedRolls[i].time = date("%H%M%S")
 				Me.SavedRolls[i].timestamp = date("%H:%M:%S")
 				exists = true;
@@ -777,7 +777,7 @@ function Me.OnVanillaRollMessage( name, roll, min, max )
 		if not exists then
 			local data = {}
 			data.roll = tonumber(roll)
-			data.rollType = 0
+			data.rollType = "--"
 			data.time = date("%H%M%S")
 			data.timestamp = date("%H:%M:%S")
 			data.target = 0
@@ -787,7 +787,7 @@ function Me.OnVanillaRollMessage( name, roll, min, max )
 		
 		local data = {}
 		data.roll = tonumber(roll)
-		data.rollType = 0
+		data.rollType = "--"
 		data.time = date("%H%M%S")
 		data.timestamp = date("%H:%M:%S")
 		data.dice = dice
@@ -836,6 +836,8 @@ function Me.OnChatMessage( message, sender )
 			if Me.SavedRolls[i].name == sender then
 				--Me.SavedRolls[i].time = date("%H%M%S")
 				--Me.SavedRolls[i].timestamp = date("%H:%M:%S")
+				Me.SavedRolls[i].roll = Me.SavedRolls[i].roll or "--"
+				Me.SavedRolls[i].rollType = Me.SavedRolls[i].rollType or "--"
 				Me.SavedRolls[i].target = icon
 				exists = true;
 			end
@@ -844,6 +846,8 @@ function Me.OnChatMessage( message, sender )
 		if not exists then
 			local data = {}
 			data.name = sender
+			data.roll = "--"
+			data.rollType = "--"
 			data.time = date("%H%M%S")
 			data.timestamp = date("%H:%M:%S")
 			data.target = icon
@@ -941,6 +945,8 @@ function Me.RollTracker_OnTargetMessage( data, dist, sender )
 		if Me.SavedRolls[i].name == sender then
 			--Me.SavedRolls[i].time = date("%H%M%S")
 			--Me.SavedRolls[i].timestamp = date("%H:%M:%S")
+			Me.SavedRolls[i].roll = Me.SavedRolls[i].roll or "--"
+			Me.SavedRolls[i].rollType = Me.SavedRolls[i].rollType or "--"
 			Me.SavedRolls[i].target = icon
 			exists = true;
 		end
@@ -949,8 +955,10 @@ function Me.RollTracker_OnTargetMessage( data, dist, sender )
 	if not exists then
 		local msg = {}
 		msg.name = sender
+		msg.roll = "--"
 		msg.time = date("%H%M%S")
 		msg.timestamp = date("%H:%M:%S")
+		msg.rollType = "--"
 		msg.target = icon
 		tinsert(Me.SavedRolls, msg)
 	end
