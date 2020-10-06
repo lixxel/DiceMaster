@@ -49,14 +49,26 @@ end
 function DiceMasterTalkingHeadFrame_CloseImmediately()
 	local frame = DiceMasterTalkingHeadFrame;
 	if (frame.finishTimer) then
-		frame.finishTimer:Cancel();
+		frame.finishTimer:Cancel()
 		frame.finishTimer = nil;
 	end
-	frame:Hide();
 	if (frame.closeTimer) then
-		frame.closeTimer:Cancel();
+		frame.closeTimer:Cancel()
 		frame.closeTimer = nil;
 	end
+	frame.NameFrame.Fadein:Finish()
+	frame.NameFrame.Fadeout:Finish()
+	frame.NameFrame.Close:Finish()
+	frame.TextFrame.Fadein:Finish()
+	frame.TextFrame.Fadeout:Finish()
+	frame.TextFrame.Close:Finish()
+	frame.BackgroundFrame.Fadein:Finish()
+	frame.BackgroundFrame.Close:Finish()
+	frame.PortraitFrame.Fadein:Finish()
+	frame.PortraitFrame.Close:Finish()
+	frame.MainFrame.TalkingHeadsInAnim:Finish()
+	frame.MainFrame.Close:Finish();
+	frame:Hide();
 end
 
 function DiceMasterTalkingHeadFrame_OnClick(self, button)
@@ -111,8 +123,43 @@ function DiceMasterTalkingHeadFrame_Reset(frame, text, name)
 	frame.TextFrame.Text:SetText(text);
 end
 
-function DiceMasterTalkingHeadFrame_SetUnit(modelID, name, textureKit, sound)
+function DiceMasterTalkingHeadFrame_SetUnit(modelID, name, textureKit, message, sound, isWhisper)
+	
+	-- Not using Talking Heads.
+	if not Me.db.global.talkingHeads then
+		if not isWhisper then
+			Me.PrintMessage("|cFFE6E68E"..(name or "Unknown").." says: "..message, "RAID")
+		else
+			Me.PrintMessage("|cFFFF7EFF"..(name or "Unknown").." whispers: "..message, "RAID")
+		end
+		return;
+	end
+	
+	if not Me.db.global.talkingHeads then
+		return;
+	end
+
 	local frame = DiceMasterTalkingHeadFrame;
+	
+	-- A Talking Head is playing, so add this one to the queue.
+	-- We'll try again after this one finishes up.
+	if frame:IsShown() then
+		if not frame.Queue then
+			frame.Queue = {}
+		end
+		
+		local queuedFrame = {
+			modelID = modelID;
+			name = name;
+			textureKit = textureKit;
+			message = message;
+			sound = sound;
+			isWhisper = isWhisper;
+		}
+		tinsert( frame.Queue, queuedFrame )
+		return;
+	end
+
 	local model = frame.MainFrame.Model;
 	model.PortraitImage:Hide()
 	
@@ -142,57 +189,81 @@ function DiceMasterTalkingHeadFrame_SetUnit(modelID, name, textureKit, sound)
 	frame.NameFrame.Name:SetShadowColor(shadowColor:GetRGBA());
 	frame.TextFrame.Text:SetTextColor(textColor:GetRGB());
 	frame.TextFrame.Text:SetShadowColor(shadowColor:GetRGBA());
+	
+	DiceMasterTalkingHeadFrame_PlayCurrent( message, isWhisper )
 end
 
-function DiceMasterTalkingHeadFrame_PlayCurrent(message)
-	if not DiceMasterTalkingHeadFrame:IsShown() then
-		local unitframes = DiceMasterUnitsPanel.unitframes; 
-		local frame = DiceMasterTalkingHeadFrame;
-		local model = frame.MainFrame.Model;
-		model.sequence = nil;
-		DiceMasterTalkingHeadFrame.animations = {}
-		local animIndex = {["."]=60,["!"]=64,["?"]=65}
-		
-		message:gsub("%p",function(c) table.insert(DiceMasterTalkingHeadFrame.animations,animIndex[c]) end)
+function DiceMasterTalkingHeadFrame_PlayCurrent( message, isWhisper )
 
-		frame:Show();
-		
-		if not DiceMasterTalkingHeadFrame.animations[1] or model:HasAnimation(DiceMasterTalkingHeadFrame.animations[1])==false then DiceMasterTalkingHeadFrame.animations[1] = 60 end;
-		model:SetAnimation(DiceMasterTalkingHeadFrame.animations[1])
-		frame.TextFrame.Text:SetText(message)
-		local stringHeight = frame.TextFrame.Text:GetStringHeight()/16
-		
-		Me.PrintMessage("|cFFE6E68E"..(frame.NameFrame.Name:GetText() or "Unknown").." says: "..message, "RAID")
-		
-		if DiceMasterTalkingHeadFrame.soundKitID and Me.db.global.soundEffects then
-			PlaySound(DiceMasterTalkingHeadFrame.soundKitID, "Dialog")
-		end
-		
-		DiceMasterTalkingHeadFrame_FadeinFrames()
-		frame.finishTimer = C_Timer.After(5+(2*stringHeight), function()
-				model:SetAnimation(0)
-				DiceMasterTalkingHeadFrame_FadeoutFrames()
-				frame.finishTimer = nil;
-			end
-		);
-		frame.closeTimer = C_Timer.After(6+(2*stringHeight), function()
-				DiceMasterTalkingHeadFrame:Hide();
-				frame.closeTimer = nil;
-			end
-		);
+	local frame = DiceMasterTalkingHeadFrame;
+	
+	local unitframes = DiceMasterUnitsPanel.unitframes; 
+	local model = frame.MainFrame.Model;
+	model.sequence = nil;
+	DiceMasterTalkingHeadFrame.animations = {}
+	local animIndex = {["."]=60,["!"]=64,["?"]=65}
+	
+	message:gsub("%p",function(c) table.insert(DiceMasterTalkingHeadFrame.animations,animIndex[c]) end)
+	
+	if not isWhisper then
+		Me.PrintMessage("|cFFE6E68E"..( frame.NameFrame.Name:GetText() or "Unknown").." says: "..message, "RAID" )
+	else
+		Me.PrintMessage("|cFFFF7EFF"..( frame.NameFrame.Name:GetText() or "Unknown").." whispers: "..message, "RAID" )
 	end
+
+	frame:Show();
+	
+	if not DiceMasterTalkingHeadFrame.animations[1] or model:HasAnimation(DiceMasterTalkingHeadFrame.animations[1])==false then DiceMasterTalkingHeadFrame.animations[1] = 60 end;
+	model:SetAnimation(DiceMasterTalkingHeadFrame.animations[1])
+	frame.TextFrame.Text:SetText(message)
+	local stringHeight = frame.TextFrame.Text:GetStringHeight()/16
+	
+	if DiceMasterTalkingHeadFrame.soundKitID and Me.db.global.soundEffects then
+		PlaySound(DiceMasterTalkingHeadFrame.soundKitID, "Dialog")
+	end
+	
+	DiceMasterTalkingHeadFrame_FadeinFrames()
+	frame.finishTimer = C_Timer.After(5+(2*stringHeight), function()
+			model:SetAnimation(0)
+			DiceMasterTalkingHeadFrame_FadeoutFrames()
+			frame.finishTimer = nil;
+		end
+	);
+	frame.closeTimer = C_Timer.After(6+(2*stringHeight), function()
+			DiceMasterTalkingHeadFrame:Hide();
+			frame.closeTimer = nil;
+			
+			if frame.Queue and #frame.Queue >= 1 then
+				-- We still have more Talking Heads to show.
+				local modelID = frame.Queue[1].modelID;
+				local name = frame.Queue[1].name;
+				local textureKit = frame.Queue[1].textureKit;
+				local message = frame.Queue[1].message;
+				local sound = frame.Queue[1].sound;
+				local isWhisper = frame.Queue[1].isWhisper
+				
+				DiceMasterTalkingHeadFrame_SetUnit(modelID, name, textureKit, message, sound, isWhisper)
+				tremove( frame.Queue, 1 )
+			end
+		end
+	);
 end
 
-function DiceMasterTalkingHeadFrame_Init( message, textureKit )
-	local model = DiceMasterAffixEditor.Model:GetDisplayInfo()
-	local name = DiceMasterAffixEditor.unitName:GetText()
+function DiceMasterTalkingHeadFrame_Init( message, textureKit, unit )
+	
+	if not unit then
+		return
+	end
+	
+	local model = unit:GetDisplayInfo()
+	local name = unit.name:GetText()
 	if name == "" then name = "Unknown" end
 	local sound;
-	if Me.UnitEditing and Me.UnitEditing.sounds and Me.UnitEditing.sounds["PreAggro"] then
-		sound = Me.UnitEditing.sounds["PreAggro"].id
+	if unit.sounds and unit.sounds["PreAggro"] then
+		sound = unit.sounds["PreAggro"].id
 	end
-	DiceMasterTalkingHeadFrame_SetUnit(model, name, textureKit, sound);
-	DiceMasterTalkingHeadFrame_PlayCurrent(message)
+	DiceMasterTalkingHeadFrame_SetUnit(model, name, textureKit, message, sound, isWhisper);
+	--DiceMasterTalkingHeadFrame_PlayCurrent(message)
 	
 	local msg = Me:Serialize( "DMSAY", {
 		na = tostring( name );

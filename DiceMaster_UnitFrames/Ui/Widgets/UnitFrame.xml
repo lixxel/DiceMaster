@@ -3,7 +3,7 @@
   <Script file="UnitFrame.lua"/>
   
   <!-- Template for unit frames. -->
-  <CinematicModel name="DiceMasterUnitFrame" inherits="ModelWithZoomTemplate" virtual="true">
+  <PlayerModel name="DiceMasterUnitFrame" inherits="ModelTemplate" virtual="true">
     <Size x="197" y="223"/>
     <Layers>
 	
@@ -130,10 +130,33 @@
 						else
 							self:GetParent().state = true;
 							self:SetAlpha(1);
+							self:GetParent():SendAnimation( "Aggro" )
+						end
+						
+						if DiceMasterAffixEditor:IsShown() then
+							DiceMasterAffixEditorEnable:SetChecked( self:GetParent().state )
 						end
 						
 						PlaySound(823)
 						DiceMaster4.UpdateUnitFrames()
+					end
+				</OnClick>
+			  </Scripts>
+		</Button>
+		<Button parentKey="talkingHeadButton">
+			 <Size x="24" y="24"/>	
+			  <Anchors>
+				<Anchor point="BOTTOMLEFT" x="4" y="0" />
+			  </Anchors>
+			  <Scripts>
+				<OnLoad>
+					self:RegisterForClicks("LeftButtonUp", "RightButtonDown");					self:SetNormalTexture("Interface/GossipFrame/GossipGossipIcon")
+					DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to send a talking head dialogue from this unit.")
+				</OnLoad>
+				<OnClick>
+					if DiceMaster4.IsLeader( false ) then
+						StaticPopup_Show("DICEMASTER4_SENDTALKINGHEAD", nil, nil, self:GetParent(), DiceMasterTalkingHeadOptionsDropdown)
+						PlaySound(823)
 					end
 				</OnClick>
 			  </Scripts>
@@ -261,11 +284,11 @@
 		if self.dead then
 			self:SetAnimation(6)
 		elseif self:IsShown() then
-			self:SetAnimation(self.animation or 0)
+			self:SetAnimation(self.animations["PreAggro"].id or 0)
 		end
 	  </OnAnimFinished>
     </Scripts>
     
-  </CinematicModel>
+  </PlayerModel>
 
 </Ui>

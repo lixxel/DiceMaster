@@ -1,4 +1,4 @@
--------------------------------------------------------------------------------
+ -------------------------------------------------------------------------------
 -- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
@@ -128,8 +128,14 @@ end
 --
 function Me.ColourPicker_OnColourPick()
 	local hex = RGBToHex( DiceMasterColourPicker.colourSelect:GetColorRGB() )
-	DiceMaster4.TraitEditor_InsertTag( "color="..hex, "color" )
-	DiceMaster4.TraitEditor_SaveDescription()
+	
+	if DiceMasterColourPicker.parent == DiceMasterDMNotesDMNotes.EditBox then
+		Me.TraitEditor_InsertTag( "color="..hex, "color", DiceMasterColourPicker.parent )
+		DiceMasterNotesEditBox_OnTextChanged(DiceMasterColourPicker.parent)
+	else
+		DiceMaster4.TraitEditor_InsertTag( "color="..hex, "color" )
+		DiceMaster4.TraitEditor_SaveDescription()
+	end
 	Me.ColourPicker_Close()
 end
     
@@ -144,7 +150,13 @@ end
 -------------------------------------------------------------------------------
 -- Open the colour picker window.
 --
-function Me.ColourPicker_Open()
+function Me.ColourPicker_Open( parent )
+
+	if parent then
+		DiceMasterColourPicker.parent = parent
+	else
+		DiceMasterColourPicker.parent = nil
+	end
 	
 	DiceMasterColourPicker.CloseButton:SetScript("OnClick",Me.ColourPicker_Close)
 	

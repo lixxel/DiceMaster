@@ -58,6 +58,20 @@ local options = {
 	},
 }
 
+local TIMER_INTERVALS = {
+	{name = "1 Minute", time = 60},
+	{name = "2 Minutes", time = 120},
+	{name = "3 Minutes", time = 180},
+	{name = "5 Minutes", time = 300},
+	{name = "10 Minutes", time = 600},
+	{name = "15 Minutes", time = 900},
+	{name = "30 Minutes", time = 1800},
+	{name = "45 Minutes", time = 2700},
+	{name = "1 Hour", time = 3600},
+}
+
+local CURRENT_COMBAT_ROUND = 1;
+
 function Me.RollBannerDropDown_OnClick(self, arg1)
 	if arg1 then
 		UIDropDownMenu_SetSelectedID(DiceMasterBannerPromptDialog.OptionsDropdown, arg1)
@@ -70,24 +84,38 @@ function Me.RollBannerDropDown_OnClick(self, arg1)
 		end
 		
 		DiceMasterBannerPromptDialog.BannerSubtitle:SetText(options[arg1].description)
-		DiceMasterBannerPromptDialog.Desc:SetText("")
+		DiceMasterBannerPromptDialog.Desc2:SetText("")
 		
 		-- Update the checkboxes
 		local checkboxes = DiceMasterBannerPromptDialog.checkboxes
 		for i = 1, #checkboxes do
 			checkboxes[i]:SetChecked( false )
 			checkboxes[i]:Hide()
-			DiceMasterBannerPromptDialog:SetHeight( 160 )
+			DiceMasterBannerPromptDialog:SetHeight( 220 )
 		end
 		
 		if options[arg1].options then
-			DiceMasterBannerPromptDialog.Desc:SetText("Select which options are available to players:")
+			DiceMasterBannerPromptDialog.Desc2:SetText("Select which options are available to players:")
 			local checkOptions = options[arg1].options
 			for i = 1, #checkOptions do
 				checkboxes[i]:Show()
 				_G["DiceMasterBannerPromptDialogCheckbox"..i.."Text"]:SetText( "|T" .. checkOptions[i].icon .. ":16|t |cFFFFD100" .. checkOptions[i].name .. ":|r " ..  checkOptions[i].desc .. "|r")
-				DiceMasterBannerPromptDialog:SetHeight( 190 + 20*i )
+				DiceMasterBannerPromptDialog:SetHeight( 250 + 20*i )
 			end
+		end
+		
+		if arg1 == 1 or arg1 == 5 then
+			DiceMasterBannerPromptDialog.AdvanceTurn:Disable()
+			DiceMasterBannerPromptDialog.AdvanceTurn:SetChecked( false )
+			_G["DiceMasterBannerPromptDialogAdvanceTurnText"]:SetTextColor( 0.5, 0.5, 0.5 )
+			DiceMasterBannerPromptDialog.TurnTimer:Disable()
+			DiceMasterBannerPromptDialog.TurnTimer:SetChecked( false )
+			_G["DiceMasterBannerPromptDialogTurnTimerText"]:SetTextColor( 0.5, 0.5, 0.5 )
+		else
+			DiceMasterBannerPromptDialog.AdvanceTurn:Enable()
+			_G["DiceMasterBannerPromptDialogAdvanceTurnText"]:SetTextColor( 1, 1, 1 )
+			DiceMasterBannerPromptDialog.TurnTimer:Enable()
+			_G["DiceMasterBannerPromptDialogTurnTimerText"]:SetTextColor( 1, 1, 1 )
 		end
 	end
 end
@@ -109,8 +137,27 @@ function Me.RollBannerDropDown_OnLoad(frame, level, menuList)
 	   info.func = Me.RollBannerDropDown_OnClick;
 	   UIDropDownMenu_AddButton(info, level)
 	end
+end
+
+function Me.RollBannerTimerDropDown_OnClick(self, arg1)
+	if arg1 then
+		UIDropDownMenu_SetSelectedID( DiceMasterBannerPromptDialog.Timer, arg1 )
+		UIDropDownMenu_SetText( DiceMasterBannerPromptDialog.Timer, TIMER_INTERVALS[ arg1 ].name )
+	end
+end
+
+function Me.RollBannerTimerDropDown_OnLoad(frame, level, menuList)
+	local info = UIDropDownMenu_CreateInfo()
+	info.notClickable = false;
+	info.disabled = false;
 	
-	UIDropDownMenu_SetSelectedID(DiceMasterBannerPromptDialog.OptionsDropdown, #options)
+	for i = 1, #TIMER_INTERVALS do
+	   info.text = TIMER_INTERVALS[i].name;
+	   info.arg1 = i;
+	   info.notCheckable = true;
+	   info.func = Me.RollBannerTimerDropDown_OnClick;
+	   UIDropDownMenu_AddButton(info, level)
+	end
 end
 
 function Me.RollBanner_OnLoad( self )
@@ -200,6 +247,45 @@ function Me.RollBanner_SendBanner()
 		end
 	end
 	
+	-- Collect Turn Tracker data.
+	local turnHasChanged = false;
+	
+	if DiceMasterBannerPromptDialog.AdvanceTurn:GetChecked() then
+		CURRENT_COMBAT_ROUND = CURRENT_COMBAT_ROUND + 1;
+		turnHasChanged = true;
+	end
+	
+	if type == 5 then
+		CURRENT_COMBAT_ROUND = 1;
+		turnHasChanged = true;
+	end
+	
+	local timer = DiceMasterBannerPromptDialog.TurnTimer:GetChecked()
+	if timer then
+		timer = TIMER_INTERVALS[ UIDropDownMenu_GetSelectedID( DiceMasterBannerPromptDialog.Timer ) ].time
+	end
+	
+	-- The turn has changed, so we need to update any turn-based buffs on our Unit Frames.
+	if turnHasChanged and not Me.db.char.unitframes.enable then
+		local unitframes = DiceMasterUnitsPanel.unitframes
+		for unitindex = 1, #unitframes do
+			local unitframe = unitframes[ unitindex ]
+			for i = 1, #unitframe.buffsActive do
+				local buff = unitframe.buffsActive[i]
+				if buff.turns and buff.turns > 0 then
+					buff.turns = buff.turns - 1
+					if buff.turns <= 0 then
+						tremove( unitframe.buffsActive, i )
+					end
+				end		
+			end
+			for buff = 1, #unitframe.buffs do
+				Me.UnitFrames_UpdateBuffButton( unitframe, buff )
+			end
+		end
+		Me.UpdateUnitFrames()
+	end
+	
 	local channel = "RAID";
 	local name = nil;
 	
@@ -219,8 +305,39 @@ function Me.RollBanner_SendBanner()
 		ti = tostring( DiceMasterBannerPromptDialog.BannerTitle:GetText() );
 		su = tostring( DiceMasterBannerPromptDialog.BannerSubtitle:GetText() );
 		op = data;
+		cr = CURRENT_COMBAT_ROUND;
+		tc = turnHasChanged;
+		tm = timer;
 	})
 	Me:SendCommMessage( "DCM4", msg, channel, name or nil, "ALERT" )
+end
+
+function Me.TurnTracker_StartTimer()
+	if DiceMasterTurnTracker.Timer then
+		DiceMasterTurnTracker.Timer:Cancel()
+	end
+	
+	DiceMasterTurnTracker.Timer = C_Timer.NewTicker( 1 , function()
+		local statusBar = DiceMasterTurnTracker.Bar
+		local timeLeft = DiceMasterTurnTracker.TimeLeft
+		if statusBar:GetValue() > 0 then
+			statusBar:SetValue( statusBar:GetValue() - 1 )
+			timeLeft:SetText( date("%M:%S", statusBar:GetValue()) )
+			
+			if statusBar:GetValue() == 0 then
+				PlaySound(25478, nil, false)
+			elseif statusBar:GetValue() <= 10 then
+				timeLeft:SetTextColor( 1, 0, 0 )
+				statusBar:SetStatusBarColor( 1, 0, 0 )
+				PlaySound(25477, nil, false)
+			else
+				timeLeft:SetTextColor( 1, 1, 1 )
+				statusBar:SetStatusBarColor( 0.26, 0.42, 1 )
+			end
+		else
+			DiceMasterTurnTracker.Timer:Cancel()
+		end
+	end)
 end
 
 ---------------------------------------------------------------------------
@@ -230,6 +347,9 @@ end
 --	ti = title							string
 --  su = subtitle						string
 --  op = options						table
+--  cr = current combat round			number
+--  tc = turn has changed				boolean
+--  tm = timer							number
 
 function Me.RollBanner_OnBanner( data, dist, sender )	
 	-- Only the party leader can send us these.
@@ -239,6 +359,43 @@ function Me.RollBanner_OnBanner( data, dist, sender )
 	if not data.na or not data.id or not data.ti then
 	   
 		return
+	end
+	
+	-- The turn has changed, so we need to update any turn-based buffs.
+	if data.tc and #Profile.buffsActive > 0 then
+		for i = 1, #Profile.buffsActive do
+			local buff = Profile.buffsActive[i]
+			if buff.turns and buff.turns > 0 then
+				buff.turns = buff.turns - 1
+				if buff.turns <= 0 then
+					tremove( Profile.buffsActive, i )
+				end
+			end		
+		end
+		Me.TraitEditor_StatsFrame_UpdateStats()
+		Me.BumpSerial( Me.db.char, "statusSerial" )
+		Me.BuffFrame_Update()
+		Me.Inspect_ShareStatusWithParty()
+		Me.Inspect_SendStats( "RAID" )
+	end
+	
+	if data.tc then
+		local traits = DiceMasterPanel.traits
+		for i=1,#traits do
+			local cooldown = traits[i].cooldown.text:GetText()
+			if cooldown and cooldown:match("%dT") then
+				cooldown = cooldown:gsub( "T", "" )
+				cooldown = cooldown - 1
+				if cooldown == 0 then
+					traits[i].cooldown.text:SetText("")
+					traits[i].cooldown.text:Hide()
+					traits[i].cooldown:SetCooldown( 0, 0 )
+				else
+					traits[i].cooldown.text:SetText( cooldown .. "T" )
+					traits[i].cooldown.text:Show()
+				end
+			end
+		end
 	end
 	
 	if not DiceMasterRollBanner:IsShown() then
@@ -253,6 +410,73 @@ function Me.RollBanner_OnBanner( data, dist, sender )
 		if not data.ti:match("%p$") then
 			data.ti = data.ti.."!"
 		end
+		
+		-- Combat Turn Tracker
+		if Me.db.global.enableTurnTracker then
+			if UnitFactionGroup("player") == "Alliance" then
+				DiceMasterTurnTracker.BG:SetAtlas("AllianceScenario-TrackerHeader", true)
+			elseif UnitFactionGroup("player") == "Horde" then
+				DiceMasterTurnTracker.BG:SetAtlas("HordeScenario-TrackerHeader", true)
+			end
+			-- if this is a "Combat Ends" phase, hide the frame.
+			if data.id == 5 then
+				DiceMasterTurnTracker:Hide()
+			else
+				DiceMasterTurnTracker:Show()
+				DiceMasterTurnTracker.TurnTitle:SetText( data.ti )
+				Me.SetupTooltip( DiceMasterTurnTracker, nil, "|cFFffd100"..data.ti )
+				
+				if data.cr then
+					DiceMasterTurnTracker.TurnTotal:SetText( "Round " .. data.cr )
+				end
+				
+				if data.tm then
+					DiceMasterTurnTracker.TimeLeftLabel:Show()
+					DiceMasterTurnTracker.TimeLeft:SetText( date("%M:%S", data.tm) )
+					DiceMasterTurnTracker.TimeLeftLabel:Show()
+					DiceMasterTurnTracker.TimeLeft:Show()
+					DiceMasterTurnTracker.TimeLeft:SetTextColor( 1, 1, 1 )
+					DiceMasterTurnTracker.Bar:Show()
+					DiceMasterTurnTracker.Bar:SetMinMaxValues( 0, data.tm )
+					DiceMasterTurnTracker.Bar:SetValue( data.tm )
+					DiceMasterTurnTracker.Bar:SetStatusBarColor( 0.26, 0.42, 1 )
+					Me.TurnTracker_StartTimer()
+				else
+					DiceMasterTurnTracker.TimeLeftLabel:Hide()
+					DiceMasterTurnTracker.TimeLeft:Hide()
+					DiceMasterTurnTracker.Bar:Hide()
+				end
+				
+			end
+		elseif DiceMasterTurnTracker:IsShown() then
+			DiceMasterTurnTracker:Hide()
+		end
+		
+		-- Set the banner skin.
+		if not Me.PermittedUse() then
+			if UnitFactionGroup("player") == "Alliance" then
+				DiceMasterRollBanner.BannerTop:SetTexture("Interface/AddOns/DiceMaster/Texture/alliance-banner")
+				DiceMasterRollBanner.BannerTopGlow:SetTexture("Interface/AddOns/DiceMaster/Texture/alliance-banner")
+				DiceMasterRollBanner.BannerBottom:SetTexture("Interface/AddOns/DiceMaster/Texture/alliance-banner")
+				DiceMasterRollBanner.BannerBottomGlow:SetTexture("Interface/AddOns/DiceMaster/Texture/alliance-banner")
+				DiceMasterRollBanner.SkullCircle:SetTexture("Interface/AddOns/DiceMaster/Texture/alliance-banner")
+				DiceMasterRollBanner.RedFlash:SetTexture("Interface/AddOns/DiceMaster/Texture/alliance-banner")
+				DiceMasterRollBanner.Title:SetTextColor( 1, 0.82, 0 )
+			elseif UnitFactionGroup("player") == "Horde" then
+				DiceMasterRollBanner.BannerTop:SetTexture("Interface/AddOns/DiceMaster/Texture/horde-banner")
+				DiceMasterRollBanner.BannerTopGlow:SetTexture("Interface/AddOns/DiceMaster/Texture/horde-banner")
+				DiceMasterRollBanner.BannerBottom:SetTexture("Interface/AddOns/DiceMaster/Texture/horde-banner")
+				DiceMasterRollBanner.BannerBottomGlow:SetTexture("Interface/AddOns/DiceMaster/Texture/horde-banner")
+				DiceMasterRollBanner.SkullCircle:SetTexture("Interface/AddOns/DiceMaster/Texture/horde-banner")
+				DiceMasterRollBanner.RedFlash:SetTexture("Interface/AddOns/DiceMaster/Texture/horde-banner")
+				DiceMasterRollBanner.Title:SetTextColor( 1, 0, 0 )
+			end
+		end
+		
+		DiceMasterRollBanner.Title:ClearAllPoints()
+		DiceMasterRollBanner.Title:SetPoint( "TOP", DiceMasterRollBanner.BannerTop, 0, -47 )
+		DiceMasterRollBanner.SubTitle:ClearAllPoints()
+		DiceMasterRollBanner.SubTitle:SetPoint( "TOP", DiceMasterRollBanner.Title, "BOTTOM", 0, 0 )
 		
 		DiceMasterRollBanner.Title:SetText( data.ti )
 		DiceMasterRollBanner.SubTitle:SetText( data.su )

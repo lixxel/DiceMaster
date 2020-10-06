@@ -8,8 +8,6 @@
 
 local Me = DiceMaster4
 
-Me.unitAnim = 0
-
 local BUFF_DURATION_AMOUNTS = {
 	{name = "15 sec", time = 15},
 	{name = "30 sec", time = 30},
@@ -130,17 +128,38 @@ Me.DICEMASTER_BACKDROP_ZONES = {
 		"Suramar",
 		"Val'sharah",
 	},
-	["Kul Tiras"] = {
+	["Kul Tiras/Zandalar"] = {
 		"Boralus",
 		"Drustvar",
 		"Stormsong Valley",
 		"Tiragarde Sound",
-	},
-	["Zandalar"] = {
 		"Dazar'alor",
+		"Mechagon",
+		"Nazjatar",
 		"Nazmir",
+		"Ny'alotha",
 		"Vol'dun",
 		"Zuldazar",
+	},
+	["Shadowlands"] = {
+		"Ardenweald",
+		"Bastion",
+		"Maldraxxus",
+		"The Maw",
+		"Revendreth",
+		"Torghast",
+	},
+	["Other"] = {
+		"Default (None)",
+		"Abyssal Maw",
+		"Deepholm",
+		"Emerald Dream",
+		"Emerald Nightmare",
+		"Firelands",
+		"Kezan",
+		"Maelstrom",
+		"Skywall",
+		"Wandering Isle",
 	},
 }
 
@@ -154,7 +173,7 @@ StaticPopupDialogs["DICEMASTER4_SENDTALKINGHEAD"] = {
   button2 = "Cancel",
   OnAccept = function (self, data)
     local text = self.editBox:GetText()
-	DiceMasterTalkingHeadFrame_Init( text, Me.talkingHeadTextureKit )
+	DiceMasterTalkingHeadFrame_Init( text, Me.talkingHeadTextureKit, data )
   end,
   hasEditBox = true,
   timeout = 0,
@@ -190,58 +209,57 @@ StaticPopupDialogs["DICEMASTER4_DELETEUNIT"] = {
 }
 
 -------------------------------------------------------------------------------
--- UIDropDownMenu for Animations
+-- UIDropDownMenu for Roll Types
 --
 
-function Me.AnimationPickerDropDown_OnClick(self, arg1, arg2, checked)
-	UIDropDownMenu_SetText(DiceMasterAffixEditor.animation, self:GetText())
-	Me.unitAnim = arg1
-	DiceMasterAffixEditor.Model.animation = Me.unitAnim
-	DiceMasterAffixEditor.Model:SetAnimation(Me.unitAnim)
+function Me.RollTypePickerDropDown_OnClick( self, arg1, arg2, checked )
+	UIDropDownMenu_SetText( DiceMasterAffixEditor.rollType, self:GetText() )
+	CloseDropDownMenus()
 end
 
-local function CreateAnimationMenu(dropdown, level, range)
-	local startLetter = string.byte(range, 1);
-	local endLetter = string.byte(range, 3) or string.byte(range, 1);
-	for i, animation in ipairs(Me.animationList) do
-		local letter = string.byte(animation.name, 1)
-		
-		if (letter >= startLetter and letter <= endLetter and DiceMasterAffixEditor.Model:HasAnimation( animation.id )) then
-			local info = UIDropDownMenu_CreateInfo();
-			info.text = animation.name;
-			info.func = Me.AnimationPickerDropDown_OnClick;
-			info.checked = Me.unitAnim == animation.id;
-			info.arg1 = animation.id;
-			UIDropDownMenu_AddButton(info, level);
-		end
-	end
-end
-
-local function CreateAnimationRangeMenu(dropdown, level, range)
-	local info = UIDropDownMenu_CreateInfo();
-	info.text = range;
-	info.value = range;
-	info.notCheckable = true;
-	info.hasArrow = true;
-	info.keepShownOnClick = true;
-	info.menuList = range;
-	UIDropDownMenu_AddButton(info, level);
-end
-
-function Me.AnimationPickerDropDown_OnLoad(frame, level, menuList)
+function Me.RollTypePickerDropDown_OnLoad( frame, level, menuList )
 	local info = UIDropDownMenu_CreateInfo()
-
+	
 	if level == 1 then
-		CreateAnimationRangeMenu(self, level, "A-B");
-		CreateAnimationRangeMenu(self, level, "C-D");
-		CreateAnimationRangeMenu(self, level, "E");
-		CreateAnimationRangeMenu(self, level, "F-L");
-		CreateAnimationRangeMenu(self, level, "M-O");
-		CreateAnimationRangeMenu(self, level, "P-R");
-		CreateAnimationRangeMenu(self, level, "S");
-		CreateAnimationRangeMenu(self, level, "T-Z");
+		info.notCheckable = true;
+		info.text = "Combat Actions"
+		info.disabled = false;
+		info.notClickable = false;
+		info.hasArrow = true;
+		info.menuList = "Combat Actions"
+		UIDropDownMenu_AddButton(info)
+		info.text = "Skills"
+		info.menuList = "Skills"
+		UIDropDownMenu_AddButton(info)
+		info.text = "Saving Throws"
+		info.menuList = "Saving Throws"
+		UIDropDownMenu_AddButton(info)
+		info.notCheckable = false;
+		info.hasArrow = false;
+		info.text = "(None)"
+		info.menuList = nil;
+		info.arg1 = "(None)"
+		info.func = Me.RollTypePickerDropDown_OnClick;
+		info.checked = false;
+		if UIDropDownMenu_GetText( frame ) == info.text then
+			info.checked = true;
+		end
+		UIDropDownMenu_AddButton(info)
 	elseif menuList then
-		CreateAnimationMenu(self, level, menuList);
+		for i = 1,#Me.RollList[menuList] do
+			info.text = Me.RollList[menuList][i].name
+			info.arg1 = Me.RollList[menuList][i].name
+			info.func = Me.RollTypePickerDropDown_OnClick;
+			info.notCheckable = false;
+			info.tooltipTitle = Me.RollList[menuList][i].name;
+			info.tooltipText = Me.RollList[menuList][i].desc;
+			info.tooltipOnButton = true;
+			info.checked = false;
+			if UIDropDownMenu_GetText( frame ) == info.text then
+				info.checked = true;
+			end
+			UIDropDownMenu_AddButton(info, level)
+		end
 	end
 end
 
@@ -253,6 +271,7 @@ function Me.BackdropPickerDropDown_OnClick(self, arg1, arg2, checked)
 	UIDropDownMenu_SetText(DiceMasterAffixEditor.backdrop, self:GetText())
 	Me.UnitEditing.zone = self:GetText()
 	Me.UnitEditing.continent = arg1
+	Me.AffixEditor_Save()
 end
 
 local function CreateContinentMenu(dropdown, level, continent)
@@ -277,8 +296,9 @@ function Me.BackdropPickerDropDown_OnLoad(frame, level, menuList)
 		CreateContinentMenu(self, level, "Pandaria");
 		CreateContinentMenu(self, level, "Draenor");
 		CreateContinentMenu(self, level, "Broken Isles");
-		CreateContinentMenu(self, level, "Kul Tiras");
-		CreateContinentMenu(self, level, "Zandalar");
+		CreateContinentMenu(self, level, "Kul Tiras/Zandalar");
+		CreateContinentMenu(self, level, "Shadowlands");
+		CreateContinentMenu(self, level, "Other");
 		if Me.DICEMASTER_CUSTOM_UNIT_TEXTURES then
 			for k, v in pairs( Me.DICEMASTER_CUSTOM_UNIT_TEXTURES ) do
 				CreateContinentMenu(self, level, k);
@@ -288,6 +308,11 @@ function Me.BackdropPickerDropDown_OnLoad(frame, level, menuList)
 		for i = 1, #Me.DICEMASTER_BACKDROP_ZONES[ menuList ] do
 			local info = UIDropDownMenu_CreateInfo();
 			info.text = Me.DICEMASTER_BACKDROP_ZONES[ menuList ][i];
+			
+			if info.text == "Shadowmoon Valley" then
+				info.text = info.text .. " (" .. menuList .. ")";
+			end
+			
 			info.func = Me.BackdropPickerDropDown_OnClick;
 			info.checked = Me.UnitEditing.zone == info.text;
 			info.arg1 = menuList;
@@ -303,16 +328,15 @@ function Me.AffixEditor_UpdateModel()
 	local model = DiceMasterAffixEditor.Model
 	local framedata = Me.UnitEditing:GetData()
 	
-	model.animation = Me.unitAnim
+	model.animation = framedata.animations["PreAggro"].id or 0
 	if framedata.healthCurrent == 0 then
-		model:SetAnimation(6)
+		model:SetAnimation( Me.UnitEditing.animations["Dead"].id or 6 )
 	elseif model:HasAnimation( model.animation ) then
 		model:SetAnimation( model.animation )
 	else
-		UIDropDownMenu_SetText(DiceMasterAffixEditor.animation, "Stand")
-		Me.unitAnim = 0
-		model.animation = 0
-		model:SetAnimation( 0 )
+		--UIDropDownMenu_SetText(DiceMasterAffixEditor.animation, "Stand")
+		model.animation = Me.UnitEditing.animations["PreAggro"].id or 0
+		model:SetAnimation( Me.UnitEditing.animations["PreAggro"].id or 0 )
 	end
 	
 	model.rotation = framedata.modelData.ro
@@ -328,6 +352,10 @@ function Me.AffixEditor_UpdateModel()
 	if Me.UnitSlot then
 		Me.UnitSlot.Model:SetDisplayInfo( model:GetDisplayInfo() )
 	end
+	
+	DiceMasterAffixEditor.unitSymbol.State = framedata.symbol
+	
+	Me.AffixEditor_Save()
 end
 
 -------------------------------------------------------------------------------
@@ -340,32 +368,16 @@ function Me.AffixEditor_Refresh()
 	
 	editor.unitName:SetText( framedata.name )
 	editor.enable:SetChecked( framedata.state )
-	editor.allowBuffs:SetChecked( framedata.buffsAllowed )
-	editor.enableBlood:SetChecked( framedata.bloodEnabled )
 	editor.Model:SetDisplayInfo( framedata.model )
 	
 	if framedata.healthCurrent == 0 then
-		editor.Model:SetAnimation( 6 )
-		
+		editor.Model:SetAnimation( Me.UnitEditing.animations["Dead"].id or 6 )
+		editor.Model.animation = Me.UnitEditing.animations["Dead"].id or 6
 		UIDropDownMenu_SetText(editor.animation, "Dead")
-		Me.unitAnim = 6
 	else
-		editor.Model:SetAnimation( framedata.animation )
-		
-		for i, animation in ipairs(Me.animationList) do
-			if animation.id == framedata.animation then
-				UIDropDownMenu_SetText(editor.animation, animation.name)
-				Me.unitAnim = framedata.animation
-				break
-			end
-		end
+		editor.Model:SetAnimation( framedata.animations["PreAggro"].id or 0)
+		editor.Model.animation = Me.UnitEditing.animations["PreAggro"].id or 0
 	end
-	
-	editor.sounds = framedata.sounds
-	Me.SoundPicker_UpdateBindings()
-	
-	editor.Model.animation = Me.unitAnim
-	editor.Model:SetAnimation(Me.unitAnim)
 	
 	UIDropDownMenu_SetText(editor.backdrop, framedata.zone)
 	
@@ -387,11 +399,27 @@ function Me.AffixEditor_SaveUnit()
 	
 	data.na = editor.unitName:GetText()
 	data.md = editor.Model:GetDisplayInfo()
-	data.an = editor.Model.animation
+	data.an = {
+		["PreAggro"] = { id = 0, anim = "Stand" },
+		["Aggro"] = { id = 127, anim = "Birth" },
+		["Melee Attack"] = { id = 16, anim = "AttackUnarmed" },
+		["Ranged Attack"] = { id = 29, anim = "ReadyBow" },
+		["Spell Attack"] = { id = 53, anim = "SpellCastDirected" },
+		["Wound"] = { id = 8, anim = "StandWound" },
+		["Death"] = { id = 1, anim = "Death" },
+		["Dead"] = { id = 6, anim = "Dead" },
+	}
+	if Me.UnitEditing.animations then
+		for k, v in pairs( Me.UnitEditing.animations ) do
+			if data.an[k] then
+				data.an[k] = v;
+			end
+		end
+	end
 	data.sy = editor.unitSymbol.State
 	data.hc = Me.UnitEditing.healthCurrent
 	if data.hc == 0 then
-		data.an = 6
+		data.an["Dead"] = { id = 6, name = "Dead" }
 	end
 	data.hm = Me.UnitEditing.healthMax
 	data.ar = Me.UnitEditing.armor
@@ -399,14 +427,14 @@ function Me.AffixEditor_SaveUnit()
 	data.mx.px, data.mx.py, data.mx.pz = editor.Model:GetPosition()
 	data.mx.ro = editor.Model.rotation
 	data.mx.zl = editor.Model.zoomLevel or editor.Model.minZoom
-	data.sd = editor.sounds or {}
 	data.st = editor.enable:GetChecked()
-	data.ba = editor.allowBuffs:GetChecked()
-	data.bl = editor.enableBlood:GetChecked()
+	data.ba = Me.db.global.allowBuffs
+	data.bl = Me.db.global.bloodEffects
 	--data.buffs = Me.UnitEditing.buffsActive or {}
 	data.vs = true;
 	data.zo = Me.UnitEditing.zone
 	data.co = Me.UnitEditing.continent
+	data.ra = Me.db.global.allowAssistantTalkingHeads
 	
 	DiceMaster4UF_Saved.SavedUnits[data.na] = data
 	if data.sy < 9 then
@@ -447,11 +475,28 @@ function Me.AffixEditor_Save()
 	
 	data.na = editor.unitName:GetText()
 	data.md = editor.Model:GetDisplayInfo()
-	data.an = editor.Model.animation
+	data.an = editor.Model.animation or 0
+	data.an = {
+		["PreAggro"] = { id = 0, anim = "Stand" },
+		["Aggro"] = { id = 127, anim = "Birth" },
+		["Melee Attack"] = { id = 16, anim = "AttackUnarmed" },
+		["Ranged Attack"] = { id = 29, anim = "ReadyBow" },
+		["Spell Attack"] = { id = 53, anim = "SpellCastDirected" },
+		["Wound"] = { id = 8, anim = "StandWound" },
+		["Death"] = { id = 1, anim = "Death" },
+		["Dead"] = { id = 6, anim = "Dead" },
+	}
+	if Me.UnitEditing.animations then
+		for k, v in pairs( Me.UnitEditing.animations ) do
+			if data.an[k] then
+				data.an[k] = v;
+			end
+		end
+	end
 	data.sy = editor.unitSymbol.State
 	data.hc = Me.UnitEditing.healthCurrent
 	if data.hc == 0 then
-		data.an = 6
+		data.an["Dead"] = { id = 6, name = "Dead" }
 	end
 	data.hm = Me.UnitEditing.healthMax
 	data.ar = Me.UnitEditing.armor
@@ -459,11 +504,11 @@ function Me.AffixEditor_Save()
 	data.mx.px, data.mx.py, data.mx.pz = editor.Model:GetPosition()
 	data.mx.ro = editor.Model.rotation
 	data.mx.zl = editor.Model.zoomLevel or editor.Model.minZoom
-	data.sd = editor.sounds or {}
 	data.st = editor.enable:GetChecked()
-	data.ba = editor.allowBuffs:GetChecked()
-	data.bl = editor.enableBlood:GetChecked()
+	data.ba = Me.db.global.allowBuffs
+	data.bl = Me.db.global.bloodEffects
 	data.buffs = Me.UnitEditing.buffsActive or {}
+	data.ra = Me.db.global.allowAssistantTalkingHeads
 	
 	Me.UnitEditing:SetData( data )
 	Me.UpdateUnitFrames()
@@ -529,7 +574,7 @@ function Me.AffixEditor_Close( noSound )
 		PlaySound(680)
 	end
 	Me.ModelPicker_Close()
-	Me.SoundPicker_Close()
+	Me.AnimationPicker_Close()					  
 	DiceMasterUnitFramesBuffEditor:Hide()
 	DiceMasterAffixEditor:Hide()
 end

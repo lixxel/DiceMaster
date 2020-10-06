@@ -53,34 +53,12 @@
         </Scripts>
       </DiceMasterStatusBar> 
 	  
-	  <StatusBar parentKey="charges2" minValue="0" maxValue="100" defaultValue="30" orientation="HORIZONTAL">
-		<Size x="150" y="32"/>
+	  <Frame parentKey="charges2" inherits="DiceMasterUnitPowerBar">
+		<Size x="168" y="42"/>
 		<Anchors>
-          <Anchor point="CENTER" x="0" y="17"/>
-        </Anchors>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="background" setAllPoints="true" >
-				</Texture>
-		    </Layer>
-			<Layer level="OVERLAY">
-				<Texture parentKey="frame" setAllPoints="true" >
-				</Texture>
-		    </Layer>
-			<Layer level="HIGHLIGHT">
-				<FontString parentKey="text" inherits="GameFontHighlightSmall2" justifyH="center" setallpoints="true">
-				</FontString>
-			</Layer>
-		</Layers>
-		<Scripts>
-			<OnLoad>
-				self:SetScale( 0.8 )
-				self:SetStatusBarTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Fill")
-				self.frame:SetTexture("Interface/UNITPOWERBARALT/FuelGauge_Horizontal_Frame")
-				self.background:SetTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Bgnd")
-			</OnLoad>
-		</Scripts>
-	  </StatusBar>
+		  <Anchor point="CENTER" x="0" y="20"/>
+		</Anchors>
+	  </Frame>
       
       <Frame parentKey="health">
         <Size x="160" y="20"/>
@@ -141,7 +119,7 @@
 			self.background:SetTexCoord( 0, 1, 0.25, 0.5 )
 			
             --self:SetTexture( "Interface/AddOns/DiceMaster/Texture/health-heart" )
-            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, "Represents this character's health." )
+            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, nil, "Represents this character's health." )
           </OnLoad>
 		  <OnMouseDown>
             DiceMaster4.Inspect_OnHealthClicked( button )

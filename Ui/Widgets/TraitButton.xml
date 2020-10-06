@@ -2,7 +2,7 @@
 
   <Script file="TraitButton.lua"/>
   
-  <Frame name="DiceMasterTooltip" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="TooltipBorderedFrameTemplate">
+  <Frame name="DiceMasterTooltip" frameStrata="TOOLTIP" hidden="true" parent="GameTooltip" inherits="TooltipBorderedFrameTemplate">
 	<Size>
 		<AbsDimension x="10" y="32"/>
 	</Size>
@@ -75,7 +75,7 @@
 	</Scripts>
   </Frame>
   
-  <Frame name="DiceMasterItemRefTooltip" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="TooltipBorderedFrameTemplate">
+  <Frame name="DiceMasterItemRefTooltip" frameStrata="TOOLTIP" hidden="true" parent="ItemRefTooltip" inherits="TooltipBorderedFrameTemplate">
 	<Size>
 		<AbsDimension x="128" y="64"/>
 	</Size>
@@ -155,6 +155,15 @@
 					</Anchors>
           
         </Texture>
+		<FontString parentKey="count" inherits="NumberFontNormal" justifyH="RIGHT" hidden="true">
+			<Anchors>
+				<Anchor point="BOTTOMRIGHT">
+					<Offset>
+						<AbsDimension x="-5" y="2"/>
+					</Offset>
+				</Anchor>
+			</Anchors>
+		</FontString>
       </Layer>
        
       <Layer level="OVERLAY"> 
@@ -169,6 +178,19 @@
       </Layer>
       
     </Layers>
+	<Frames>
+		<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate" setAllPoints="true">
+			<Layers>
+				<Layer level="OVERLAY">
+					<FontString parentKey="text" inherits="Game15Font_o1" justifyH="CENTER" hidden="true">
+						<Anchors>
+							<Anchor point="CENTER" x="0" y="0"/>
+						</Anchors>
+					</FontString>
+				</Layer>
+			</Layers>
+		</Cooldown>
+	</Frames>
     <Scripts>
       <OnLoad>
         DiceMaster4.TraitButton_Init( self )

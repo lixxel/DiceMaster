@@ -28,20 +28,34 @@
   
   <!-- The icon selector, shown when you click on the trait icon to edit the texture. -->
   <Frame name="DiceMasterModelPicker" parent="UIParent" hidden="true" inherits="SimplePanelTemplate" frameStrata="DIALOG" toplevel="true">
-    <Size x="256" y="288"/>
+    <Size x="256" y="372"/>
     <Anchors>
       <Anchor point="LEFT" relativeTo="DiceMasterTraitEditor" relativePoint="RIGHT" x="0" y="0" />
     </Anchors>
     
     <Layers>
+		<Layer level="OVERLAY">
+			<Texture parentKey="header" file="Interface/AddOns/DiceMaster/Texture/dicemaster-header">
+				<TexCoords left="0" right="0.623" top="0" bottom="0.566" />
+				<Size x="160" y="72"/>
+				<Anchors>
+					<Anchor point="BOTTOM" relativePoint="TOP" x="0" y="-16" />
+				</Anchors>
+			</Texture>
+			<FontString inherits="GameFontNormal" justifyH="center" text="Model Picker">
+				<Anchors>
+				  <Anchor point="TOP" x="0" y="-12"/> 
+				</Anchors>
+			</FontString>
+		</Layer>
     </Layers>
     
     <Scripts>
       <OnLoad>	
-        self.Inset:SetPoint("TOPLEFT", self, "TOPLEFT", 3, -56)
+        self.Inset:SetPoint("TOPLEFT", self, "TOPLEFT", 3, -76)
 		-- create icon map
 		self.icons = {}
-		for y = 0,2 do
+		for y = 0,3 do
 		  for x = 0,3 do
 			local btn = CreateFrame( "PlayerModel", nil, self.selectorFrame, "DiceMasterModelPickerButton" )
 			btn.pickerIndex = index
@@ -52,6 +66,10 @@
 			btn.pickerIndex = #self.icons
 		  end
 		end
+		
+		if self.NineSlice then
+			self.NineSlice:SetFrameLevel(1)
+		end
       </OnLoad>
     </Scripts>
     <Frames>
@@ -60,7 +78,7 @@
       <Button name="$parentFilter" parentKey="filter" enableMouse="true" inherits="UIDropDownMenuTemplate">
 		<Size x="150" y="22"/>
 		<Anchors>
-		  <Anchor point="TOPLEFT" x="0" y="-28"/> 
+		  <Anchor point="TOPLEFT" x="0" y="-48"/> 
 		</Anchors>
 	  </Button>
 	  
@@ -100,7 +118,7 @@
       <EditBox parentKey="search" inherits="SearchBoxTemplate">
         <Size x="200" y="8" />
         <Anchors>
-          <Anchor point="TOP" x="0" y="-14" />
+          <Anchor point="TOP" x="0" y="-34" />
         </Anchors>
         
         <Scripts>
@@ -124,6 +142,7 @@
 		</Anchors>
 		<Scripts>
 			<OnClick>
+				PlaySound(840); 
 				DiceMaster4.ModelPicker_Close()
 			</OnClick>
 		</Scripts>

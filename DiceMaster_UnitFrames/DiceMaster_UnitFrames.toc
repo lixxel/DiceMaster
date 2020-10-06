@@ -1,4 +1,4 @@
-## Interface: 80200
+## Interface: 80300
 ## Title: DiceMaster Unit Frames
 ## Author: Skylar
 ## Notes: Allows custom unit frames and targeting options for DiceMaster.
@@ -9,9 +9,8 @@ DiceMaster_UnitFrames.lua
 
 Comm.lua
 AnimationList.lua
+AnimationPicker.lua
 AffixEditor.lua
-SoundList.lua
-SoundPicker.lua
 Buffs.lua
 
 Ui/Ui.xml

@@ -17,7 +17,7 @@ end
 -------------------------------------------------------------------------------
 local methods = {
 	SetMax = function( self, max )
-		if max < 0 or max > 20 then error( "Invalid max value." ) end
+		if max < 0 or max > 100 then error( "Invalid max value." ) end
 		
 		self.filled_max = max  
 		self.filled     = math.min( self.filled, max )

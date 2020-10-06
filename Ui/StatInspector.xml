@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
  
   <Button name="DiceMasterStatInspectButtonTemplate" hidden="false" virtual="true">
-	<Size x="230" y="24"/>
+	<Size x="290" y="24"/>
 	<Layers>
 		<Layer level="BACKGROUND">
 			<Texture name="$parentBackground" parentKey="background">
@@ -75,7 +75,7 @@
 			self:SetUserPlaced( true )
 			
 			self:RegisterForClicks("LeftButtonUp");
-			DiceMaster4.SetupTooltip( self, nil, "Inspect", nil, nil, nil, "Click to view the character's Statistics and Pet." )
+			DiceMaster4.SetupTooltip( self, nil, "Inspect", nil, nil, nil, nil, "Click to view the character's Statistics and Pet." )
 		</OnLoad>
 		<OnClick>
 			DiceMaster4.StatInspector_Open()
@@ -100,7 +100,7 @@
   <!-- Trait editor frame. -->
   
   <Frame name="DiceMasterStatInspector" enableMouse="true" movable="true" resizable="false" frameStrata="DIALOG" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate" toplevel="true">
-    <Size x="265" y="384"/>
+    <Size x="336" y="444"/>
     <Anchors>
       <Anchor point="TOP" x="0" y="-90" />
     </Anchors>
@@ -108,7 +108,7 @@
     <Layers>
       
 	  <Layer level="BACKGROUND" textureSubLevel="-4">
-			<Texture name="$parentBg" file="Interface/TradeSkillFrame/Tradeskills" parentKey="Bg">
+			<Texture name="$parentBg2" file="Interface/TradeSkillFrame/Tradeskills" parentKey="Bg2">
 				<TexCoords left="0" right="0.294921875" top="0" bottom="0.751953125" />
 				<Anchors>
 					<Anchor point="TOPLEFT" x="4" y="-60" />
@@ -204,7 +204,7 @@
 				self:SetScale(0.8)
 				self:SetStatusBarTexture(1, 1, 1, "BORDER", -1);
 				self:GetStatusBarTexture():SetGradient("VERTICAL", 8/255, 93/255, 72/255, 11/255, 136/255, 105/255);
-				self:SetStatusBarColor(0.48, 0.1, 0.7);
+				self:SetStatusBarColor( 0.2, 0.6, 1.0 );
 			</OnLoad>
 			<OnEnter>
 				GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
@@ -302,7 +302,7 @@
 				<Texture name="$parentPetIcon" parentKey="petIcon">
 					<Size x="42" y="42"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" x="4" y="-4"/> 
+						<Anchor point="TOPLEFT" x="10" y="-10"/> 
 					</Anchors>
 				</Texture>
 				<FontString name="$parentPetName" parentKey="petName" inherits="GameFontNormalMed2">
@@ -312,7 +312,7 @@
 				</FontString>
 				<FontString parentKey="levelText" inherits="GameFontHighlightSmallLeft">
 					<Anchors>
-						<Anchor point="TOPLEFT" x="52" y="-26"/>
+						<Anchor point="TOPLEFT" relativeTo="$parentPetName" relativePoint="BOTTOMLEFT" x="0" y="0"/> 
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -320,7 +320,7 @@
 		<Frames>
 			<PlayerModel parentKey="petModel" enableMouse="true" inherits="ModelWithControlsTemplate">
 				<Anchors>
-					<Anchor point="TOPLEFT" x="2" y="-48"/>
+					<Anchor point="TOPLEFT" x="2" y="-60"/>
 					<Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
                 </Anchors>
                 <Scripts>
@@ -342,7 +342,7 @@
 			</PlayerModel>
 		</Frames>
 	  </Frame>
-	  
+
 	  <Button name="$parentTab1" parentKey="Tab1" useParentLevel="true" inherits="CharacterFrameTabButtonTemplate" id="1" text="Statistics">
 			<Anchors>
 				<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" y="2"/>
@@ -350,6 +350,8 @@
 			<Scripts>
 				<OnClick>
 					PanelTemplates_SetTab(DiceMasterStatInspector, 1);
+					DiceMasterStatInspectorInset:Show();
+					DiceMasterStatInspectorBg2:Show();
                     DiceMasterStatInspectorStatsFrame:Show();
 					DiceMasterStatInspectorPetFrame:Hide();
 					PlaySound(841)
@@ -364,6 +366,8 @@
 		<Scripts>
 			<OnClick>
 				PanelTemplates_SetTab(DiceMasterStatInspector, 2);
+				DiceMasterStatInspectorInset:Show();
+				DiceMasterStatInspectorBg2:Show();
 				DiceMasterStatInspectorStatsFrame:Hide();
 				DiceMasterStatInspectorPetFrame:Show();
 				PlaySound(841)

@@ -24,6 +24,9 @@ function Me.IconPickerButton_OnClick( self )
 		Me.TraitEditor_SelectIcon( self:GetNormalTexture():GetTexture() )
 	elseif DiceMasterIconPicker.parent == DiceMasterPetFrame then
 		Me.PetEditor_SelectIcon( self:GetNormalTexture():GetTexture() ) 
+	elseif DiceMasterIconPicker.parent == DiceMasterDMNotesDMNotes.EditBox then
+		Me.TraitEditor_Insert( "<img>"..self:GetNormalTexture():GetTexture().."</img>", DiceMasterIconPicker.parent )
+		DiceMasterNotesEditBox_OnTextChanged(DiceMasterIconPicker.parent)
 	else
 		Me.TraitEditor_Insert( "<img>"..self:GetNormalTexture():GetTexture().."</img>" )
 		Me.TraitEditor_SaveDescription()

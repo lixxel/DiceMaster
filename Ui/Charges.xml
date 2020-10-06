@@ -43,37 +43,19 @@
           </OnMouseDown>
         </Scripts>
       </DiceMasterStatusBar>
-	  <StatusBar parentKey="bar2" minValue="0" maxValue="100" defaultValue="30" orientation="HORIZONTAL">
-		<Size x="150" y="32"/>
+	  
+	  <Frame parentKey="bar2" inherits="DiceMasterUnitPowerBar">
+		<Size x="168" y="42"/>
 		<Anchors>
-          <Anchor point="CENTER" x="0" y="0"/>
-        </Anchors>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="background" setAllPoints="true" >
-				</Texture>
-		    </Layer>
-			<Layer level="OVERLAY">
-				<Texture parentKey="frame" setAllPoints="true" >
-				</Texture>
-		    </Layer>
-			<Layer level="HIGHLIGHT">
-				<FontString parentKey="text" inherits="GameFontHighlightSmall2" justifyH="center" setallpoints="true">
-				</FontString>
-			</Layer>
-		</Layers>
+		  <Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
 		<Scripts>
-			<OnLoad>
-				self:SetScale( 0.8 )
-				self:SetStatusBarTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Fill")
-				self.frame:SetTexture("Interface/UNITPOWERBARALT/FuelGauge_Horizontal_Frame")
-				self.background:SetTexture("Interface/UNITPOWERBARALT/Generic1Player_Horizontal_Bgnd")
-			</OnLoad>
 			<OnMouseDown>
-            DiceMaster4.OnChargesClicked( button )
-          </OnMouseDown>
+				DiceMaster4.OnChargesClicked( button )
+			</OnMouseDown>
 		</Scripts>
-	  </StatusBar>
+	  </Frame>
+	  
 	  <Frame parentkey="healthbar">
         <Size x="160" y="20"/>
         <Anchors>
@@ -132,8 +114,8 @@
 			self.background:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
 			self.background:SetTexCoord( 0, 1, 0.25, 0.5 )
 			
-            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, 
-              "Represents your health.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left Click to Set Max>|n&lt;Ctrl+Left Click to Set Value>" )
+            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, nil,
+              "Represents your health.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left Click to Set Max>|n&lt;Ctrl+Left Click to Set Value>|n&lt;Alt+Left/Right Click to Add/Remove Armour>" )
           </OnLoad>
           <OnMouseDown>
             DiceMaster4.OnHealthClicked( button )
@@ -264,7 +246,7 @@
 			self.background:SetTexture("Interface/AddOns/DiceMaster/Texture/health-bar")
 			self.background:SetTexCoord( 0, 1, 0.25, 0.5 )
 			
-            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, 
+            DiceMaster4.SetupTooltip( self, nil, "Health", nil, nil, nil, nil,
               "Represents your pet's health.|n|cFF707070&lt;Left/Right Click to Add/Remove>|n&lt;Shift+Left Click to Set Max>|n&lt;Ctrl+Left Click to Set Value>" )
           </OnLoad>
           <OnMouseDown>

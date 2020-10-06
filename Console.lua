@@ -49,6 +49,11 @@ function SlashCmdList.DICE( msg, editBox )
 				modifier = modifier + Profile.stats[i].value
 			end
 		end
+		for i = 1, #Profile.buffsActive do
+			if Profile.buffsActive[i].statistic == rollType then
+				modifier = modifier + Profile.buffsActive[i].statAmount
+			end
+		end
 		msg = Me.FormatDiceString( dice, modifier ) or "D20"
 	end
 	
@@ -168,6 +173,30 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 			Me.RefreshMoraleFrame() 
 		end
 		Me.ApplyUiScale() 
+	elseif command == "unitframes" then
+		
+		if not IsAddOnLoaded("DiceMaster_UnitFrames") then
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t DiceMaster Unit Frames module not found. Enable the module from your AddOns list.", "SYSTEM")
+			return
+		end
+		
+		if rest:lower() == "show" then
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames enabled.", "SYSTEM")
+			Me.ShowUnitPanel( true )
+		elseif rest:lower() == "hide" then
+			Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Unit Frames disabled.", "SYSTEM")
+			Me.ShowUnitPanel( false )
+		end
+	elseif command == "range" then
+	
+		rest = tonumber(rest) or 20;
+		if rest then
+			if DiceMasterRangeRadar:IsShown() then
+				Me.RangeRadar_Hide()
+			else
+				Me.RangeRadar_Show( rest )
+			end
+		end
 	else
 		Me.PrintMessage("- /dicemaster config", "SYSTEM");
 		Me.PrintMessage("- /dicemaster scale (number)", "SYSTEM");
@@ -180,6 +209,10 @@ function SlashCmdList.DICEMASTER(msg, editbox)
 		Me.PrintMessage("- /dicemaster manager (show || hide)", "SYSTEM");
 		Me.PrintMessage("- /dicemaster managerscale (number)", "SYSTEM");
 		Me.PrintMessage("- /dicemaster progressbar (show || hide)", "SYSTEM");
+		Me.PrintMessage("- /dicemaster range (number)", "SYSTEM");
+		if IsAddOnLoaded("DiceMaster_UnitFrames") then
+			Me.PrintMessage("- /dicemaster unitframes (show || hide)", "SYSTEM");
+		end
 		Me.PrintMessage("- /dicemaster (lock || unlock)", "SYSTEM");
 	end
 end 

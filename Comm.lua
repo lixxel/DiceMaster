@@ -22,20 +22,28 @@ local MessageHandlers = {
 	R       = "Dice_OnRollMessage";
 	ROLL    = "Dice_OnRollMessage";
 	
+	ITEM    = "LootToast_OnToast";
+	
 	TYPE    = "PostTracker_OnTyping";
 	
 	TARGET  = "RollTracker_OnTargetMessage";
 	NOTES   = "RollTracker_OnNoteMessage";
 	NOTREQ  = "RollTracker_OnStatusRequest";
+	MAPNODES  = "RollTracker_OnMapNodesMessage";
+	MAPREQ  = "RollTracker_OnMapNodesRequest";
 	
 	BANNER  = "RollBanner_OnBanner";
 	
 	BUFF    = "BuffFrame_OnBuffMessage";
 	REMOVE  = "BuffFrame_OnRemoveBuffMessage";
 	
+	SOUND   = "SoundPicker_OnSoundMessage";
+	EFFECT  = "OnFullscreenEffectMessage";
+	
 	MORALE  = "MoraleBar_OnStatusMessage";
 	MORREQ  = "MoraleBar_OnStatusRequest";
 	
+	UFANIM  = "UnitFrame_OnAnimationMessage";
 	DMSAY   = "UnitFrame_OnDMSAY";
 	UFSTAT  = "UnitFrame_OnStatusMessage";
 	UFREQ   = "UnitFrame_OnStatusRequest";
@@ -76,7 +84,7 @@ end
 
 function Me.UnitFrame_OnDMSAY( data, dist, sender )	
 	-- Ignore our own data.
-	if sender == UnitName( "player" )  then return end
+	if sender == UnitName( "player" ) then return end
  
 	-- sanitize message
 	if not data.na and not data.md and not data.ms then
@@ -86,6 +94,41 @@ function Me.UnitFrame_OnDMSAY( data, dist, sender )
 	
 	if ( UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) ) and not DiceMasterTalkingHeadFrame then
 		Me.PrintMessage("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms, "RAID")
+	end
+end
+
+---------------------------------------------------------------------------
+-- Received a fullscreen effect request.
+--	sv = spellVisualKitID				number
+--	po = position ( x, y, z )			table
+--  so = sound							number
+
+function Me.ResetFullscreenEffect()
+	local model = DiceMasterFullscreenEffectFrame.Model
+	model:ClearModel()
+	model:SetDisplayInfo( 6908 )
+	model:SetPosition( -20, 9.7, 1 )
+	model:SetLight( true, true, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 );
+end
+
+function Me.OnFullscreenEffectMessage( data, dist, sender )
+	-- sanitize message
+	if not data.sv or not Me.db.global.allowEffects then
+	   
+		return
+	end
+	
+	if ( UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) or Me.IsLeader( false ) ) then
+		Me.ResetFullscreenEffect()
+		DiceMasterFullscreenEffectFrame.Model:SetSpellVisualKit( data.sv );
+		if ( data.po and data.po.x and data.po.y and data.po.z ) then
+			DiceMasterFullscreenEffectFrame.Model:SetPosition( data.po.x, data.po.y, data.po.z );
+		else
+			DiceMasterFullscreenEffectFrame.Model:SetPosition( -20, 9.7, 1 );
+		end
+		if ( data.so ) then
+			PlaySound( data.so )
+		end
 	end
 end
 

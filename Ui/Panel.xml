@@ -56,7 +56,7 @@
           self.traits[i].traitIndex = i
 		  self.traits[i].editable_trait = true;
 		  self.traits[i]:SetScript( "OnMouseDown", function( self, button )
-			if IsShiftKeyDown() then DiceMaster4.TraitEditor_OnTraitClicked( self, button ) elseif button == "LeftButton" then DiceMaster4.TraitButtonClicked() DiceMaster4.TraitEditor_StartEditing( self.traitIndex ) elseif button == "RightButton" then DiceMaster4.BuffFrame_RemoveBuff( self.traitIndex ) DiceMaster4.BuffFrame_CastBuff( self.traitIndex ) DiceMaster4.BuffFrame_RollDice( self.traitIndex ) end
+			if IsShiftKeyDown() then DiceMaster4.TraitEditor_OnTraitClicked( self, button ) else DiceMaster4.TraitButtonClicked( self, button ) end
 		end)
         end
       </OnLoad>

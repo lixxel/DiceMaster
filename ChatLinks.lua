@@ -58,7 +58,7 @@ local function CheckTooltipForTerms( text )
 			local matchFound = string.match( text, v[i].subName )
 			if matchFound then
 				local desc = gsub( v[i].desc, "Roll", "An attempt" )
-				local termsString = "|cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. desc .. "|r|n|cFF707070(Modified by " .. v[i].stat .. " + " .. v[i].name .. ")|r"
+				local termsString = Me.FormatIcon( v[i].iconID ) .. " |cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. desc .. "|r|n|cFF707070(Modified by " .. v[i].stat .. " + " .. v[i].name .. ")|r"
 				
 				if not tContains( termsTable, termsString ) then
 					tinsert( termsTable, termsString )
@@ -160,7 +160,12 @@ local function RefreshItemRef()
 		
 		if trait.usage ~= "PASSIVE" and trait.castTime then
 			local castTime = Me.FormatCastTime( trait.castTime )
-			ItemRefTooltip:AddLine( castTime, 1, 1, 1, true )
+			local cooldown = Me.FormatCooldown( trait.cooldown )
+			if trait.cooldown and trait.cooldown ~= "NONE" then
+				ItemRefTooltip:AddDoubleLine( castTime, cooldown, 1, 1, 1, 1, 1, 1, true )
+			else
+				ItemRefTooltip:AddDoubleLine( castTime, nil, 1, 1, 1, 1, 1, 1, true )
+			end
 		end
 	end
 	
@@ -205,7 +210,10 @@ end
 local SetHyperlink = ItemRefTooltip.SetHyperlink
 function ItemRefTooltip:SetHyperlink(link)
 	
-    if strsub(link, 1, 12) == "DiceMaster4:" then
+	if strsub(link, 1, 16) == "DiceMaster4Item:" then
+		-- todo
+		-- item links
+    elseif strsub(link, 1, 12) == "DiceMaster4:" then
 		if IsModifiedClick("CHATLINK") then
 			-- shift-clicked
 			--ChatEdit_InsertLink("["..link.."]")

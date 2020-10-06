@@ -4,6 +4,10 @@
 
 local Me = DiceMaster4
 
+local TRAIT_COOLDOWN_TIMES = {
+	["15S"] = 15; ["20S"] = 20; ["30S"] = 30; ["1M"] = 60; ["2M"] = 120; ["3M"] = 180; ["4M"] = 240; ["5M"] = 300; ["10M"] = 600; ["15M"] = 900; ["20M"] = 1200; ["30M"] = 1800; ["1H"] = 3600; ["2H"] = 7200; ["3H"] = 10800; ["4H"] = 14400; ["5H"] = 18000; ["1D"] = 86400; ["2D"] = 172800; ["3D"] = 259200; ["4D"] = 345600; ["5D"] = 432000; ["1W"] = 604800;
+}
+
 -------------------------------------------------------------------------------
 Me.playerTraitTooltipOpen = false
 Me.playerTraitTooltipName = nil
@@ -18,7 +22,7 @@ function Me.CheckTooltipForTerms( text )
 			local matchFound = string.match( text, "<" .. v[i].subName .. ">" )
 			if matchFound then
 				local desc = gsub( v[i].desc, "Roll", "An attempt" )
-				local termsString = "|cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. desc .. "|r|n|cFF707070(Modified by " .. v[i].stat .. " + " .. v[i].name .. ")|r"
+				local termsString = Me.FormatIcon( v[i].iconID ) .. " |cFFFFFFFF" .. v[i].name .. "|r|n|cFFffd100" .. desc .. "|r|n|cFF707070(Modified by " .. v[i].stat .. " + " .. v[i].name .. ")|r"
 				
 				if not tContains( termsTable, termsString ) then
 					tinsert( termsTable, termsString )
@@ -107,7 +111,12 @@ function Me.OpenTraitTooltip( owner, trait, index )
 		
 		if trait.usage ~= "PASSIVE" and trait.castTime then
 			local castTime = Me.FormatCastTime( trait.castTime )
-			GameTooltip:AddLine( castTime, 1, 1, 1, true )
+			if trait.cooldown and trait.cooldown ~= "NONE" then
+				local cooldown = Me.FormatCooldown( trait.cooldown )
+				GameTooltip:AddDoubleLine( castTime, cooldown, 1, 1, 1, 1, 1, 1, true )
+			else
+				GameTooltip:AddDoubleLine( castTime, nil, 1, 1, 1, 1, 1, 1, true )
+			end
 		end
 	end
 	
@@ -120,8 +129,39 @@ function Me.OpenTraitTooltip( owner, trait, index )
 		end
 		DiceMasterTooltipIcon.approved:Show()
 	end
-	 
-    GameTooltip:AddLine( nil, 1, 1, 1, true )
+	
+	if owner and owner.editable_trait then
+		owner:SetScript( "OnUpdate", nil )
+	end
+	
+	if trait.cooldown and owner and owner.editable_trait then
+		if owner.cooldown:GetCooldownDuration() > 0 then
+			local currentTime = GetTime()
+			local startTime = owner.cooldown.StartTime
+			local duration = TRAIT_COOLDOWN_TIMES[ trait.cooldown ] or 0
+			
+			local timeElapsed = math.ceil( duration - ( currentTime - startTime ) )
+			timeElapsed = string.lower( SecondsToTime( timeElapsed, false ) )
+			if timeElapsed and timeElapsed ~= "" then
+				GameTooltip:AddLine( "Cooldown remaining: " .. timeElapsed, 1, 1, 1, true )
+			end
+			
+			owner:SetScript( "OnUpdate", function( self )
+				if GameTooltip:IsOwned( self ) then
+					self:GetScript("OnEnter")( self )
+				end
+			end)
+		end
+		if owner.cooldown.text:IsShown() then
+			local cooldown = owner.cooldown.text:GetText()
+			cooldown = cooldown:gsub( "T", "" )
+			if cooldown == "1" then
+				GameTooltip:AddLine( "Cooldown remaining: " .. cooldown .. " turn", 1, 1, 1, true )
+			else
+				GameTooltip:AddLine( "Cooldown remaining: " .. cooldown .. " turns", 1, 1, 1, true )
+			end
+		end
+	end
 	
 	if trait.desc then
 		if Me.db.global.hideTips then
@@ -167,6 +207,11 @@ function Me.OpenTraitTooltip( owner, trait, index )
 				usable = usable .. "<Right Click to Use>|n"
 			end
 		end
+		if Me.Profile.playsounds[ index ] and owner:GetParent():GetName() == "DiceMasterPanel" then
+			if Me.Profile.playsounds[ index ].blank == false then
+				usable = usable .. "<Right Click to Use>|n"
+			end
+		end
 		usable = usable .. "<Left Click to Edit>|n"
 	end
 	GameTooltip:AddLine( usable .. "<Shift+Click to Link to Chat>", 0.44, 0.44, 0.44, true )
@@ -180,6 +225,10 @@ function Me.OpenTraitTooltip( owner, trait, index )
 			approval = "|TInterface/AddOns/DiceMaster/Texture/trait-approved:14:14:0:0:32:32:2:14:18:30|t Approved by " .. trait.officers[1]
 			GameTooltip:AddLine( approval, 1, 1, 0, true )
 		end
+	end
+	
+	if Me.useCorruptedSkins then
+		GameTooltip_SetBackdropStyle( GameTooltip, GAME_TOOLTIP_BACKDROP_STYLE_CORRUPTED_ITEM );
 	end
 	
     GameTooltip:Show()
@@ -248,6 +297,9 @@ local methods = {
 		self.traitPlayer = nil
 		self.traitIndex  = nil
 		self.icon:SetTexture( tex )
+		self.icon:SetVertexColor( 1, 1, 1 )
+		self.count:SetText( "")
+		self.count:Hide()
 	end;
 	
 	---------------------------------------------------------------------------
@@ -278,10 +330,21 @@ local methods = {
 	-- Refresh after a trait changes.
 	--
 	Refresh = function( self )
+		self.icon:SetVertexColor( 1, 1, 1 )
+		self.count:SetText( "")
+		self.count:Hide()
 		if self.trait then
 			self.icon:SetTexture( self.trait.icon )
 		elseif self.traitPlayer then
 			self.icon:SetTexture( Me.inspectData[self.traitPlayer].traits[self.traitIndex].icon )
+			if Me.db.global.showUses and self:GetParent() == DiceMasterPanel then
+				local usage = Me.inspectData[self.traitPlayer].traits[self.traitIndex].usage or "PASSIVE"
+				if usage:find("USE") then
+					local uses = usage:gsub( "USE", "" )
+					self.count:SetText( uses )
+					self.count:Show()
+				end
+			end
 		end
 	end;
 	

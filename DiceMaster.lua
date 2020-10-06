@@ -62,12 +62,23 @@ local TRAIT_RANGE_MODES = {
 	"NONE", "MELEE", "10YD", "20YD", "30YD", "40YD", "50YD", "60YD", "70YD", "80YD", "90YD", "100YD", "UNLIMITED"
 }
 
+-------------------------------------------------------------------------------
+-- Trait.cooldown modes.
+--
+local TRAIT_COOLDOWN_MODES = {
+	"NONE", "15S", "20S", "30S", "1M", "2M", "3M", "4M", "5M", "10M", "15M", "20M", "30M", "1H", "2H", "3H", "4H", "5H", "1D", "2D", "3D", "4D", "5D", "1W", "1T", "2T", "3T", "4T", "5T", "6T"
+}
+
 -- tuples for subbing text in description tooltips
 local TOOLTIP_DESC_SUBS = {
 	-- Icons
 	{ "(%s)(%d+)%sHealth",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };  		-- e.g. "1 health"
 	{ "(%s)(%d+)%sHP",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };      		-- e.g. "1 hp"
 	{ "(%s)(%d+)%sArmo[u]*r",      "%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/armour-icon:12|t" };		-- e.g. "1 armour"
+	{ "%<food%>",      "|TInterface/AddOns/DiceMaster/Texture/resources:16:16:0:0:128:32:0:24:0:24|t" };			-- food icon
+	{ "%<wood%>",      "|TInterface/AddOns/DiceMaster/Texture/resources:16:16:0:0:128:32:24:48:0:24|t" };			-- wood icon
+	{ "%<iron%>",      "|TInterface/AddOns/DiceMaster/Texture/resources:16:16:0:0:128:32:48:72:0:24|t" };			-- iron icon
+	{ "%<leather%>",      "|TInterface/AddOns/DiceMaster/Texture/resources:16:16:0:0:128:32:72:96:0:24|t" };		-- leather icon
 	-- Tags
 	{ "<rule>",		" |TInterface/COMMON/UI-TooltipDivider:4:220|t" };									-- <rule>
 	{ "(%s)(%d*)%s*<HP>",		"%1|cFFFFFFFF%2|r|TInterface/AddOns/DiceMaster/Texture/health-heart:12|t" };						-- <HP>
@@ -149,6 +160,7 @@ Me.traitCount  = 5
 Me.TRAIT_USAGE_MODES = TRAIT_USAGE_MODES
 Me.TRAIT_CAST_TIME_MODES = TRAIT_CAST_TIME_MODES
 Me.TRAIT_RANGE_MODES = TRAIT_RANGE_MODES
+Me.TRAIT_COOLDOWN_MODES = TRAIT_COOLDOWN_MODES
  
 -------------------------------------------------------------------------------
 -- Misc helper functions
@@ -188,9 +200,10 @@ end
 function Me.IsOfficer()
 	local guildName, guildRankName, guildRankIndex = GetGuildInfo( "player" )
 	
-	if Me.PermittedUse() and guildRankIndex < 3 then
+	if Me.PermittedUse() and guildRankIndex < 4 then
 		return true
 	end
+	return false
 end
 
 -------------------------------------------------------------------------------
@@ -253,7 +266,7 @@ local function OnEnterTippedButton(self)
 	--
 	-- Cost         Range
 	--
-	-- Cast Time
+	-- Cast Time		Cooldown
 	--
 	-- Description
 	--
@@ -271,7 +284,7 @@ local function OnEnterTippedButton(self)
 	 
     GameTooltip:AddDoubleLine(self.tooltipText2a, self.tooltipText2b, 1, 1, 1, 1, 1, 1, true)
 	 
-    GameTooltip:AddLine(self.tooltipText3, 1, 1, 1, true)
+    GameTooltip:AddDoubleLine(self.tooltipText3, self.tooltipText3b, 1, 1, 1, 1, 1, 1, true)
 	 
 	if self.tooltipText4 then
 		GameTooltip:AddLine( Me.FormatDescTooltip( self.tooltipText4 ), 1, 0.81, 0, true)
@@ -296,12 +309,13 @@ end
 -- @param cost        Cost of spell or generic text under the name.
 -- @param range       Range of spell or generic text under the name to the right.
 -- @param casttime    Cast time of spell or generic text under cost.
+-- @param cooldown    Cooldown time of spell or generic text to the right.
 -- @param description Description of spell or generic tooltip description.
 --
 -- In essence, the tooltip is layed out like a normal spell tooltip.
 --
 function Me.SetupTooltip(self, texture, spellname, cost, range, 
-                        casttime, description)
+                        casttime, cooldown, description)
 						
     if spellname then
 	
@@ -310,6 +324,7 @@ function Me.SetupTooltip(self, texture, spellname, cost, range,
         self.tooltipText2a = cost
         self.tooltipText2b = range
         self.tooltipText3 = casttime
+        self.tooltipText3b = cooldown
         self.tooltipText4 = description
         self:SetScript( "OnEnter", OnEnterTippedButton )
         self:SetScript( "OnLeave", OnLeaveTippedButton )
@@ -387,6 +402,23 @@ local TRAIT_RANGE = {
 
 function Me.FormatRange( range )	
 	local text = TRAIT_RANGE[range] or ""
+	return text
+end
+
+-------------------------------------------------------------------------------
+-- Convert trait cooldown number into text.
+--
+-- @param cooldown 		Cooldown index.
+--
+local TRAIT_COOLDOWN = {
+	["NONE"] = "(None)"; ["15S"] = "15 sec"; ["20S"] = "20 sec"; ["30S"] = "30 sec"; ["1M"] = "1 min"; ["2M"] = "2 min"; ["3M"] = "3 min"; ["4M"] = "4 min"; ["5M"] = "5 min"; ["10M"] = "10 min"; ["15M"] = "15 min"; ["20M"] = "20 min"; ["30M"] = "30 min"; ["1H"] = "1 hour"; ["2H"] = "2 hour"; ["3H"] = "3 hour"; ["4H"] = "4 hour"; ["5H"] = "5 hour"; ["1D"] = "1 day"; ["2D"] = "2 day"; ["3D"] = "3 day"; ["4D"] = "4 day"; ["5D"] = "5 day"; ["1W"] = "1 week"; ["1T"] = "1 turn"; ["2T"] = "2 turn"; ["3T"] = "3 turn"; ["4T"] = "4 turn"; ["5T"] = "5 turn"; ["6T"] = "6 turn";
+}
+
+function Me.FormatCooldown( cooldown )	
+	local text = TRAIT_COOLDOWN[cooldown] or ""
+	if ( cooldown ~= "NONE" and text ~= "" ) then
+		text = text .. " cooldown"
+	end
 	return text
 end
 
@@ -514,7 +546,9 @@ function Me.OnHealthClicked( button, isPet )
     Me.RefreshHealthbarFrame( frame.healthbar, store.health, store.healthMax, store.armor )
 	
 	Me.BumpSerial( Me.db.char, "statusSerial" )
-	Me.Inspect_ShareStatusWithParty()  
+	Me.Inspect_ShareStatusWithParty()
+	Me.DiceMasterRollDetailFrame_Update()
+	Me.DMRosterFrame_Update()
 end
 
 -------------------------------------------------------------------------------
@@ -588,7 +622,16 @@ function Me.RefreshChargesFrame( tooltip, color )
 				DiceMasterChargesFrame.bar:Show()
 				DiceMasterChargesFrame.bar2:Hide()
 			end
-			DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 20)
+			-- Check charges position setting:
+			if Profile.charges.pos then
+				DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 20)
+				DiceMasterChargesFrame.bar:SetPoint("CENTER", 0, 0)
+				DiceMasterChargesFrame.bar2:SetPoint("CENTER", 0, -10)
+			else
+				DiceMasterChargesFrame.healthbar:SetPoint("CENTER", 0, 0)
+				DiceMasterChargesFrame.bar:SetPoint("CENTER", 0, 35)
+				DiceMasterChargesFrame.bar2:SetPoint("CENTER", 0, 30)
+			end
 		else
 			DiceMasterChargesFrame.bar:Hide()
 			DiceMasterChargesFrame.bar2:Hide()
@@ -601,11 +644,7 @@ function Me.RefreshChargesFrame( tooltip, color )
 	if tooltip then
 		local chargesPlural = Profile.charges.name:gsub( "/.*", "" )
 		Me.SetupTooltip( DiceMasterChargesFrame.bar, nil, chargesPlural, 
-			nil, nil, nil, 
-			Profile.charges.tooltip.."|n|cFF707070<Left Click to Add "..chargesPlural..">|n"
-			.."<Right Click to Remove "..chargesPlural..">")
-		Me.SetupTooltip( DiceMasterChargesFrame.bar2, nil, chargesPlural, 
-			nil, nil, nil, 
+			nil, nil, nil, nil,
 			Profile.charges.tooltip.."|n|cFF707070<Left Click to Add "..chargesPlural..">|n"
 			.."<Right Click to Remove "..chargesPlural..">")
 	end
@@ -614,19 +653,20 @@ function Me.RefreshChargesFrame( tooltip, color )
 		DiceMasterChargesFrame.bar:SetTexture( 
 			"Interface/AddOns/DiceMaster/Texture/"..Profile.charges.symbol or "Interface/AddOns/DiceMaster/Texture/charge-orb", 
 			Profile.charges.color[1], Profile.charges.color[2], Profile.charges.color[3] )
-		DiceMasterChargesFrame.bar2:SetStatusBarColor( Profile.charges.color[1], Profile.charges.color[2], Profile.charges.color[3] )
 	end
 	
 	-- Check for an Interface path.
 	if not Profile.charges.symbol:find("charge") then
-		DiceMasterChargesFrame.bar2.frame:SetTexture("Interface/UNITPOWERBARALT/"..Profile.charges.symbol.."_Horizontal_Frame")
-		DiceMasterChargesFrame.bar2.text:SetText( Profile.charges.count.."/"..Profile.charges.max )
+		local chargesPlural = Profile.charges.name:gsub( "/.*", "" )
+		DiceMasterChargesFrame.bar2:SetMinMaxPower( 0, Profile.charges.max )
+		DiceMasterChargesFrame.bar2:ApplyTextures( Profile.charges.symbol, Profile.charges.name, Profile.charges.tooltip .. "|n|cFF707070<Left Click to Add " .. chargesPlural .. ">|n" .. "<Right Click to Remove " .. chargesPlural .. ">", Profile.charges.count, Profile.charges.color, Profile.charges.flash )
+		DiceMasterChargesFrame.bar2.text:SetText( Profile.charges.count .. "/" .. Profile.charges.max )
 	end
 	
 	DiceMasterChargesFrame.bar:SetMax( Profile.charges.max ) 
 	DiceMasterChargesFrame.bar:SetFilled( Profile.charges.count ) 
-	DiceMasterChargesFrame.bar2:SetMinMaxValues( 0 , Profile.charges.max ) 
-	DiceMasterChargesFrame.bar2:SetValue( Profile.charges.count ) 
+	
+	DiceMasterChargesFrame.bar2:UpdateFill();
 end
 
 -------------------------------------------------------------------------------
@@ -648,9 +688,97 @@ function Me.RefreshPetFrame()
 end
 
 -------------------------------------------------------------------------------
-function Me.TraitButtonClicked()
-	Me.TraitEditor_Open()
-	DiceMasterTraitEditorTab1:Click()
+
+local TRAIT_COOLDOWN_TIMES = {
+	["15S"] = 15; ["20S"] = 20; ["30S"] = 30; ["1M"] = 60; ["2M"] = 120; ["3M"] = 180; ["4M"] = 240; ["5M"] = 300; ["10M"] = 600; ["15M"] = 900; ["20M"] = 1200; ["30M"] = 1800; ["1H"] = 3600; ["2H"] = 7200; ["3H"] = 10800; ["4H"] = 14400; ["5H"] = 18000; ["1D"] = 86400; ["2D"] = 172800; ["3D"] = 259200; ["4D"] = 345600; ["5D"] = 432000; ["1W"] = 604800;
+}
+
+local function updateTraitUses( traitButton )
+	local traitIndex = traitButton.traitIndex
+	local trait = Profile.traits[ traitIndex ]
+	local usage = trait.usage or "PASSIVE";
+	--traitButton.icon:SetVertexColor( 1, 1, 1 )
+	
+	if usage == "PASSIVE" or traitButton.cooldown:GetCooldownDuration() > 0 or traitButton.cooldown.text:IsShown() or not Me.db.global.showUses then
+		return
+	end
+	
+	if usage:find("USE") then
+		local usesTotal = usage:gsub("USE", "")
+		local usesLeft = traitButton.count:GetText() or 0
+		usesLeft = tonumber( usesLeft )
+		if usesLeft > 0 then
+			usesLeft = usesLeft - 1
+			traitButton.count:SetText( usesLeft )
+		end
+		if usesLeft == 0 then
+			traitButton.icon:SetVertexColor( 0.5, 0.5, 0.5 )
+			traitButton.notCastable = true;
+		end
+	elseif usage:find("CHARGE") then
+		local chargesSpent = usage:gsub("CHARGE", "")
+		chargesSpent = tonumber( chargesSpent )
+		if Profile.charges.count >= chargesSpent then
+			Profile.charges.count = Profile.charges.count - chargesSpent
+			
+			Me.BumpSerial( Me.db.char, "statusSerial" )
+			
+			Me.RefreshChargesFrame()
+			Me.Inspect_ShareStatusWithParty()
+		end
+	end
+end
+
+function Me.TraitButtonClicked( traitButton, button )
+	if button == "LeftButton" then
+		Me.TraitEditor_Open()
+		DiceMasterTraitEditorTab1:Click()
+		DiceMaster4.TraitEditor_StartEditing( traitButton.traitIndex )
+	elseif button == "RightButton" then
+		local cooldown = Profile.traits[ traitButton.traitIndex ].cooldown or "NONE";
+		if cooldown ~= "NONE" then
+			if traitButton.cooldown:GetCooldownDuration() == 0 and not traitButton.cooldown.text:IsShown() and not traitButton.notCastable then
+				updateTraitUses( traitButton )
+				local buttonCooldown = TRAIT_COOLDOWN_TIMES[cooldown] or 0
+				traitButton.cooldown.StartTime = GetTime()
+				traitButton.cooldown:SetCooldown( GetTime(), buttonCooldown )
+				traitButton.cooldown:SetHideCountdownNumbers( false )
+				
+				if buttonCooldown == 0 then
+					traitButton.cooldown.text:SetText( cooldown )
+					traitButton.cooldown.text:Show()
+				else
+					traitButton.cooldown.text:SetText("")
+					traitButton.cooldown.text:Hide()
+				end
+				
+				DiceMaster4.BuffFrame_RemoveBuff( traitButton.traitIndex ) 	
+				DiceMaster4.BuffFrame_CastBuff( traitButton.traitIndex ) 
+				DiceMaster4.SoundPicker_PlaySound( traitButton.traitIndex )
+				DiceMaster4.BuffFrame_RollDice( traitButton.traitIndex )
+				DiceMaster4.EffectPicker_PlayEffect( traitButton.traitIndex )
+				traitButton:GetScript("OnEnter")( traitButton )
+				PlaySound(80)
+			else
+				PlaySound(1428)
+			end
+		elseif not traitButton.notCastable then
+			updateTraitUses( traitButton )
+			traitButton.cooldown:SetCooldown( 0, 0 )
+			traitButton.cooldown.text:SetText("")
+			traitButton.cooldown.text:Hide()
+			traitButton:GetScript("OnEnter")( traitButton )
+			DiceMaster4.BuffFrame_RemoveBuff( traitButton.traitIndex ) 	
+			DiceMaster4.BuffFrame_CastBuff( traitButton.traitIndex ) 
+			DiceMaster4.SoundPicker_PlaySound( traitButton.traitIndex )
+			DiceMaster4.BuffFrame_RollDice( traitButton.traitIndex )
+			DiceMaster4.EffectPicker_PlayEffect( traitButton.traitIndex )
+			PlaySound(80)
+		else
+			updateTraitUses( traitButton )
+			PlaySound(1428)
+		end
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -947,6 +1075,7 @@ function Me.ApplyUiScale()
 	DiceMasterPanel:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterTraitEditor:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterStatInspector:SetScale( Me.db.char.uiScale * 1.4 )
+	DiceMasterRangeRadar:SetScale( Me.db.char.uiScale * 1.4 )
 	DiceMasterInspectFrame:SetScale( Me.db.char.uiScale * 1.2 )
 	DiceMasterStatInspectButton:SetScale( Me.db.char.uiScale * 1.2 )
 	DiceMasterBuffEditor:SetScale( Me.db.char.uiScale * 1.4 )
@@ -1055,6 +1184,8 @@ function Me:OnEnable()
 	Me.RefreshMoraleFrame( Me.db.profile.morale.count )
 	
 	Me.Inspect_ShareStatusWithParty()
+	
+	Me.UpdateAllMapNodes()
 	
 	Me.SetupWorldClickDetection()
 end

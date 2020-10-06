@@ -9,24 +9,6 @@
 local Me = DiceMaster4
 local Profile = Me.Profile
 
-function Me.EnchantDescriptionUpdate( altdesc, enchant )
-	print("test")
-	local d, m, y = string.match( altdesc , "(%d+)%/(%d+)/(%d+)" )
-	local reference = time{day=tonumber(d), year=tonumber(y), month=tonumber(m)}
-	local daysfrom = difftime(time(), reference) / (24 * 60 * 60)
-	local wholedays = math.floor(daysfrom)
-	local unit = "d"
-	if wholedays > 13 then wholedays = 2; unit = "w" end
-	if wholedays > 6 then wholedays = 1; unit = "w" end 
-	
-	if wholedays > 0 then
-		enchant = enchant:gsub("%((%d+%s%a)%)", "("..wholedays.." "..unit..")")
-	else
-		enchant = "";
-	end
-	return enchant;
-end
-
 function Me.ImportDM3Saved()
 	Me.Profile.buffsActive = {}
 	if not Me.Profile.buffs then Me.Profile.buffs = {} end

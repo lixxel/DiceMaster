@@ -33,34 +33,36 @@ function Me.UnitFrame_SendStatus( visibleframes, id, status )
 	local statusModel  = status.model
 	local statusAnim   = status.animation
 	local statusModelData = status.modelData
-	local statusSounds = status.sounds
 	local statusSymbol = status.symbol
 	local statusHealth = status.healthCurrent
 	local statusMaxHealth = status.healthMax
 	local statusArmor = status.armor
 	local statusVisible = status.visible
-	local statusBlood = status.bloodEnabled
+	local statusBuffsAllowed = Me.db.global.allowBuffs
+	local statusBlood = Me.db.global.bloodEffects
 	local statusBuffs = status.buffs
 	local statusZone = status.zone
 	local statusContinent = status.continent
+	local statusRaidAssistantAllowed = Me.db.global.allowAssistantTalkingHeads
 	
 	local msg = Me:Serialize( "UFSTAT", {
 		vf = tonumber( statusFrames );
 		id = tonumber( statusID );
 		na = tostring( statusName );
 		md = tonumber( statusModel );
-		an = tonumber( statusAnim );
+		an = statusAnim;
 		mx = statusModelData;
-		sd = statusSounds;
 		sy = tonumber( statusSymbol );
 		hc = tonumber( statusHealth );
 		hm = tonumber( statusMaxHealth );
 		ar = tonumber( statusArmor );
 		vs = tostring( statusVisible );
+		ba = tostring( statusBuffsAllowed );
 		bl = statusBlood;
 		buffs = statusBuffs;
 		zo = tostring( statusZone );
 		co = tostring( statusContinent );
+		ra = statusRaidAssistantAllowed;
 	})
 	
 	Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
@@ -73,7 +75,7 @@ end
 --  na = name							string
 --  st = visibility state				number
 --	md = model							number
---  an = model animation				number
+--  an = model animations				table
 --  mx = {								table
 --		mx.px = position x				number
 --		mx.py = position y				number
@@ -81,7 +83,6 @@ end
 --		mx.ro = rotation				number
 --		mx.zl = zoom level				number
 --  }
---  sd = sounds							table
 --  svk = spell visual kit				number
 --	sy = symbol							number
 --	hc = current health					number
@@ -91,6 +92,7 @@ end
 --  buffs = buffs						table
 --  zo = zone							string
 --  co = continent						string
+--  ra = raid assistant privileges		boolean
 
 function Me.UnitFrame_OnStatusMessage( data, dist, sender )	
 	-- Ignore our own data.
@@ -142,11 +144,29 @@ function Me.UnitFrame_OnStatusRequest( data, dist, sender )
 end
 
 ---------------------------------------------------------------------------
+-- Received an animation request.
+--  un = unitframe							number
+--	an = animation							number
+
+function Me.UnitFrame_OnAnimationMessage( data, dist, sender )	
+	-- Ignore our own data.
+	if sender == UnitName( "player" ) or not UnitIsGroupLeader( sender ) then return end
+ 
+	-- sanitize message
+	if not data.un or not data.an then
+	   
+		return
+	end
+
+	local unitframe = DiceMasterUnitsPanel.unitframes[data.un]
+	unitframe:SetAnimation( data.an )
+end
+
+---------------------------------------------------------------------------
 -- Received a talking head request.
 --  na = name							string
 --	md = model							number
 -- 	ms = message						string
---  so = sound							number
 
 function Me.UnitFrame_OnDMSAY( data, dist, sender )	
 	-- Ignore our own data.
@@ -161,8 +181,7 @@ function Me.UnitFrame_OnDMSAY( data, dist, sender )
 	
 	if ( UnitIsGroupLeader( sender ) or UnitIsGroupAssistant( sender ) ) then
 		if Me.db.global.talkingHeads then
-			DiceMasterTalkingHeadFrame_SetUnit(data.md, data.na, data.tk, data.so)
-			DiceMasterTalkingHeadFrame_PlayCurrent(data.ms)
+			DiceMasterTalkingHeadFrame_SetUnit(data.md, data.na, data.tk, data.ms, data.so)
 		else
 			Me.PrintMessage("|cFFE6E68E"..(data.na or "Unknown").." says: "..data.ms, "RAID")
 		end
@@ -184,7 +203,7 @@ function Me.UnitFrame_OnBuffMessage( data, dist, sender )
 	if not Me.IsLeader( false ) or not IsInGroup( LE_PARTY_CATEGORY_HOME ) or IsInGroup( LE_PARTY_CATEGORY_INSTANCE ) then return end
  
 	-- sanitize message
-	if not data.un or data.un > 5 or data.un < 1 or not data.na or not data.ic or not data.de or not data.co then
+	if not data.un or data.un > 6 or data.un < 1 or not data.na or not data.ic or not data.de or not data.co then
 	   
 		return
 	end
@@ -193,7 +212,7 @@ function Me.UnitFrame_OnBuffMessage( data, dist, sender )
 	
 	local unitframe = DiceMasterUnitsPanel.unitframes[data.un]
 	
-	if not unitframe.buffsAllowed then return end
+	if not Me.db.global.allowBuffs then return end
 	
 	-- search for duplicates
 	local found = false
@@ -255,7 +274,7 @@ function Me.UnitFrame_OnRemoveBuffMessage( data, dist, sender )
 	
 	local unitframe = DiceMasterUnitsPanel.unitframes[data.un]
 	
-	if not unitframe.buffsAllowed then return end
+	if not Me.db.global.allowBuffs then return end
 	
 	-- search for buff
 	for i = 1, #unitframe.buffsActive do

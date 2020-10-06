@@ -14,6 +14,8 @@ Me.statType = nil
 
 local StatsListEntries = { };
 
+local SHOP_ITEMS_PER_PAGE = 12;
+
 local function FindStatByName( name )
 	for i = 1, #Profile.stats do
 		if Profile.stats[i].name == name then
@@ -367,6 +369,12 @@ function Me.TraitEditor_StatsList_Roll( button )
 		end
 	end
 	
+	for i = 1, #Profile.buffsActive do
+		if Profile.buffsActive[i].statistic == stat.name then
+			modifier = modifier + Profile.buffsActive[i].statAmount
+		end
+	end
+	
 	dice = Me.FormatDiceString( dice, modifier )
 	
 	Me.Roll( dice, stat.name )
@@ -607,16 +615,22 @@ local function GetHighlightedText( editbox )
 	
 end
 
-function Me.TraitEditor_Insert( text )
-
-	local editbox = Me.editor.scrollFrame.Container.descEditor;
+function Me.TraitEditor_Insert( text, editbox )
+	
+	if not editbox then
+		editbox = Me.editor.scrollFrame.Container.descEditor;
+	end
+	
 	editbox:Insert( text );
 	
 end
 
-function Me.TraitEditor_InsertTag( tag, tag2 )
+function Me.TraitEditor_InsertTag( tag, tag2, editbox )
 
-	local editbox = Me.editor.scrollFrame.Container.descEditor;
+	if not editbox then
+		editbox = Me.editor.scrollFrame.Container.descEditor;
+	end
+	
 	local hi1, hi2 = GetHighlightedText( editbox );
 	local s;
 
@@ -639,8 +653,18 @@ end
 --
 
 function Me.TraitEditor_TermsOnClick(self, arg1)
-	if arg1 then
+	if not arg1 then
+		return
+	end
+
+	local anchorFrame = UIDROPDOWNMENU_OPEN_MENU:GetName()
+	
+	if anchorFrame == "DiceMasterDMNotesTermButton" then
+		Me.TraitEditor_Insert( "<" .. arg1 .. ">", DiceMasterDMNotesDMNotes.EditBox )
+		DiceMasterNotesEditBox_OnTextChanged(DiceMasterDMNotesDMNotes.EditBox)
+	else
 		Me.TraitEditor_Insert( "<" .. arg1 .. ">" )
+		Me.TraitEditor_SaveDescription()
 	end
 end
 
@@ -655,12 +679,15 @@ function Me.TraitEditor_TermsOnLoad(frame, level, menuList)
 		info.text = "Effects";
 		UIDropDownMenu_AddButton(info, level);
 		info.menuList = 2;
-		info.text = "Conditions";
+		info.text = "Combat Actions";
 		UIDropDownMenu_AddButton(info, level);
 		info.menuList = 3;
-		info.text = "Skills";
+		info.text = "Conditions";
 		UIDropDownMenu_AddButton(info, level);
 		info.menuList = 4;
+		info.text = "Skills";
+		UIDropDownMenu_AddButton(info, level);
+		info.menuList = 5;
 		info.text = "Saving Throws";
 		UIDropDownMenu_AddButton(info, level);
 		info.isTitle = false;
@@ -682,6 +709,19 @@ function Me.TraitEditor_TermsOnLoad(frame, level, menuList)
 			UIDropDownMenu_AddButton(info, level);
 		end
 	elseif menuList == 2 then
+		for i = 1, #Me.RollList["Combat Actions"] do
+			local term = Me.RollList["Combat Actions"][i];
+			info.text = Me.FormatIcon( term.iconID ) .. " " .. term.name;
+			info.notCheckable = true;
+			info.tooltipTitle = Me.FormatIcon( term.iconID ) .. " " .. term.name;
+			info.tooltipText = term.desc;
+			info.tooltipText = gsub( term.desc, "Roll", "An attempt" );
+			info.tooltipOnButton = true;
+			info.arg1 = term.name;
+			info.func = Me.TraitEditor_TermsOnClick;
+			UIDropDownMenu_AddButton(info, level);
+		end
+	elseif menuList == 3 then
 		for i = 1, #Me.TermsList["Conditions"] do
 			local term = Me.TermsList["Conditions"][i];
 			info.text = Me.FormatIcon( term.iconID ) .. " " .. term.name;
@@ -697,24 +737,24 @@ function Me.TraitEditor_TermsOnLoad(frame, level, menuList)
 			info.func = Me.TraitEditor_TermsOnClick;
 			UIDropDownMenu_AddButton(info, level);
 		end
-	elseif menuList == 3 then
+	elseif menuList == 4 then
 		for i = 1, #Me.RollList["Skills"] do
 			local term = Me.RollList["Skills"][i];
-			info.text = term.name;
+			info.text = Me.FormatIcon( term.iconID ) .. " " .. term.name;
 			info.notCheckable = true;
-			info.tooltipTitle = term.name;
+			info.tooltipTitle = Me.FormatIcon( term.iconID ) .. " " .. term.name;
 			info.tooltipText = gsub( term.desc, "Roll", "An attempt" );
 			info.tooltipOnButton = true;
 			info.arg1 = term.name;
 			info.func = Me.TraitEditor_TermsOnClick;
 			UIDropDownMenu_AddButton(info, level);
 		end
-	elseif menuList == 4 then
+	elseif menuList == 5 then
 		for i = 1, #Me.RollList["Saving Throws"] do
 			local term = Me.RollList["Saving Throws"][i];
-			info.text = term.name;
+			info.text = Me.FormatIcon( term.iconID ) .. " " .. term.name;
 			info.notCheckable = true;
-			info.tooltipTitle = term.name;
+			info.tooltipTitle = Me.FormatIcon( term.iconID ) .. " " .. term.name;
 			info.tooltipText = gsub( term.desc, "Roll", "An attempt" );
 			info.tooltipOnButton = true;
 			info.arg1 = term.name;
@@ -747,10 +787,20 @@ function Me.TraitEditor_EffectsOnLoad(frame, level, menuList)
 	info.checked = Profile.removebuffs[Me.editing_trait] and Profile.removebuffs[Me.editing_trait].name and not Profile.removebuffs[Me.editing_trait].blank;
 	info.arg1 = Me.RemoveBuffEditor_Open;
 	UIDropDownMenu_AddButton(info, level)
+	info.icon = "Interface/Icons/inv_misc_drum_01"
+	info.text = "Play Sound"
+	info.checked = Profile.playsounds[Me.editing_trait] and Profile.playsounds[Me.editing_trait].soundID and not Profile.playsounds[Me.editing_trait].blank;
+	info.arg1 = Me.SoundPicker_Open;
+	UIDropDownMenu_AddButton(info, level)
 	info.icon = "Interface/Icons/INV_Misc_Dice_01"
 	info.text = "Roll Dice"
 	info.checked = Profile.setdice[Me.editing_trait] and Profile.setdice[Me.editing_trait].value and not Profile.setdice[Me.editing_trait].blank;
 	info.arg1 = Me.SetDiceEditor_Open;
+	UIDropDownMenu_AddButton(info, level)
+	info.icon = "Interface/Icons/spell_arcane_blast"
+	info.text = "Visual Effect"
+	info.checked = Profile.visualeffects[Me.editing_trait] and Profile.visualeffects[Me.editing_trait].effectID and not Profile.visualeffects[Me.editing_trait].blank;
+	info.arg1 = Me.EffectPicker_Open;
 	UIDropDownMenu_AddButton(info, level)
 end
 
@@ -773,8 +823,7 @@ function Me.TraitEditor_OnLoad( self )
 	for i = 1,5 do
 		self.trait_buttons[i] = CreateFrame( "DiceMasterTraitButton", "DiceMasterTraitButton" .. i, self )
 
-		local x = 60 + 35*(i-1)
-		-- if i == 5 then x = 206 end
+		local x = 70 + 35*(i-1)
 
 		self.trait_buttons[i]:SetPoint( "TOPLEFT", x, -26 ) 
 		self.trait_buttons[i]:SetFrameLevel(4)
@@ -799,6 +848,8 @@ function Me.TraitEditor_OnCloseClicked()
 	Me.buffeditor:Hide()
 	Me.removebuffeditor:Hide()
 	Me.setdiceeditor:Hide()
+	DiceMasterSoundPicker:Hide()
+	DiceMasterEffectPicker:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -816,6 +867,8 @@ function Me.TraitEditor_StartEditing( index )
 	Me.buffeditor:Hide()
 	Me.removebuffeditor:Hide()
 	Me.setdiceeditor:Hide()
+	DiceMasterSoundPicker:Hide()
+	DiceMasterEffectPicker:Hide()
 end
 
 -------------------------------------------------------------------------------
@@ -874,6 +927,12 @@ function Me.TraitEditor_OnTraitClicked( self, button )
 				if Me.setdiceeditor:IsShown() then
 					Me.setdiceeditor:Hide()
 				end
+				if DiceMasterSoundPicker:IsShown() then
+					DiceMasterSoundPicker:Hide()
+				end
+				if DiceMasterEffectPicker:IsShown() then
+					DiceMasterEffectPicker:Hide()
+				end
 			end
 		end
 	end
@@ -896,11 +955,15 @@ function Me.TraitEditor_Refresh()
 		scrollFrame.traitRange:SetWidth(scrollFrame.traitRange.text:GetStringWidth())
 		scrollFrame.traitCastTime.text:SetText( Me.FormatCastTime( trait.castTime ) )
 		scrollFrame.traitCastTime:SetWidth(scrollFrame.traitCastTime.text:GetStringWidth())
+		scrollFrame.traitCooldown.text:SetText( Me.FormatCooldown( trait.cooldown ) )
+		scrollFrame.traitCooldown:SetWidth(scrollFrame.traitCooldown.text:GetStringWidth())
 		scrollFrame.traitRange:Show()
 		scrollFrame.traitCastTime:Show()
+		scrollFrame.traitCooldown:Show()
 	else
 		scrollFrame.traitRange:Hide()
 		scrollFrame.traitCastTime:Hide()
+		scrollFrame.traitCooldown:Hide()
 	end
 	
 	scrollFrame.descEditor:SetText( trait.desc )
@@ -1017,9 +1080,11 @@ function Me.TraitEditor_ChangeUsage( button )
 	if trait.usage == "PASSIVE" then
 		Me.editor.scrollFrame.Container.traitRange:Hide()
 		Me.editor.scrollFrame.Container.traitCastTime:Hide()
+		Me.editor.scrollFrame.Container.traitCooldown:Hide()
 	else
 		Me.editor.scrollFrame.Container.traitRange:Show()
 		Me.editor.scrollFrame.Container.traitCastTime:Show()
+		Me.editor.scrollFrame.Container.traitCooldown:Show()
 	end
 	
 	-- update text
@@ -1116,6 +1181,52 @@ function Me.TraitEditor_ChangeCastTime( button )
 	
 	-- update text
 	Me.editor.scrollFrame.Container.traitCastTime.text:SetText( Me.FormatCastTime( trait.castTime ) )
+	TraitUpdated()
+end
+
+-------------------------------------------------------------------------------
+-- Change the cooldown time of the currently edited trait
+--
+-- @param button Mouse button that was pressed
+--               "LeftButton" = use next cooldown
+--               "RightButton" = use previous cooldown
+--
+function Me.TraitEditor_ChangeCooldown( button )
+	local trait = Profile.traits[Me.editing_trait]
+	
+	local delta
+	if button == "LeftButton" then
+		delta = 1
+	elseif button == "RightButton" then
+		delta = -1
+	else
+		return
+	end
+	
+	local cooldown_index
+	for k,v in ipairs( Me.TRAIT_COOLDOWN_MODES ) do
+		if trait.cooldown == v then
+			cooldown_index = k
+			break
+		end
+	end
+	
+	if not cooldown_index then
+		cooldown_index = 1;
+	else
+		cooldown_index = cooldown_index + delta
+	end
+	
+	if cooldown_index > #Me.TRAIT_COOLDOWN_MODES then
+		cooldown_index = 1;
+	elseif cooldown_index <= 0 then
+		cooldown_index = #Me.TRAIT_COOLDOWN_MODES;
+	end
+	
+	trait.cooldown = Me.TRAIT_COOLDOWN_MODES[cooldown_index]
+	
+	-- update text
+	Me.editor.scrollFrame.Container.traitCooldown.text:SetText( Me.FormatCooldown( trait.cooldown ) )
 	TraitUpdated()
 end
 

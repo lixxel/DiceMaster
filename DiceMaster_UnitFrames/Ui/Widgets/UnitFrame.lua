@@ -120,16 +120,34 @@ local OTHER_ZONES_2 = {
 	"Dazar'alor",
 	"Mechagon",
 	"Nazjatar",
+	"Ny'alotha",
 	"Northgarde",
+	"Default (None)",
 }
 
-local HEALTH_EFFECTS = {
-	["wound"] = { anim = 8, altAnim = 9 },
-	["spawn"] = { anim = 127, altAnim = 224 },
+local OTHER_ZONES_3 = {
+	-- Elemental Planes
+	"Abyssal Maw",
+	"Deepholm",
+	"Skywall",
+	"Firelands",
+	-- Other
+	"Emerald Dream",
+	"Emerald Nightmare",
+	"Kezan",
+	"Maelstrom",
+	"Wandering Isle",
+	-- Shadowlands
+	"Ardenweald",
+	"Bastion",
+	"Maldraxxus",
+	"The Maw",
+	"Revendreth",
+	"Torghast",
 }
 
 local WORLD_MARKER_NAMES = {
-	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:14:14|t |cffffff00Yellow|r World Marker"; -- [1]
+	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_1:14:14|t |cffffff00Gold|r World Marker"; -- [1]
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_2:14:14|t |cffff7f3fOrange|r World Marker"; -- [2]
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_3:14:14|t |cffa335eePurple|r World Marker"; -- [3]
 	"|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_4:14:14|t |cff1eff00Green|r World Marker"; -- [4]
@@ -140,14 +158,18 @@ local WORLD_MARKER_NAMES = {
 }
 
 local function getContinent( continentString, zone )
-	if continentString == "Eastern Kingdoms" then
+	if zone == "Default (None)" then
+		return OTHER_ZONES_2, "DiceMaster_UnitFrames/Texture/other-zones-2"
+	elseif continentString == "Eastern Kingdoms" then
 		return EASTERN_KINGDOM_ZONES, "DiceMaster_UnitFrames/Texture/eastern-kingdom-zones"
 	elseif continentString == "Kalimdor" then
 		return KALIMDOR_ZONES, "DiceMaster_UnitFrames/Texture/kalimdor-zones"
 	elseif continentString == "Outland" or continentString == "Northrend" or continentString == "Pandaria" or continentString == "Draenor" then
 		return OTHER_ZONES, "DiceMaster_UnitFrames/Texture/other-zones"
-	elseif continentString == "Broken Isles" or continentString == "Argus" or continentString == "Kul Tiras" or continentString == "Zandalar" then
+	elseif continentString == "Broken Isles" or continentString == "Argus" or continentString == "Kul Tiras/Zandalar" then
 		return OTHER_ZONES_2, "DiceMaster_UnitFrames/Texture/other-zones-2"
+	elseif continentString == "Shadowlands" or continentString == "Other" then
+		return OTHER_ZONES_3, "DiceMaster_UnitFrames/Texture/other-zones-3"
 	elseif continentString and zone~="Unknown" and Me.DICEMASTER_CUSTOM_UNIT_TEXTURES then
 		-- For custom backdrops.
 		return Me.DICEMASTER_BACKDROP_ZONES[continentString], Me.DICEMASTER_CUSTOM_UNIT_TEXTURES[continentString]
@@ -161,6 +183,7 @@ local methods = {
 	--
 	Reset = function( self )
 		self:SetDisplayInfo(1)
+		self:SetLight(true, false, -0.44699833180028,  0.72403680806459, -0.52532198881773, 0.8, 0.8, 0.8, 0.8, 1, 0.8, 0.8, 0.8)
 		self.name:SetText("Unit Name")
 		self.symbol.State = 9;
 		self.symbol:SetNormalTexture(nil)
@@ -172,26 +195,35 @@ local methods = {
 		self.bloodEnabled = true
 		self.buffsActive = {}
 		self.buffFrame:Hide()
-		self.animation = 0
 		self.rotation = 0
 		self.zoomLevel = 0.7
 		self.cameraX = 0
 		self.cameraY = 0
 		self.cameraZ = 0
-		self.sounds = {}
+		self.animations = {
+			["PreAggro"] = { id = 0, anim = "Stand" },
+			["Aggro"] = { id = 127, anim = "Birth" },
+			["Melee Attack"] = { id = 16, anim = "AttackUnarmed" },
+			["Ranged Attack"] = { id = 29, anim = "ReadyBow" },
+			["Spell Attack"] = { id = 53, anim = "SpellCastDirected" },
+			["Wound"] = { id = 8, anim = "StandWound" },
+			["Death"] = { id = 1, anim = "Death" },
+			["Dead"] = { id = 6, anim = "Dead" },
+		}
 		self.scrollposition = nil
 		if Me.IsLeader( false ) then
-			DiceMaster4.SetupTooltip( self, nil, "Unit Frame", nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>" )
-			DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, "A unique icon to represent the location of this unit in the game world.|n|cFF707070<Left/Right Click to Toggle>" )
-			 DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, "Represents this unit's health.|n|cFF707070<Left/Right Click to Add/Remove>|n<Shift+Left Click to Set Max>|n<Ctrl+Left Click to Set Value>" )
+			DiceMaster4.SetupTooltip( self, nil, "Unit Frame", nil, nil, nil, nil, "Represents a custom unit.|n|cFF707070<Left Click to Edit>|n<Shift+Left/Right Click to Add/Remove>" )
+			DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, nil, "A unique icon to represent the location of this unit in the game world.|n|cFF707070<Left/Right Click to Toggle>" )
+			 DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, nil, "Represents this unit's health.|n|cFF707070<Left/Right Click to Add/Remove>|n<Shift+Left Click to Set Max>|n<Ctrl+Left Click to Set Value>|n<Alt+Left/Right Click to Add/Remove Armour>" )
 		else
 			DiceMaster4.SetupTooltip( self )
 			DiceMaster4.SetupTooltip( self.symbol )
-			DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, "Represents this unit's health." )
+			DiceMaster4.SetupTooltip( self.health, nil, "Health", nil, nil, nil, nil, "Represents this unit's health." )
 		end
 		self.state = false
-		self.zone = "Unknown"
+		self.zone = "Default (None)"
 		self.continent = "Unknown"
+		self.raidAssistantAllowed = true
 		self.visibleButton:SetAlpha(0.5)
 		self.highlight:Hide()
 		self.SetBackground( self )
@@ -208,20 +240,19 @@ local methods = {
 		framedata.healthMax = self.healthMax or 3
 		framedata.armor = self.armor or 0
 		framedata.visible = self:IsVisible()
-		framedata.buffsAllowed = self.buffsAllowed
-		framedata.bloodEnabled = self.bloodEnabled
 		framedata.buffs = self.buffsActive or {}
-		framedata.animation = self.animation or 0;
 		framedata.modelData = {}
 		framedata.modelData.px = self.cameraX
 		framedata.modelData.py = self.cameraY
 		framedata.modelData.pz = self.cameraZ
 		framedata.modelData.ro = self.rotation
 		framedata.modelData.zl = self.zoomLevel
-		framedata.sounds = self.sounds or {};
+		framedata.animations = self.animations or {};
+		framedata.animations["PreAggro"] = self.animations["PreAggro"] or { id = 0, anim = "Stand" };
 		framedata.state = self.state
 		framedata.zone = self.zone
 		framedata.continent = self.continent
+		framedata.raidAssistantAllowed = self.raidAssistantAllowed
 		return framedata;
 	end;
 	---------------------------------------------------------------------------
@@ -230,11 +261,19 @@ local methods = {
 	SetData = function( self, framedata )
 		local modelChanged = false;
 		
-		-- Set the unit's sounds
-		if framedata.sd then
-			self.sounds = framedata.sd
-		else
-			self.sounds = {}
+		-- Set the unit's animations
+		self.animations = {
+			["PreAggro"] = { id = 0, anim = "Stand" },
+			["Aggro"] = { id = 127, anim = "Birth" },
+			["Melee Attack"] = { id = 16, anim = "AttackUnarmed" },
+			["Ranged Attack"] = { id = 29, anim = "ReadyBow" },
+			["Spell Attack"] = { id = 53, anim = "SpellCastDirected" },
+			["Wound"] = { id = 8, anim = "StandWound" },
+			["Death"] = { id = 1, anim = "Death" },
+			["Dead"] = { id = 6, anim = "Dead" },
+		}
+		if framedata.an and type( framedata.an ) == "table" then
+			self.animations = framedata.an
 		end
 		
 		-- Set blood settings
@@ -248,9 +287,6 @@ local methods = {
 		if framedata.md and self:GetDisplayInfo() ~= framedata.md then		
 			self:SetDisplayInfo(framedata.md)
 			modelChanged = true;
-			if self.sounds["Aggro"] and Me.db.global.soundEffects then
-				PlaySound( self.sounds["Aggro"].id )
-			end
 		elseif not framedata.md then
 			self:SetDisplayInfo(1)
 		end
@@ -273,10 +309,7 @@ local methods = {
 		-- Check if model and name have changed
 		if self:GetDisplayInfo() == framedata.md and self.name:GetText() == framedata.na then
 			if framedata.hc < self.healthCurrent then
-				self:SetEffect( "wound" )
-				if self.sounds["Wound"] and Me.db.global.soundEffects then
-					PlaySound( self.sounds["Wound"].id )
-				end
+				self:SetAnimation( self.animations["Wound"].id or 8 )
 				if self.bloodEnabled then
 					self:ApplySpellVisualKit( 61015, true )
 				end
@@ -284,25 +317,30 @@ local methods = {
 			
 			if framedata.hc > self.healthCurrent and self.healthCurrent == 0 then
 				self.dead = false;
-				self:SetEffect( "spawn" )
-				if self.sounds["PreAggro"] and Me.db.global.soundEffects then
-					PlaySound( self.sounds["PreAggro"].id )
-				end
+				self:SetAnimation( self.animations["Aggro"].id or 127 )
 			end
 		end
 		
 		-- Handle DM functions
 		if not Me.IsLeader( false ) then
 			self.visibleButton:Hide()
-			DiceMaster4.SetupTooltip( self, nil, framedata.na, nil, nil, nil, "|cFF707070<Left Click to Target>|r" )
+			DiceMaster4.SetupTooltip( self, nil, framedata.na, nil, nil, nil, nil, "|cFF707070<Left Click to Target>|r" )
 			if framedata.sy ~= 9 then
-				DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, "This unit is currently located at the "..WORLD_MARKER_NAMES[framedata.sy] .. "|r." )
+				DiceMaster4.SetupTooltip( self.symbol, nil, "World Marker Icon", nil, nil, nil, nil, "This unit is currently located at the "..WORLD_MARKER_NAMES[framedata.sy] .. "|r." )
 			else
 				DiceMaster4.SetupTooltip( self.symbol, nil )
 			end
 		else
 			self.visibleButton:Show()
 		end
+		
+		-- Check if we're the group assistant, and if we're allowed to send Talking Heads.
+		if Me.IsLeader( false ) or ( Me.IsLeader( true ) and framedata.ra ) then
+			self.talkingHeadButton:Show()
+		else
+			self.talkingHeadButton:Hide()
+		end
+		
 		if framedata.st and Me.IsLeader( false ) then
 			self.state = true
 			self.visibleButton:SetAlpha(1)
@@ -318,25 +356,21 @@ local methods = {
 		if self.symbol.State == 9 then self.symbol:SetNormalTexture(nil) end
 		
 		-- Handle death animation.
-		if ( framedata.an == 6 and framedata.hc == 0 ) or ( self.dead and framedata.hc == 0 ) then
+		if ( self.animations["PreAggro"].id == 6 and framedata.hc == 0 ) or ( self.dead and framedata.hc == 0 ) then
 			-- unit is already "dead"
 			self.dead = true;
-			self:SetAnimation(6)
+			self:SetAnimation( self.animations["Dead"].id or 6 )
 		elseif framedata.hc == 0 then
 			-- unit is "dying"
-			self:SetAnimation(1)
+			self:SetAnimation( self.animations["Death"].id or 1)
 			self.dead = true;
-			if self.sounds["Death"] and Me.db.global.soundEffects then
-				PlaySound( self.sounds["Death"].id )
-			end
 			if self.bloodEnabled then
 				self:ApplySpellVisualKit( 61014, true )
 			end
-		elseif modelChanged or self.animation ~= framedata.an or self.dead then
+		elseif modelChanged or self.dead then
 			-- unit is "alive"
 			self.dead = false;
-			self.animation = framedata.an or 0
-			self:SetAnimation(self.animation)
+			self:SetAnimation( self.animations["PreAggro"].id )
 		end
 		
 		-- Set visibility
@@ -413,7 +447,7 @@ local methods = {
 			self.name:SetPoint("BOTTOM", 0, -13)
 			self.health:SetPoint("BOTTOM", 0, -36)
 			self.expand.Arrow:SetTexCoord(0.767, 1, 0.25, 0.327)
-			DiceMaster4.SetupTooltip( self.expand, nil, "Expand", nil, nil, nil, "Expand the frame to a larger size.|n|cFF707070<Left Click to Expand>" )
+			DiceMaster4.SetupTooltip( self.expand, nil, "Expand", nil, nil, nil, nil, "Expand the frame to a larger size.|n|cFF707070<Left Click to Expand>" )
 			self:SetPosition( 0, 0, 0 )
 			self:SetRotation( 0 )
 			self:SetPortraitZoom( 1 )
@@ -427,7 +461,7 @@ local methods = {
 			self.name:SetPoint("BOTTOM", 0, -15)
 			self.health:SetPoint("BOTTOM", 0, -38)
 			self.expand.Arrow:SetTexCoord(0.767, 1, 0.327, 0.402)
-			DiceMaster4.SetupTooltip( self.expand, nil, "Collapse", nil, nil, nil, "Collapse the frame to a smaller size.|n|cFF707070<Left Click to Collapse>" )
+			DiceMaster4.SetupTooltip( self.expand, nil, "Collapse", nil, nil, nil, nil, "Collapse the frame to a smaller size.|n|cFF707070<Left Click to Collapse>" )
 			self:SetRotation( self.rotation )
 			self:SetPortraitZoom( self.zoomLevel )
 			self:SetPosition( self.cameraX, self.cameraY, self.cameraZ )
@@ -449,14 +483,23 @@ local methods = {
 			end
 		end
 		
+		-- special handling for Shadowmoon Valley zones
+		if zone:find( "Shadowmoon Valley" ) then
+			if self.continent == "Draenor" then
+				zoneID = 25;
+			elseif self.continent == "Outland" then
+				zoneID = 4;
+			end
+		end
+		
 		if not zoneID then
-			zoneID = 17;
+			zoneID = 20;
 			texture = "DiceMaster_UnitFrames/Texture/other-zones-2"
 		end
 		
 		-- proxy image for Northgarde
 		if zone == "Dustwallow Marsh" and Me.PermittedUse() then
-			zoneID = 18;
+			zoneID = 19;
 			texture = "DiceMaster_UnitFrames/Texture/other-zones-2"
 		end
 
@@ -473,16 +516,30 @@ local methods = {
 		self.bg:SetTexture("Interface/AddOns/"..texture)
 		self.bg:SetTexCoord(l, r, t, b)
 	end;
-	---------------------------------------------------------------------------
-	-- Set unit frame data.
-	--
 	
-	SetEffect = function( self, animation )
-		if self:HasAnimation( HEALTH_EFFECTS[ animation ].anim ) then
-			self:SetAnimation( HEALTH_EFFECTS[ animation ].anim )
-		else
-			self:SetAnimation( HEALTH_EFFECTS[ animation ].altAnim )
+	SendAnimation = function( self, animationName )
+	
+		if not self.animations[ animationName ] or self.dead then
+			return
 		end
+	
+		local frameID
+		local unitframes = DiceMasterUnitsPanel.unitframes
+		for i=1,#unitframes do
+			if unitframes[i] == self then
+				frameID = i;
+				break;
+			end
+		end
+		
+		self:SetAnimation( self.animations[ animationName ].id )
+		
+		local msg = Me:Serialize( "UFANIM", {
+			un = tonumber( frameID );
+			an = tonumber( self.animations[ animationName ].id );
+		})
+		
+		Me:SendCommMessage( "DCM4", msg, "RAID", nil, "NORMAL" )
 	end;
 }
 
@@ -505,10 +562,7 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHVALUE"] = {
 	end
 	
 	if text < data.healthCurrent then
-		data:SetEffect( "wound" )
-		if data.sounds["Wound"] then
-			PlaySound( data.sounds["Wound"].id )
-		end
+		data:SetAnimation( data.animations["Wound"].id or 8 )
 		if data.bloodEnabled then
 			data:ApplySpellVisualKit( 61015, true )
 		end
@@ -516,10 +570,7 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHVALUE"] = {
 	
 	if text > data.healthCurrent and data.healthCurrent == 0 then
 		data.dead = false;
-		data:SetEffect( "spawn" )
-		if data.sounds["PreAggro"] then
-			PlaySound( data.sounds["PreAggro"].id )
-		end
+		data:SetAnimation( data.animations["Aggro"].id or 127 )
 	end
 	
 	data.healthCurrent = text
@@ -527,16 +578,13 @@ StaticPopupDialogs["DICEMASTER4_SETUNITHEALTHVALUE"] = {
 	
 	if data.healthCurrent == 0 then
 		data.dead = true;
-		data:SetAnimation(1)
-		if data.sounds["Death"] then
-			PlaySound( data.sounds["Death"].id )
-		end
+		data:SetAnimation( data.animations["Death"].id or 1 )
 		if data.bloodEnabled then
 			data:ApplySpellVisualKit( 61014, true )
 		end
 	elseif data.dead then
 		data.dead = false;
-		data:SetAnimation(data.animation)
+		data:SetAnimation( data.animations["Dead"].id or 6 )
 	end
 		
 	Me.UpdateUnitFrames()
@@ -606,10 +654,7 @@ function Me.OnUnitBarHealthClicked( self, button )
 				return
 			end
 			if delta == -1 then
-				unit:SetEffect( "wound" )
-				if unit.sounds["Wound"] then
-					PlaySound( unit.sounds["Wound"].id )
-				end
+				unit:SetAnimation( unit.animations["Wound"].id or 8 )
 				if unit.bloodEnabled then
 					unit:ApplySpellVisualKit( 61015, true )
 				end
@@ -617,26 +662,20 @@ function Me.OnUnitBarHealthClicked( self, button )
 			
 			if delta == 1 and unit.healthCurrent == 0 then
 				unit.dead = false;
-				unit:SetEffect( "spawn" )
-				if unit.sounds["PreAggro"] then
-					PlaySound( unit.sounds["PreAggro"].id )
-				end
+				unit:SetAnimation( unit.animations["Aggro"].id or 127 )
 			end
 			
 			unit.healthCurrent = Me.Clamp( unit.healthCurrent + delta, 0, unit.healthMax )
 			
 			if unit.healthCurrent == 0 then
 				unit.dead = true;
-				unit:SetAnimation(1)
-				if unit.sounds["Death"] then
-					PlaySound( unit.sounds["Death"].id )
-				end
+				unit:SetAnimation( unit.animations["Death"].id or 1)
 				if unit.bloodEnabled then
 					unit:ApplySpellVisualKit( 61014, true )
 				end
 			elseif unit.dead then
 				unit.dead = false;
-				unit:SetAnimation(unit.animation)
+				unit:SetAnimation( unit.animations["Dead"].id or 6 )
 			end
 		end
 		
@@ -781,7 +820,7 @@ function Me.UpdateUnitFrames( number )
 		end
 			
 		unitframes[i]:Show()
-		unitframes[i]:SetPoint( "CENTER", (visibleframes*85-85)-170*(i-1), 0 )
+		unitframes[i]:SetPoint( "CENTER", (visibleframes*85-85)-195*(i-1), 0 )
 	end
 	
 	if Me.IsLeader( false ) and not number then

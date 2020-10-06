@@ -5,6 +5,8 @@
 local Me = DiceMaster4
 local Profile = Me.Profile
 
+local versionCheck = true;
+
 local DEFAULT_ICON = "Interface/Icons/inv_misc_questionmark"
 
 --
@@ -65,6 +67,7 @@ local function PrimeInspectData( name )
 			max       = 0;
 			tooltip   = "Represents the amount of Charges you have accumulated for certain traits.";
 			symbol    = "charge-orb";
+			flash     = true;
 		};
 		health        = 5;
 		healthMax     = 5;
@@ -81,6 +84,11 @@ local function PrimeInspectData( name )
 			healthMax    = 5;
 			armor        = 0;
 		};
+		inventory	  = {};
+		shop		  = {};
+		currency 	  = {};
+		currencyActive = 1;
+		mapNodes 	  = {};
 		hasDM4        = false;
 	}
 	
@@ -173,13 +181,14 @@ StaticPopupDialogs["DICEMASTER4_SETTARGETHEALTHMAX"] = {
 
 function Me.Inspect_UpdateBuffButton(buttonName, playerName, index)
 	local data = Me.inspectData[playerName].buffsActive[index] or nil
-	local name, icon, description, count, duration, expirationTime, sender
+	local name, icon, description, count, duration, turns, expirationTime, sender
 	if data then 
 		name = data.name
 		icon = data.icon
 		description = data.description
 		count = data.count or 1
 		duration = data.duration
+		turns = data.turns
 		expirationTime = data.expirationTime
 		sender = data.sender
 	end
@@ -200,10 +209,11 @@ function Me.Inspect_UpdateBuffButton(buttonName, playerName, index)
 		buff:SetID(index);
 		buff:SetAlpha(1.0);
 		--buff:SetScript("OnUpdate", Me.Inspect_BuffButton_OnUpdate);
-		Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), "|cFF707070Given by "..sender )
+		--Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), "|cFF707070Given by "..sender )
 		buff:Show();
 
 		if ( duration > 0 and expirationTime ) then
+			buff.turns:Hide();
 			if ( SHOW_BUFF_DURATIONS == "1" ) then
 				buff.duration:Show();
 			else
@@ -221,11 +231,22 @@ function Me.Inspect_UpdateBuffButton(buttonName, playerName, index)
 
 			buff.expirationTime = expirationTime;		
 		else
+			buff.turns:Hide()
 			buff.duration:Hide();
 			if ( buff.timeLeft ) then
 				buff:SetScript("OnUpdate", nil);
 			end
 			buff.timeLeft = nil;
+		end
+		
+		if ( turns > 0 ) then
+			if ( SHOW_BUFF_DURATIONS == "1" ) then
+				buff.turns:Show();
+				buff.turns:SetText( turns .. " trn" )
+			else
+				buff.turns:Hide();
+				buff.turns:SetText( "" )
+			end
 		end
 
 		-- Set Icon
@@ -241,12 +262,16 @@ function Me.Inspect_UpdateBuffButton(buttonName, playerName, index)
 		end
 
 		-- Refresh tooltip
-		if ( GameTooltip:IsOwned(buff) ) then
-			if timeLeft then
-				Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ),  Me.BuffButton_FormatTime(timeLeft).." remaining|n|cFF707070Given by "..sender )
+		if timeLeft then
+			Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), nil,  Me.BuffButton_FormatTime(timeLeft).." remaining|n|cFF707070Given by "..sender )
+		elseif turns > 0 then
+			if turns > 1 then
+				Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), nil,  turns .. " turns remaining|n|cFF707070Given by "..sender )
 			else
-				Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), "|cFF707070Given by "..sender )
+				Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), nil,  turns .. " turn remaining|n|cFF707070Given by "..sender )
 			end
+		else
+			Me.SetupTooltip( buff, nil, "|cFFffd100"..name, nil, nil, Me.FormatDescTooltip( description ), nil, "|cFF707070Given by "..sender )
 		end
 	end
 	return 1;
@@ -288,7 +313,7 @@ function Me.Inspect_BuffButton_OnUpdate(self)
 	end
 
 	if ( GameTooltip:IsOwned(self) ) and timeLeft > 0 then
-		Me.SetupTooltip( self, nil, "|cFFffd100"..data.name, nil, nil, Me.FormatDescTooltip( data.description ), Me.BuffButton_FormatTime(timeLeft).." remaining|n|cFF707070Given by "..data.sender )
+		Me.SetupTooltip( self, nil, "|cFFffd100"..data.name, nil, nil, Me.FormatDescTooltip( data.description ), nil, Me.BuffButton_FormatTime(timeLeft).." remaining|n|cFF707070Given by "..data.sender )
 		self:GetScript("OnEnter")( self )
 	end
 end
@@ -324,26 +349,27 @@ function Me.Inspect_Refresh( status, trait )
 		if store.charges.max > 0 and not ourChargesHack then
 			DiceMasterInspectFrame.charges:SetMax( store.charges.max )
 			DiceMasterInspectFrame.charges:SetFilled( store.charges.count )
-			DiceMasterInspectFrame.charges2:SetMinMaxValues( 0 , store.charges.max ) 
-			DiceMasterInspectFrame.charges2:SetValue( store.charges.count )
 			
 			local symbol = store.charges.symbol or "charge-orb"
 			
 			DiceMasterInspectFrame.charges:SetTexture( 
 				"Interface/AddOns/DiceMaster/Texture/"..symbol, 
 				store.charges.color[1], store.charges.color[2], store.charges.color[3] )
-			DiceMasterInspectFrame.charges2:SetStatusBarColor( store.charges.color[1], store.charges.color[2], store.charges.color[3] )
+			
+			local chargesPlural = store.charges.name:gsub( "/.*", "" )
 				
 			-- Check for an Interface path.
 			if not symbol:find("charge") then
-				DiceMasterInspectFrame.charges2.frame:SetTexture("Interface/UNITPOWERBARALT/"..symbol.."_Horizontal_Frame")
-				DiceMasterInspectFrame.charges2.text:SetText( store.charges.count.."/"..store.charges.max )
+				DiceMasterInspectFrame.charges2:SetMinMaxPower( 0, store.charges.max )
+				DiceMasterInspectFrame.charges2:ApplyTextures( store.charges.symbol, store.charges.name, store.charges.tooltip, store.charges.count, store.charges.color, store.charges.flash )
+				DiceMasterInspectFrame.charges2.text:SetText( store.charges.count .. "/" .. store.charges.max )
 				DiceMasterInspectFrame.charges:Hide()
 				DiceMasterInspectFrame.charges2:Show()
+				DiceMasterInspectFrame.charges2:UpdateFill()
 				if Me.db.char.healthPos then
 					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, -40 )
 				else
-					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 35 )
+					DiceMasterInspectFrame.health:SetPoint( "CENTER", 0, 50 )
 				end
 			else
 				DiceMasterInspectFrame.charges:Show()
@@ -355,12 +381,8 @@ function Me.Inspect_Refresh( status, trait )
 				end
 			end
 				
-			local chargesPlural = store.charges.name:gsub( "/.*", "" )
 			Me.SetupTooltip( DiceMasterInspectFrame.charges, nil, 
-				chargesPlural, nil, nil, nil, 
-				store.charges.tooltip )
-			Me.SetupTooltip( DiceMasterInspectFrame.charges2, nil, 
-				chargesPlural, nil, nil, nil, 
+				chargesPlural, nil, nil, nil, nil, 
 				store.charges.tooltip )
 		else
 			DiceMasterInspectFrame.charges:Hide()
@@ -374,10 +396,10 @@ function Me.Inspect_Refresh( status, trait )
 		Me.RefreshHealthbarFrame( DiceMasterInspectFrame.health, store.health, store.healthMax, store.armor )
 		
 		if Me.IsLeader( true ) then
-			DiceMaster4.SetupTooltip( DiceMasterInspectFrame.health, nil, "Health", nil, nil, nil, 
-              "Represents this character's health.|n|cFF707070<Left/Right Click to Add/Remove>|n<Shift+Left Click to Set Max>|n<Ctrl+Left Click to Set Value>" )
+			DiceMaster4.SetupTooltip( DiceMasterInspectFrame.health, nil, "Health", nil, nil, nil, nil, 
+              "Represents this character's health.|n|cFF707070<Left/Right Click to Add/Remove>|n<Shift+Left Click to Set Max>|n<Ctrl+Left Click to Set Value>|n<Alt+Left/Right Click to Add/Remove Armour>" )
 		else
-			DiceMaster4.SetupTooltip( DiceMasterInspectFrame.health, nil, "Health", nil, nil, nil, "Represents this character's health." )
+			DiceMaster4.SetupTooltip( DiceMasterInspectFrame.health, nil, "Health", nil, nil, nil, nil, "Represents this character's health." )
 		end
 		
 	end
@@ -597,6 +619,7 @@ function Me.Inspect_OnTraitClicked( self, button )
 					u = trait.usage;
 					r = trait.range;
 					c = trait.castTime;
+					cd = trait.cooldown;
 					d = trait.desc;
 					a = trait.approved;
 					o = trait.officers;
@@ -684,6 +707,7 @@ function Me.Inspect_SendTrait( index, dist, channel )
 		u = trait.usage;
 		r = trait.range;
 		c = trait.castTime;
+		cd = trait.cooldown;
 		d = trait.desc;
 		a = trait.approved;
 		o = trait.officers;
@@ -716,6 +740,7 @@ local function DoSendStatus()
 			cm = Profile.charges.max;
 			cn = Profile.charges.name;
 			cs = Profile.charges.symbol;
+			fl = Profile.charges.flash;
 			cc = ToHex(Profile.charges.color);
 			ct = Profile.charges.tooltip;
 			le = Profile.level;
@@ -728,6 +753,7 @@ local function DoSendStatus()
 			ph = Profile.pet.health;
 			phm = Profile.pet.healthMax;
 			pa = Profile.pet.armor;
+			vs = Me.version;
 		}
 		if not Profile.charges.enable then
 			msg.c  = 0
@@ -738,6 +764,18 @@ local function DoSendStatus()
 			msg.buffs = Profile.buffsActive
 		else
 			msg.buffs = {}
+		end
+		
+		if #Profile.inventory > 0 then
+			msg.inv = Profile.inventory
+		else
+			msg.inv = {}
+		end
+		
+		if #Profile.shop > 0 then
+			msg.shop = Profile.shop
+		else
+			msg.shop = {}
 		end
 		
 		local msg = Me:Serialize( "STATUS", msg )
@@ -916,6 +954,7 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 	data.u = tostring( data.u or "UNKNOWN" ) 
 	data.r = tostring( data.r or "UNKNOWN" )
 	data.c = tostring( data.c or "UNKNOWN" ) 
+	data.cd = tostring( data.cd or "UNKNOWN" ) 
 	data.n = tostring( data.n or "<Unknown name.>" )
 	data.d = tostring( data.d or "" )
 	data.a = tonumber( data.a or 0 )
@@ -937,6 +976,7 @@ function Me.Inspect_OnTraitMessage( data, dist, sender )
 		usage   = data.u;
 		range   = data.r;
 		castTime = data.c;
+		cooldown = data.cd;
 		desc    = data.d;
 		approved = data.a;
 		officers = data.o;
@@ -987,9 +1027,15 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 		data.pa = tonumber(data.pa)
 	end
 	
+	-- Version check
+	if data.vs and versionCheck and data.vs > Me.version then
+		versionCheck = false;
+		Me.PrintMessage("|TInterface/AddOns/DiceMaster/Texture/logo:12|t Your DiceMaster is out of date and may be incompatible with other users. Please update at your earliest convenience.", "RAID")
+	end
+	
 	if not data.s or not data.h or not data.hm or not data.c 
 	   or not data.cm or not data.cn or data.cm < 0
-	   or data.cm > 10
+	   or data.cm > 100
 	   or data.h < 0 or data.h > data.hm or data.c < 0 
 	   or data.c > data.cm then
 	   
@@ -1012,6 +1058,7 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 	store.charges.color  = FromHex( data.cc )
 	if data.ct then store.charges.tooltip = data.ct end
 	if data.cs then store.charges.symbol = data.cs end
+	if data.fl then store.charges.flash = data.fl end
 	store.health         = data.h
 	store.healthMax      = data.hm
 	store.armor          = data.ar
@@ -1027,11 +1074,22 @@ function Me.Inspect_OnStatusMessage( data, dist, sender )
 		store.pet.healthMax    	= data.phm
 		store.pet.armor        	= data.pa
 	end
+	if data.inv then
+		store.inventory = data.inv
+	else
+		store.inventory = {};
+	end
+	if data.shop then
+		store.shop = data.shop
+	else
+		store.shop = {};
+	end
 	store.hasDM4         = true
 	
 	Me.Inspect_OnStatusUpdated( sender )
 	Me.StatInspector_UpdatePet()
-	Me.DMExperienceFrame_Update()
+	Me.DiceMasterRollDetailFrame_Update()
+	Me.DMRosterFrame_Update()
 end
 
 ---------------------------------------------------------------------------
@@ -1093,7 +1151,8 @@ function Me.Inspect_OnExperience( data, dist, sender )
 	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.Inspect_ShareStatusWithParty()
 	Me.TraitEditor_StatsList_Update()
-	Me.DMExperienceFrame_Update()
+	Me.DiceMasterRollDetailFrame_Update()
+	Me.DMRosterFrame_Update()
 end
 
 ---------------------------------------------------------------------------
@@ -1127,6 +1186,8 @@ function Me.Inspect_OnSetHPMessage( data, dist, sender )
 	
 	Me.BumpSerial( Me.db.char, "statusSerial" )
 	Me.Inspect_ShareStatusWithParty()
+	Me.DiceMasterRollDetailFrame_Update()
+	Me.DMRosterFrame_Update()
 end
 
 -------------------------------------------------------------------------------

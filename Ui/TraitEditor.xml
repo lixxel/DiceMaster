@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
  
   <Button name="DiceMasterStatButtonTemplate" hidden="false" virtual="true">
-	<Size x="230" y="24"/>
+	<Size x="290" y="24"/>
 	<Layers>
 		<Layer level="BACKGROUND">
 			<Texture name="$parentBackground" parentKey="background">
@@ -224,11 +224,100 @@
 		<TexCoords left="0" right="1" top="0.3" bottom="1"/>
 	</HighlightTexture>
   </Button>
- 
+  
+  <Frame name="DiceMasterShopItemTemplate" virtual="true">	
+		<Size x="153" y="44"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentSlotTexture" file="Interface\Buttons\UI-EmptySlot">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-13" y="13"/>
+					</Anchors>
+				</Texture>
+				<Texture name="$parentNameFrame" file="Interface\MerchantFrame\UI-Merchant-LabelSlots">
+					<Size x="128" y="78"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentSlotTexture" relativePoint="RIGHT" x="-9" y="-18"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Name" name="$parentName" inherits="GameFontNormalSmall" text="Item Name" justifyH="LEFT">
+					<Size x="100" y="30"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentSlotTexture" relativePoint="RIGHT" x="-5" y="7"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button parentKey="ItemButton" name="$parentItemButton" inherits="DiceMasterItemButton">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent"/>
+				</Anchors>
+			</Button>
+			<Frame name="$parentMoneyFrame" hidden="false">
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeTo="$parentNameFrame" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="2" y="31"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="128" y="13"/>
+				</Size>
+				<Frames>
+					<Button name="$parentItem1" hidden="true">
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="13" y="0"/>
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<Size>
+							<AbsDimension x="32" y="13"/>
+						</Size>
+						<Scripts>
+							<OnEnter>
+								GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+							</OnEnter>
+							<OnLeave>
+								GameTooltip:Hide();
+								ResetCursor();
+							</OnLeave>
+						</Scripts>
+						<ButtonText name="$parentText" parentKey="Text">
+							<Anchors>
+								<Anchor point="LEFT">
+									<Offset>
+										<AbsDimension x="-13" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</ButtonText>
+						<NormalTexture name="$parentTexture">
+							<Size>
+								<AbsDimension x="13" y="13"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT"/>
+							</Anchors>
+						</NormalTexture>
+						<NormalFont style="NumberFontNormalRight"/>
+						<PushedTextOffset>
+							<AbsDimension x="0" y="0"/>
+						</PushedTextOffset>
+					</Button>
+				</Frames>
+			</Frame>
+		</Frames>
+  </Frame>
+  
   <!-- Trait editor frame. -->
   
-  <Frame name="DiceMasterTraitEditor" enableMouse="true" movable="true" resizable="false" frameStrata="DIALOG" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate">
-    <Size x="265" y="384"/>
+  <Frame name="DiceMasterTraitEditor" enableMouse="true" movable="true" resizable="false" frameStrata="HIGH" hidden="true" parent="UIParent" inherits="ButtonFrameTemplate" topLevel="true">
+    <Size x="336" y="444"/>
     <Anchors>
       <Anchor point="TOP" x="0" y="-90" />
     </Anchors>
@@ -347,7 +436,7 @@
 				  
 				  <!-- Trait name editbox. -->
 				  <EditBox name="$parentTraitName" parentKey="traitName" multiLine="true" font="GameFontNormalMed2">
-					<Size x="170" y="12"/> 
+					<Size x="230" y="12"/> 
 					<Anchors>
 					  <Anchor point="TOPLEFT" relativeTo="$parentTraitIconButton" relativePoint="TOPRIGHT" x="5" y="-2"/> 
 					</Anchors>
@@ -392,7 +481,7 @@
 					<Size x="110" y="12"/>
 					<Anchors>
 					  <Anchor point="TOP" relativeTo="$parentTraitUsage" relativePoint="TOP"/> 
-					  <Anchor point="RIGHT" x="-50" y="0"/> 
+					  <Anchor point="RIGHT" x="10" y="0"/> 
 					</Anchors>
 					<Layers>
 					  <Layer>
@@ -434,11 +523,35 @@
 					  </OnClick>
 					</Scripts>
 				  </Button>
+				  
+				  <Button name="$parentTraitCooldown" parentKey="traitCooldown" enableMouse="true">
+					<Size x="110" y="12"/>
+					<Anchors>
+					  <Anchor point="TOP" relativeTo="$parentTraitCastTime" relativePoint="TOP"/> 
+					  <Anchor point="RIGHT" x="10" y="0"/> 
+					</Anchors>
+					<Layers>
+					  <Layer>
+						<FontString parentKey="text" inherits="GameFontHighlightSmall2" justifyH="left" setallpoints="true">
+						</FontString>
+					  </Layer>
+					</Layers>
+					<Scripts>
+					  <OnLoad> 
+						DiceMaster4.SetupTooltip( self, nil, "|cFFFFD100Click to toggle the cooldown time of this trait." )
+						self:RegisterForClicks( "LeftButtonDown", "RightButtonDown" )
+					  </OnLoad>
+					  <OnClick>
+						DiceMaster4.TraitEditor_ChangeCooldown( button )
+						self:SetWidth(self.text:GetStringWidth())
+					  </OnClick>
+					</Scripts>
+				  </Button>
 	  
 				  <!-- The multiline editbox. -->
 				  <EditBox name="$parentDescEditor" parentKey="descEditor" multiLine="true" font="GameFontHighlightSmall2">
 					
-					<Size x="208" y="12"/>
+					<Size x="268" y="12"/>
 					<Anchors>
 					  <Anchor point="TOPLEFT" relativeTo="$parentTraitIconButton" relativePoint="BOTTOMLEFT" x="0" y="-16"/> 
 					</Anchors>
@@ -676,7 +789,7 @@
 				self:SetScale(0.8)
 				self:SetStatusBarTexture(1, 1, 1, "BORDER", -1);
 				self:GetStatusBarTexture():SetGradient("VERTICAL", 8/255, 93/255, 72/255, 11/255, 136/255, 105/255);
-				self:SetStatusBarColor(0.48, 0.1, 0.7);
+				self:SetStatusBarColor(0.2, 0.6, 1.0);
 			</OnLoad>
 			<OnEnter>
 				GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
@@ -787,7 +900,7 @@
 			<DiceMasterTraitButton name="$parentPetIconButton" parentKey="petIcon" >
 				<Size x="42" y="42"/>
 				<Anchors>
-					<Anchor point="TOPLEFT" x="4" y="-4"/> 
+					<Anchor point="TOPLEFT" x="10" y="-10"/> 
 				</Anchors>
 				<Scripts>
 				  <OnLoad>
@@ -840,7 +953,7 @@
 		    </EditBox>
 			<PlayerModel parentKey="petModel" enableMouse="true" inherits="ModelWithControlsTemplate">
 				<Anchors>
-					<Anchor point="TOPLEFT" x="2" y="-48"/>
+					<Anchor point="TOPLEFT" x="2" y="-60"/>
 					<Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
                 </Anchors>
                 <Scripts>
@@ -881,6 +994,8 @@
 				<OnClick>
 					DiceMaster4.editor.Inset:SetPoint("BOTTOMLEFT", 4, 40)
 					DiceMaster4.editor.Bg:SetPoint("BOTTOMRIGHT", -6, 40)
+					DiceMaster4.editor.Inset:Show();
+					DiceMaster4.editor.Bg:Show()
 					PanelTemplates_SetTab(DiceMaster4.editor, 1);
                     DiceMasterTraitsFrame:Show();
 					DiceMasterTraitEditor.StatsWarning:Hide()
@@ -905,6 +1020,8 @@
 			<OnClick>
 				DiceMaster4.editor.Inset:SetPoint("BOTTOMLEFT", 4, 26)
 				DiceMaster4.editor.Bg:SetPoint("BOTTOMRIGHT", -6, 26)
+				DiceMaster4.editor.Inset:Show();
+				DiceMaster4.editor.Bg:Show()
 				PanelTemplates_SetTab(DiceMaster4.editor, 2);
 				DiceMasterTraitsFrame:Hide();
 				DiceMasterTraitEditorExperienceBar:Show()
@@ -930,6 +1047,8 @@
 			<OnClick>
 				DiceMaster4.editor.Inset:SetPoint("BOTTOMLEFT", 4, 26)
 				DiceMaster4.editor.Bg:SetPoint("BOTTOMRIGHT", -6, 26)
+				DiceMaster4.editor.Inset:Show();
+				DiceMaster4.editor.Bg:Show()
 				PanelTemplates_SetTab(DiceMaster4.editor, 3);
 				DiceMasterTraitsFrame:Hide();
 				DiceMasterTraitEditor.StatsWarning:Hide()

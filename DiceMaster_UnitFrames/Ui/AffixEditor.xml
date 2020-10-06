@@ -230,6 +230,7 @@
 						self:SetNormalTexture("Interface/Vehicles/UI-VEHICLES-RAID-ICON")
 						end
 						PlaySound(823)
+						DiceMaster4.AffixEditor_Save()
 					</OnClick>
 				  </Scripts>
 			</Button>
@@ -249,6 +250,7 @@
 				  </OnLoad>
 				  <OnEditFocusLost>
 					DiceMaster4.UnitSlot.UnitName:SetText( self:GetText() )
+					DiceMaster4.AffixEditor_Save()
 				  </OnEditFocusLost>
 				  <OnEscapePressed function="EditBox_ClearFocus"/>
 				  <OnEnterPressed function="EditBox_ClearFocus"/>
@@ -269,7 +271,16 @@
 						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to toggle whether players can see this unit.")
 					</OnLoad>
 					<OnClick>
+						if self:GetChecked() then
+							DiceMaster4.UnitEditing.visibleButton:SetAlpha(1)
+							DiceMaster4.UnitEditing:SendAnimation( "Aggro" )
+							DiceMaster4.UnitEditing.state = true;
+						else
+							DiceMaster4.UnitEditing.visibleButton:SetAlpha(0.5)
+							DiceMaster4.UnitEditing.state = false;
+						end
 						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						DiceMaster4.UpdateUnitFrames()
 					</OnClick>
 				</Scripts>
 			</CheckButton>
@@ -293,24 +304,10 @@
 				</Scripts>
 			</PlayerModel>
 			
-			<Button name="$parentAnimation" parentKey="animation" enableMouse="true" inherits="UIDropDownMenuTemplate">
-				<Size x="300" y="22"/>
-				<Anchors>
-				  <Anchor point="TOPLEFT" relativeTo="$parentBottomInset" x="-8" y="-8"/> 
-				</Anchors>
-				<Scripts>
-				  <OnLoad>
-					UIDropDownMenu_Initialize( self, DiceMaster4.AnimationPickerDropDown_OnLoad )
-					UIDropDownMenu_SetText(DiceMasterAffixEditor.animation, "Stand") 
-					UIDropDownMenu_SetWidth(self, 165, 5)
-				  </OnLoad>
-				</Scripts>
-			</Button>
-			
-			<Button inherits="MagicButtonTemplate" text="Select Model">
+			<Button parentKey="modelPicker" inherits="MagicButtonTemplate" text="Select Model">
 				<Size x="120" y="22"/>
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parentAnimation" relativePoint="RIGHT" x="32" y="2"/>
+					<Anchor point="TOPLEFT" relativeTo="$parentBottomInset" x="8" y="-8"/>
 				</Anchors>
 				<Scripts>
 					<OnLoad>
@@ -325,35 +322,20 @@
 			<Button name="$parentBackdrop" parentKey="backdrop" enableMouse="true" inherits="UIDropDownMenuTemplate">
 				<Size x="300" y="22"/>
 				<Anchors>
-				  <Anchor point="TOPLEFT" relativeTo="$parentAnimation" relativePoint="BOTTOMLEFT" x="0" y="2"/> 
+				  <Anchor point="LEFT" relativeKey="$parent.modelPicker" relativePoint="RIGHT" x="-10" y="-2"/> 
 				</Anchors>
 				<Scripts>
 				  <OnLoad>
 					UIDropDownMenu_Initialize( self, DiceMaster4.BackdropPickerDropDown_OnLoad )
-					UIDropDownMenu_SetWidth(self, 165, 5)
+					UIDropDownMenu_SetWidth(self, 160, 5)
 				  </OnLoad>
-				</Scripts>
-			</Button>
-			
-			<Button name="$parentApplyBuff" parentKey="applyBuff" inherits="MagicButtonTemplate" text="Apply Buff">
-				<Size x="120" y="22"/>
-				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parentBackdrop" relativePoint="RIGHT" x="32" y="2"/> 
-				</Anchors>
-				<Scripts>
-					<OnLoad>
-						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to apply a buff to this unit.")
-					</OnLoad>
-					<OnClick>
-						DiceMaster4.UnitFramesBuffEditor_Open()
-					</OnClick>
 				</Scripts>
 			</Button>
 			
 			<Button name="$parentSendTalkingHead" parentKey="sendTalkingHead" inherits="MagicButtonTemplate" text="Send Talking Head">
 				<Size x="170" y="22"/>
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parentBackdrop" relativePoint="BOTTOMLEFT" x="16" y="0"/> 
+					<Anchor point="TOPLEFT" relativeKey="$parent.modelPicker" relativePoint="BOTTOMLEFT" x="0" y="-8"/> 
 				</Anchors>
 				<Scripts>
 					<OnLoad>
@@ -365,21 +347,20 @@
 				</Scripts>
 			</Button>
 			
-			<CheckButton name="$parentAllowBuffs" parentKey="allowBuffs" inherits="UICheckButtonTemplate">
-				<Size x="24" y="24"/>
+			<Button name="$parentApplyBuff" parentKey="applyBuff" inherits="MagicButtonTemplate" text="Apply Buff">
+				<Size x="130" y="22"/>
 				<Anchors>
-				  <Anchor point="LEFT" relativeTo="$parentSendTalkingHead" relativePoint="RIGHT" x="4" y="0"/>
+					<Anchor point="LEFT" relativeKey="$parent.sendTalkingHead" relativePoint="RIGHT" x="4" y="0"/> 
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Allow Players to Buff")
-						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to toggle whether players can buff this unit.")
+						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to apply a buff to this unit.")
 					</OnLoad>
 					<OnClick>
-						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						DiceMaster4.UnitFramesBuffEditor_Open()
 					</OnClick>
 				</Scripts>
-			</CheckButton>
+			</Button>
 			
 			<Button name="$parentSetHealth" parentKey="setHealth" inherits="MagicButtonTemplate" text="Set Health">
 				<Size x="120" y="22"/>
@@ -412,35 +393,89 @@
 			</Button>
 			
 			<Button name="$parentSetSounds" parentKey="setSounds" inherits="MagicButtonTemplate" text="Assign Sound Effects">
-				<Size x="170" y="22"/>
+				<Size x="150" y="22"/>
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeTo="$parentSetHealth" relativePoint="BOTTOMLEFT" x="0" y="-8"/> 
 				</Anchors>
 				<Scripts>
 					<OnLoad>
 						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to change this unit's sound effect settings.")
+						self:Disable()
 					</OnLoad>
 					<OnClick>
-						DiceMaster4.SoundPicker_Open( self:GetParent() )
+						--DiceMaster4.SoundPicker_Open( self:GetParent() )
 					</OnClick>
 				</Scripts>
 			</Button>
 			
-			<CheckButton name="$parentEnableBlood" parentKey="enableBlood" inherits="UICheckButtonTemplate">
-				<Size x="24" y="24"/>
+			<Button name="$parentSetAnimations" parentKey="setAnimations" inherits="MagicButtonTemplate" text="Assign Animations">
+				<Size x="150" y="22"/>
 				<Anchors>
-				  <Anchor point="LEFT" relativeTo="$parentSetSounds" relativePoint="RIGHT" x="4" y="0"/>
+					<Anchor point="LEFT" relativeTo="$parentSetSounds" relativePoint="RIGHT" x="4" y="0"/> 
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Enable Blood Effects")
-						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to toggle whether this unit has blood effects when it loses health.")
+						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to change this unit's animation settings.")
 					</OnLoad>
 					<OnClick>
-						PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+						DiceMaster4.AnimationPicker_Open( self:GetParent() )
 					</OnClick>
 				</Scripts>
-			</CheckButton>
+			</Button>
+			
+			<EditBox parentKey="diceValue" inherits="InputBoxTemplate">
+				<Size x="80" y="8" />
+				<Anchors>
+				  <Anchor point="TOPLEFT" relativeKey="$parent.setSounds" relativePoint="BOTTOMLEFT" x="6" y="-16"/> 
+				</Anchors>
+				<Scripts>
+				  <OnLoad>
+				    self:SetText( "1D20+0" )
+					self:SetAutoFocus( false )
+				  </OnLoad>
+				  <OnEscapePressed function="EditBox_ClearFocus"/>
+				</Scripts>
+			</EditBox>
+			
+			<Button name="$parentRollType" parentKey="rollType" enableMouse="true" inherits="UIDropDownMenuTemplate">
+				<Size x="300" y="22"/>
+				<Anchors>
+				  <Anchor point="LEFT" relativeKey="$parent.diceValue" relativePoint="RIGHT" x="-8" y="-2"/> 
+				</Anchors>
+				<Scripts>
+				  <OnLoad>
+					UIDropDownMenu_Initialize( self, DiceMaster4.RollTypePickerDropDown_OnLoad )
+					UIDropDownMenu_SetText( self, "(None)" )
+					UIDropDownMenu_SetWidth(self, 105, 5)
+				  </OnLoad>
+				</Scripts>
+			</Button>
+			
+			<Button name="$parentRoll" parentKey="roll" inherits="MagicButtonTemplate" text="Roll">
+				<Size x="80" y="22"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parentRollType" relativePoint="RIGHT" x="34" y="2"/> 
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						DiceMaster4.SetupTooltip( self, nil,  "|cFFFFD100Click to roll for this unit.")
+					</OnLoad>
+					<OnClick>
+						local rollType = UIDropDownMenu_GetText( DiceMasterAffixEditor.rollType )
+						if rollType == "(None)" then
+							rollType = nil
+						end
+						if rollType then
+							DiceMaster4.UnitEditing:SendAnimation( rollType )
+						end
+						local marker = "|TInterface/TARGETINGFRAME/UI-RaidTargetingIcon_"..DiceMasterAffixEditor.unitSymbol.State..":14|t "
+						if DiceMasterAffixEditor.unitSymbol.State == 9 then
+							marker = ""
+						end
+						DiceMaster4.Roll( DiceMasterAffixEditor.diceValue:GetText(), rollType, marker..DiceMasterAffixEditor.unitName:GetText() )
+					</OnClick>
+				</Scripts>
+			</Button>
 			
 			<Button name="$parentLoadButton" parentKey="LoadButton" enableMouse="true" inherits="UIPanelButtonTemplate">
 				<Size x="80" y="16"/>

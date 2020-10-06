@@ -337,7 +337,11 @@ local function CheckRolls( name )
 				end
 				table.remove( rollInfo, 1 )
 				
-				PrintDiceMasterRoll( name, r.count, r.max, r.mod, rolls, r.type, true )
+				if r.unit then
+					PrintDiceMasterRoll( r.unit, r.count, r.max, r.mod, rolls, r.type, true )
+				else
+					PrintDiceMasterRoll( name, r.count, r.max, r.mod, rolls, r.type, true )
+				end
 			end
 		end
 	end
@@ -347,7 +351,7 @@ end
 -- Record player roll info from a Dice Master roll command. (Locally or
 --   over the network.)
 --
-local function AddRollInfo( name, count, min, max, mod, vanilla, rollType )
+local function AddRollInfo( name, count, min, max, mod, vanilla, rollType, unitName )
 	playerRollInfo[name] = playerRollInfo[name] or {}
 	
 	local data = {
@@ -357,6 +361,7 @@ local function AddRollInfo( name, count, min, max, mod, vanilla, rollType )
 		mod   = mod or 0;
 		v     = vanilla;
 		type  = rollType;
+		unit  = unitName;
 		time  = GetTime();
 	}
 	
@@ -387,7 +392,7 @@ local function AddServerRoll( name, roll, min, max )
 	CheckRolls( name )  
 end
 
-local function SendRollMessage( count, min, max, mod, vanilla, rollType )
+local function SendRollMessage( count, min, max, mod, vanilla, rollType, unitName )
 
 
 	if IsInGroup()  then
@@ -398,6 +403,7 @@ local function SendRollMessage( count, min, max, mod, vanilla, rollType )
 		if mod and mod ~= 0 then data.m = mod end
 		if vanilla then data.v = true end
 		if rollType then data.t = rollType end
+		if unitName then data.u = unitName end
 		
 		local msg = Me:Serialize( "R", data )
 		
@@ -407,7 +413,7 @@ local function SendRollMessage( count, min, max, mod, vanilla, rollType )
 		C_ChatInfo.SendAddonMessage( "DCM4", msg, "RAID" )
 	end
 	
-	AddRollInfo( UnitName("player"), count, min, max, mod, vanilla, rollType )
+	AddRollInfo( UnitName("player"), count, min, max, mod, vanilla, rollType, unitName )
 end
  
 -------------------------------------------------------------------------------
@@ -415,7 +421,7 @@ end
 --
 -- @param dice Dice format, e.g. 2d6+1, d20, 4D4-2
 --
-function Me.Roll( dice, rollType )
+function Me.Roll( dice, rollType, unitName )
 	
 	local function UIError( msg )
 		-- helper function to throw errors.
@@ -436,6 +442,7 @@ function Me.Roll( dice, rollType )
 	modtype  = modtype  == "" and "+" or modtype
 	mod      = mod      == "" and 0 or tonumber(mod)
 	rollType = rollType or nil
+	unitName = unitName or nil
 	
 	if count == 0 then    return UIError( "You must have at least one die." )              end 
 	if count > 10 then    return UIError( "You can only roll 10 dice at a time." )         end 
@@ -446,7 +453,7 @@ function Me.Roll( dice, rollType )
 		mod = -mod
 	end
 	
-	SendRollMessage( count, 1, sides, mod, nil, rollType )
+	SendRollMessage( count, 1, sides, mod, nil, rollType, unitName )
 	
 	doingDiceMasterRoll = true
 	
@@ -532,7 +539,7 @@ end
 function Me.Dice_OnRollMessage( data, dist, sender )
 
 	if sender == UnitName("player") then return end
-	AddRollInfo( sender, data.c, data.a, data.b, data.m, data.v, data.t )
+	AddRollInfo( sender, data.c, data.a, data.b, data.m, data.v, data.t, data.u )
 end
 
 -------------------------------------------------------------------------------

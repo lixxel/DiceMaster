@@ -115,17 +115,14 @@
 	</Frame>
 
 	<!--The prompt dialog for sending a banner.-->
-	<Frame name="DiceMasterBannerPromptDialog" parent="UIParent" hidden="true" framestrata="DIALOG" topLevel="true">
-		<Size x="360" y="160"/>
+	<Frame name="DiceMasterBannerPromptDialog" parent="UIParent" inherits="BackdropTemplate" hidden="true" framestrata="DIALOG" topLevel="true">
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
+		</KeyValues>
+		<Size x="360" y="220"/>
 		<Anchors>
 			<Anchor point="TOP" x="0" y="-50"/>
 		</Anchors>
-		<Backdrop bgFile="Interface/DialogFrame/UI-DialogBox-Background"
-		   edgeFile="Interface/DialogFrame/UI-DialogBox-Border" tile="true">
-			<EdgeSize val="32"/>
-			<TileSize val="32"/>
-		<BackgroundInsets left="11" right="12" top="12" bottom="11"/>
-		</Backdrop>
 		<Layers>
 			<Layer level="ARTWORK">
 				<Texture parentKey="Header" file="Interface/DialogFrame/UI-DialogBox-Header">
@@ -145,9 +142,15 @@
 						<Anchor point="BOTTOMRIGHT" x="-18" y="48"/>
 					</Anchors>
 				</FontString>
-				<FontString parentKey="Desc" inherits="GameFontNormal" justifyV="TOP" justifyH="CENTER">
+				<FontString parentKey="Desc" inherits="GameFontNormal" justifyV="TOP" justifyH="CENTER" text="Combat Turn Tracker Options:">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="18" y="-130"/>
+						<Anchor point="BOTTOMRIGHT" x="-18" y="48"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Desc2" inherits="GameFontNormal" justifyV="TOP" justifyH="CENTER">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="18" y="-190"/>
 						<Anchor point="BOTTOMRIGHT" x="-18" y="48"/>
 					</Anchors>
 				</FontString>
@@ -162,6 +165,7 @@
 				<Scripts>
 				  <OnLoad>
 					UIDropDownMenu_Initialize( self, DiceMaster4.RollBannerDropDown_OnLoad )
+					UIDropDownMenu_SetSelectedID( self, 6 )
 					UIDropDownMenu_SetText(self, "Custom") 
 					UIDropDownMenu_SetWidth(self, 145, 5)
 				  </OnLoad>
@@ -199,6 +203,46 @@
 				  <OnEnterPressed function="EditBox_ClearFocus"/>
 				</Scripts>
 			</EditBox>
+			<CheckButton name="$parentAdvanceTurn" parentKey="AdvanceTurn" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="14" y="-140"/> 
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self:SetChecked( true )
+						self:SetScript( "OnClick", function( self ) end)
+						_G["DiceMasterBannerPromptDialogAdvanceTurnText"]:SetText( "This phase advances to the next combat round." )
+						_G["DiceMasterBannerPromptDialogAdvanceTurnText"]:SetTextColor( 1, 1, 1 )
+					</OnLoad>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parentTurnTimer" parentKey="TurnTimer" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="14" y="-160"/> 
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self:SetChecked( true )
+						self:SetScript( "OnClick", function( self ) end)
+						_G["DiceMasterBannerPromptDialogTurnTimerText"]:SetText( "Set a timer for this phase:" )
+						_G["DiceMasterBannerPromptDialogTurnTimerText"]:SetTextColor( 1, 1, 1 )
+					</OnLoad>
+				</Scripts>
+			</CheckButton>
+			<Button parentKey="Timer" enableMouse="true" inherits="UIDropDownMenuTemplate">
+				<Size x="100" y="22"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="DiceMasterBannerPromptDialogTurnTimerText" relativePoint="RIGHT" x="-12" y="-2"/> 
+				</Anchors>
+				<Scripts>
+				  <OnLoad>
+					UIDropDownMenu_Initialize( self, DiceMaster4.RollBannerTimerDropDown_OnLoad )
+					UIDropDownMenu_SetWidth(self, 100, 5)
+					UIDropDownMenu_SetSelectedID( self, 2 )
+					UIDropDownMenu_SetText( self, "2 Minutes" )
+				  </OnLoad>
+				</Scripts>
+			</Button>
 			<CheckButton parentKey="Accept" inherits="OptionsButtonTemplate" text="Send">
 				<Anchors>
 					<Anchor point="BOTTOMLEFT" x="14" y="14"/>
@@ -221,7 +265,7 @@
 			</CheckButton>
 		</Frames>
 		<Scripts>
-			<OnLoad>
+			<OnLoad inherit="prepend">
 				self:SetClampedToScreen( true )
 				self:SetMovable(true)
 				self:EnableMouse(true)
@@ -236,7 +280,7 @@
 				self.checkboxes = {}
 				for i = 1, 6 do
 					self.checkboxes[i] = CreateFrame( "CheckButton", "DiceMasterBannerPromptDialogCheckbox"..i, self, "OptionsCheckButtonTemplate" )
-					self.checkboxes[i]:SetPoint( "TOPLEFT", 14 , -130 - 20*i )
+					self.checkboxes[i]:SetPoint( "TOPLEFT", 14 , -190 - 20*i )
 					self.checkboxes[i]:SetScript( "OnClick", function( self, button ) end)
 					_G["DiceMasterBannerPromptDialogCheckbox"..i.."Text"]:SetTextColor(1, 1, 1)
 					self.checkboxes[i]:Hide()

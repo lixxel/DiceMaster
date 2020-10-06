@@ -11,7 +11,7 @@ local Me = DiceMaster4
 local startOffset = 0
 local filteredList = nil
 
-Me.unitList = #Me.modelList
+Me.unitList = 95474
 
 -------------------------------------------------------------------------------
 -- StaticPopupDialogs for Collections.
@@ -262,8 +262,8 @@ function Me.ModelPickerButton_OnClick( self, button )
 		value = Me.modelList[value].displayID
 	end
 	
-	if button == "LeftButton" and Me.IsLeader( true ) then
-		if Me.ModelEditing then
+	if button == "LeftButton" then
+		if Me.ModelEditing and ( Me.ModelEditing == DiceMasterPetFrame.petModel or Me.IsLeader( true ) ) then
 			Me.ModelEditing:ClearModel()
 			Me.ModelEditing:SetDisplayInfo(value)
 			PlaySound(83)
@@ -378,7 +378,7 @@ function Me.ModelPicker_FilterChanged( list )
 	else
 		-- build new list
 		filteredList = {}
-		for i=1,Me.unitList do
+		for i=1,#Me.modelList do
 			if strfind( Me.modelList[i].model, filter) or strfind( Me.modelList[i].displayID, filter) then 
 				tinsert( filteredList, Me.modelList[i] )
 			end
@@ -394,7 +394,7 @@ end
 --
 function Me.ModelPicker_RefreshScroll( reset, value )
 	local list = filteredList or Me.modelList 
-	local max = math.floor((#list - 8) / 4)
+	local max = math.floor((#list - 12) / 4)
 	if max < 0 then max = 0 end
 	DiceMasterModelPicker.selectorFrame.scroller:SetMinMaxValues( 0, max )
 	
@@ -419,7 +419,7 @@ end
 -- Open the model picker window.
 --
 function Me.ModelPicker_Open( frame, model )
-	Me.SoundPicker_Close()
+	Me.AnimationPicker_Close()
 	DiceMasterModelPicker:ClearAllPoints()
 	DiceMasterModelPicker:SetPoint( "LEFT", frame, "RIGHT" )
 	Me.ModelEditing = model

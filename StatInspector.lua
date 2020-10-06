@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Dice Master (C) 2019 <The League of Lordaeron> - Moon Guard
+-- Dice Master (C) 2020 <The League of Lordaeron> - Moon Guard
 -------------------------------------------------------------------------------
 
 --
@@ -19,14 +19,16 @@ function Me.StatInspector_Update()
 
 	if Me.inspectName then
 		Me.statInspectName = Me.inspectName
+		SetPortraitTexture( Me.statinspector.portrait, "target" )
+		Me.statinspector.TitleText:SetText( UnitName("target") )
 	end
 	
 	if not Me.statInspectName then
 		return
 	end
 	
-	SetPortraitTexture( Me.statinspector.portrait, "target" )
-	Me.statinspector.TitleText:SetText( UnitName("target") )
+	--SetPortraitTexture( Me.statinspector.portrait, "target" )
+	--Me.statinspector.TitleText:SetText( UnitName("target") )
 	
 	local store = Me.inspectData[Me.statInspectName]
 	local stats = store.stats
