@@ -169,7 +169,7 @@ function Me.SoundPicker_SendAreaSound( range, soundKitID )
 		so = tonumber( soundKitID );
 	})
 	
-	local y1, x1, _, instance1 = UnitPosition( target )
+	local y1, x1, _, instance1 = UnitPosition( "player" )
 	for i = 1, GetNumGroupMembers( 1 ) do
 		local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML = GetRaidRosterInfo(i);
 		local y2, x2, _, instance2 = UnitPosition( "raid" .. i )

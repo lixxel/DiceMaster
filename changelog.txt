@@ -1,3 +1,23 @@
+### 5.1.4
+- Patch 9.0 support
+- Added a new Visual Effects feature to traits, allowing players to display an on-screen visual effect when they right-click the associated trait.
+- Added over 600 new Smite icons to the icon library.
+- Added new Shadowlands skins to the Charges and Progress Bars.
+- Traits can now display their remaining uses in the bottom right corner of the icon.
+- Added a new Range Radar to track distance between players (accessible with the '/dicemaster range [number]' console command.
+- Added Shadowlands models to the Model Picker.
+- Added Shadowlands backdrops to the Unit Editor.
+- Updated TexCoords for map nodes.
+- Changed the map node icons to sort alphabetically.
+- Changed the Turn Tracker timer to update using a timer function rather than the OnUpdate handler.
+- The Turn Tracker timer now plays a warning sound every second after the timer reaches 00:10 remaining.
+- Fixed an issue where traits on a turn-based cooldown were not updating when the turn was changed.
+- Fixed an issue where unit frame markers changed when the Unit Editor was opened.
+- Fixed an issue where unit frame animations were not saving properly.
+- Added a new version check feature.
+- Added all default Conditions to the Apply Buff dropdown in the Unit Editor.
+- Fixed an issue where Area Sounds were not working correctly.
+
 ### 5.1.3
 - Players can now create custom Map Nodes from the DM Manager! These nodes can be customised with a unique tooltip, and dragged and dropped around the World Map.
 - While in a party or raid, players will see the group leader's Map Nodes on their World Map and Minimap!

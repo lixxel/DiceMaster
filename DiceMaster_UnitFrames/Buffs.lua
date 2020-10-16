@@ -171,14 +171,6 @@ function Me.UnitFramesBuffEditor_ApplyBuff( self )
 	for i = 1, #unitframe.buffs do
 		Me.UnitFrames_UpdateBuffButton( unitframe, i)
 	end
-	for i = 1, #unitframe.buffsActive do
-		
-		if unitframe.buffsActive[i].name == "Stunned" then
-			unitframe:ApplySpellVisualKit( 14482, false )
-			unitframe:SetAnimation( 14 )
-		end
-		
-	end
 	unitframe.buffFrame:Show()
 	Me.UpdateUnitFrames()
 end

@@ -80,7 +80,7 @@ local filteredList = nil
 
 function Me.EffectPicker_OnLoad(self)
 	self.Inset:SetPoint("TOPLEFT", self, "TOPLEFT", 3, -48)
-	self.Inset:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -6, 50)
+	self.Inset:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -6, 70)
 	
 	if self.NineSlice then
 		self.NineSlice:SetFrameLevel(1)
@@ -111,6 +111,11 @@ function Me.EffectPicker_Refresh()
 		effect = {
 			effectID = 0;
 			effectName = "";
+			effectPos = {
+				x = -20;
+				y = 9.7;
+				z = 1;
+			};
 			blank = true;
 		}
 		DiceMasterEffectPicker.customEffect:SetChecked( false )
@@ -125,6 +130,11 @@ function Me.EffectPicker_Refresh()
 			DiceMasterEffectPicker.selectedID = effect.effectID
 			DiceMasterEffectPicker.selectedName = effect.effectName;
 		end
+	end
+	if effect.effectPos then
+		DiceMasterEffectPicker.customEffectPosX:SetText( effect.effectPos.x or "-20" )
+		DiceMasterEffectPicker.customEffectPosY:SetText( effect.effectPos.y or "9.7" )
+		DiceMasterEffectPicker.customEffectPosZ:SetText( effect.effectPos.z or "1" )
 	end
 	Me.EffectPicker_Update()
 end
@@ -172,6 +182,14 @@ function Me.EffectPicker_TestEffect( self, spellVisualKitID )
 	-- Stop playing any current effects.
 	Me.ResetFullscreenEffect()
 	-- Play the new effect.
+	local x, y, z = DiceMasterEffectPicker.customEffectPosX:GetText(), DiceMasterEffectPicker.customEffectPosY:GetText(), DiceMasterEffectPicker.customEffectPosZ:GetText()
+	
+	x = tonumber( x ) or 0
+	y = tonumber( y ) or 0
+	z = tonumber( z ) or 0
+	
+	DiceMasterFullscreenEffectFrame.Model:SetPosition( x, y, z );
+	
 	if self then
 		if list[self.effectIndex].id then
 			DiceMasterFullscreenEffectFrame.Model:SetSpellVisualKit( list[self.effectIndex].id );
@@ -184,7 +202,8 @@ end
 function Me.EffectPicker_PlayEffect( traitIndex )
 	local effect = Profile.visualeffects[ traitIndex ]
 	Me.ResetFullscreenEffect()
-	if ( effect and effect.effectID ) then
+	if ( effect and effect.effectID and effect.effectPos and effect.effectPos.x and effect.effectPos.y and effect.effectPos.z ) then
+		DiceMasterFullscreenEffectFrame.Model:SetPosition( effect.effectPos.x, effect.effectPos.y, effect.effectPos.z );
 		DiceMasterFullscreenEffectFrame.Model:SetSpellVisualKit( effect.effectID );
 	end
 end
@@ -202,16 +221,37 @@ function Me.EffectPicker_Save()
 		return
 	end
 	
+	local x, y, z = DiceMasterEffectPicker.customEffectPosX:GetText(), DiceMasterEffectPicker.customEffectPosY:GetText(), DiceMasterEffectPicker.customEffectPosZ:GetText()
+	
+	x = tonumber( x ) or nil
+	y = tonumber( y ) or nil
+	z = tonumber( z ) or nil
+	
+	if not x or not y or not z then
+		UIErrorsFrame:AddMessage( "Invalid position arguements.", 1.0, 0.0, 0.0, 53, 5 );
+		return
+	end
+	
 	if DiceMasterEffectPicker.customEffect:GetChecked() then
 		Profile.visualeffects[Me.editing_trait] = {
 			effectID = DiceMasterEffectPicker.customEffectID:GetText();
 			effectName = "";
+			effectPos = {
+				x = x;
+				y = y;
+				z = z;
+			};
 			blank = false;
 		}
 	else	
 		Profile.visualeffects[Me.editing_trait] = {
 			effectID = DiceMasterEffectPicker.selectedID;
 			effectName = DiceMasterEffectPicker.selectedName;
+			effectPos = {
+				x = x;
+				y = y;
+				z = z;
+			};
 			blank = false;
 		}
 	end
