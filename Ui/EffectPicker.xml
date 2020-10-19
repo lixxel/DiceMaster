@@ -54,7 +54,7 @@
 	</Button>
   
     <Frame name="DiceMasterEffectPicker" parent="UIParent" hidden="true" inherits="SimplePanelTemplate" frameStrata="DIALOG" toplevel="true">
-		<Size x="256" y="330"/>
+		<Size x="256" y="350"/>
 		<Anchors>
 		  <Anchor point="LEFT" relativeTo="DiceMasterTraitEditor" relativePoint="RIGHT" x="0" y="0" />
 		</Anchors>
@@ -71,6 +71,11 @@
 				<FontString inherits="GameFontNormal" justifyH="center" text="Visual Effect">
 					<Anchors>
 					  <Anchor point="TOP" x="0" y="-12"/> 
+					</Anchors>
+				</FontString>
+				<FontString parentKey="positionLabel" inherits="GameFontNormalLeft" justifyH="left" text="Position">
+					<Anchors>
+					  <Anchor point="BOTTOMLEFT" x="8" y="32"/> 
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -100,7 +105,7 @@
 		  
 		  <CheckButton name="$parentCustomEffect" parentKey="customEffect" inherits="ChatConfigCheckButtonTemplate">
 			<Anchors>
-			  <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="4" y="48" />
+			  <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="4" y="68" />
 			</Anchors>
 			<HitRectInsets>
 				<AbsInset left="0" right="0" top="0" bottom="0"/>
@@ -148,6 +153,78 @@
 					</OnClick>
 				</Scripts>
 		  </Button>
+		  
+		  <EditBox parentKey="customEffectPosX" inherits="InputBoxTemplate" letters="3">
+			<Size x="32" y="8" />
+			<Anchors>
+			  <Anchor point="LEFT" relativeKey="$parent.positionLabel" relativePoint="RIGHT" x="30" y="0" />
+			</Anchors>
+			<Layers>
+				<Layer level="ARTWORK">
+					<FontString inherits="GameFontNormal" justifyH="center" text="X:">
+						<Anchors>
+						  <Anchor point="LEFT" x="-20" y="0"/> 
+						</Anchors>
+					</FontString>
+				</Layer>
+			</Layers>
+			<Scripts>
+			  <OnLoad>
+				self:SetAutoFocus( false )
+			  </OnLoad>
+			  <OnEscapePressed function="EditBox_ClearFocus"/>
+			  <OnTabPressed>
+				DiceMasterEffectPicker.customEffectPosY:SetFocus()
+			  </OnTabPressed>
+			</Scripts>
+		  </EditBox>
+		  
+		  <EditBox parentKey="customEffectPosY" inherits="InputBoxTemplate" letters="3">
+			<Size x="32" y="8" />
+			<Anchors>
+			  <Anchor point="LEFT" relativeKey="$parent.customEffectPosX" relativePoint="RIGHT" x="30" y="0" />
+			</Anchors>
+			<Layers>
+				<Layer level="ARTWORK">
+					<FontString inherits="GameFontNormal" justifyH="center" text="Y:">
+						<Anchors>
+						  <Anchor point="LEFT" x="-20" y="0"/> 
+						</Anchors>
+					</FontString>
+				</Layer>
+			</Layers>
+			<Scripts>
+			  <OnLoad>
+				self:SetAutoFocus( false )
+			  </OnLoad>
+			  <OnEscapePressed function="EditBox_ClearFocus"/>
+			  <OnTabPressed>
+				DiceMasterEffectPicker.customEffectPosZ:SetFocus()
+			  </OnTabPressed>
+			</Scripts>
+		  </EditBox>
+		  
+		  <EditBox parentKey="customEffectPosZ" inherits="InputBoxTemplate" letters="3">
+			<Size x="32" y="8" />
+			<Anchors>
+			  <Anchor point="LEFT" relativeKey="$parent.customEffectPosY" relativePoint="RIGHT" x="30" y="0" />
+			</Anchors>
+			<Layers>
+				<Layer level="ARTWORK">
+					<FontString inherits="GameFontNormal" justifyH="center" text="Z:">
+						<Anchors>
+						  <Anchor point="LEFT" x="-20" y="0"/> 
+						</Anchors>
+					</FontString>
+				</Layer>
+			</Layers>
+			<Scripts>
+			  <OnLoad>
+				self:SetAutoFocus( false )
+			  </OnLoad>
+			  <OnEscapePressed function="EditBox_ClearFocus"/>
+			</Scripts>
+		  </EditBox>
 		 
 		  <Button inherits="MagicButtonTemplate" text="Delete">
 			<Size x="100" y="22"/>

@@ -373,7 +373,7 @@ function Me.AffixEditor_Refresh()
 	if framedata.healthCurrent == 0 then
 		editor.Model:SetAnimation( Me.UnitEditing.animations["Dead"].id or 6 )
 		editor.Model.animation = Me.UnitEditing.animations["Dead"].id or 6
-		UIDropDownMenu_SetText(editor.animation, "Dead")
+		--UIDropDownMenu_SetText(editor.animation, "Dead")
 	else
 		editor.Model:SetAnimation( framedata.animations["PreAggro"].id or 0)
 		editor.Model.animation = Me.UnitEditing.animations["PreAggro"].id or 0
